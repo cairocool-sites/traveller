@@ -28,6 +28,18 @@ final class Access
         'manage_roles',
         'view_audit_logs',
         'manage_system_settings',
+        'view_countries',
+        'manage_countries',
+        'view_cities',
+        'manage_cities',
+        'view_areas',
+        'manage_areas',
+        'view_currencies',
+        'manage_currencies',
+        'view_exchange_rates',
+        'manage_exchange_rates',
+        'view_facilities',
+        'manage_facilities',
     ];
 
     public const ROLE_PERMISSIONS = [
@@ -36,6 +48,12 @@ final class Access
         'operations_admin' => [
             'access_admin',
             'view_users',
+            'view_countries',
+            'manage_countries',
+            'view_cities',
+            'manage_cities',
+            'view_areas',
+            'manage_areas',
         ],
         'reservation_manager' => [
             'access_admin',
@@ -45,12 +63,23 @@ final class Access
         ],
         'accountant' => [
             'access_admin',
+            'view_currencies',
+            'view_exchange_rates',
+            'manage_exchange_rates',
         ],
         'customer_support' => [
             'access_admin',
         ],
         'content_manager' => [
             'access_admin',
+            'view_countries',
+            'manage_countries',
+            'view_cities',
+            'manage_cities',
+            'view_areas',
+            'manage_areas',
+            'view_facilities',
+            'manage_facilities',
         ],
         'api_manager' => [
             'access_admin',
@@ -60,6 +89,12 @@ final class Access
             'view_users',
             'view_roles',
             'view_audit_logs',
+            'view_countries',
+            'view_cities',
+            'view_areas',
+            'view_currencies',
+            'view_exchange_rates',
+            'view_facilities',
         ],
     ];
 

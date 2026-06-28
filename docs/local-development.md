@@ -61,6 +61,7 @@ npm install
 php artisan key:generate
 php artisan migrate
 php artisan db:seed --class=AdminFoundationSeeder
+php artisan db:seed --class=CoreReferenceDataSeeder
 npm run dev
 php artisan serve
 ```
@@ -72,6 +73,12 @@ php artisan migrate --seed
 ```
 
 The admin panel is available at `/admin`.
+
+Reference data can be seeded with:
+
+```bash
+php artisan db:seed --class=CoreReferenceDataSeeder
+```
 
 Run tests:
 
