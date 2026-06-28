@@ -60,9 +60,18 @@ composer install
 npm install
 php artisan key:generate
 php artisan migrate
+php artisan db:seed --class=AdminFoundationSeeder
 npm run dev
 php artisan serve
 ```
+
+To create the first local super admin, set `ADMIN_NAME`, `ADMIN_EMAIL`, and a strong `ADMIN_PASSWORD` in `.env`, then run:
+
+```bash
+php artisan migrate --seed
+```
+
+The admin panel is available at `/admin`.
 
 Run tests:
 

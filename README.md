@@ -2,7 +2,7 @@
 
 Cairo Cool Travel is a Laravel hotel booking platform planned for Egypt first, with future expansion to Saudi Arabia and the UAE.
 
-This repository is currently in Phase 1: Laravel Foundation only.
+This repository is currently in Phase 2: Admin Foundation only.
 
 ## Current Scope
 
@@ -17,6 +17,10 @@ This repository is currently in Phase 1: Laravel Foundation only.
 - Pest test foundation.
 - Laravel Pint formatting.
 - Standard Laravel Vite frontend foundation.
+- Filament admin panel at `/admin`.
+- Spatie Laravel Permission roles and permissions foundation.
+- Admin user management with active/inactive status and preferred locale.
+- Read-only roles and permissions matrix.
 
 ## Out of Scope
 
@@ -30,6 +34,10 @@ The following are intentionally not implemented yet:
 - B2B or B2B2C features
 - Real API credentials
 - Deployment automation
+
+## Admin Documentation
+
+See [docs/admin-foundation.md](docs/admin-foundation.md) for admin setup, roles, permissions, and first super admin instructions.
 
 ## Local Documentation
 
