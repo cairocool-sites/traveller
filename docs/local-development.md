@@ -74,11 +74,15 @@ php artisan migrate --seed
 
 The admin panel is available at `/admin`.
 
+Hotel catalog management is available under `/admin/hotels` for users with hotel permissions.
+
 Reference data can be seeded with:
 
 ```bash
 php artisan db:seed --class=CoreReferenceDataSeeder
 ```
+
+No fake hotels are seeded by default.
 
 Run tests:
 

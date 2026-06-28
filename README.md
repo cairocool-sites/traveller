@@ -2,7 +2,7 @@
 
 Cairo Cool Travel is a Laravel hotel booking platform planned for Egypt first, with future expansion to Saudi Arabia and the UAE.
 
-This repository is currently in Phase 3: Core Reference Data only.
+This repository is currently in Phase 4: Hotel Catalog Foundation only.
 
 ## Current Scope
 
@@ -24,6 +24,9 @@ This repository is currently in Phase 3: Core Reference Data only.
 - Core reference data for countries, cities, areas, currencies, exchange rates, and facilities.
 - Manual exchange-rate management foundation and decimal-safe conversion service.
 - Bilingual Arabic/English facility translations.
+- Canonical internal hotel catalog foundation.
+- Hotel translations, facilities, contacts, image metadata, and hotel policies.
+- Protected Filament hotel content management.
 
 ## Out of Scope
 
@@ -31,6 +34,8 @@ The following are intentionally not implemented yet:
 
 - Hotel search, content, or inventory features
 - Supplier adapters or integrations
+- Supplier hotel mappings
+- Room types, room inventory, or rate plans
 - Booking flow
 - Payments
 - Quotations
@@ -43,6 +48,8 @@ The following are intentionally not implemented yet:
 See [docs/admin-foundation.md](docs/admin-foundation.md) for admin setup, roles, permissions, and first super admin instructions.
 
 See [docs/core-reference-data.md](docs/core-reference-data.md) for reference-data entities, seeders, permissions, and currency behavior.
+
+See [docs/hotel-catalog.md](docs/hotel-catalog.md) for hotel catalog entities, publication rules, permissions, and media metadata behavior.
 
 ## Local Documentation
 

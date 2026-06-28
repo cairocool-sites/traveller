@@ -52,6 +52,15 @@ Phase 3 reference-data permissions:
 - `view_facilities`
 - `manage_facilities`
 
+Phase 4 hotel-catalog permissions:
+
+- `view_hotels`
+- `manage_hotels`
+- `publish_hotels`
+- `manage_hotel_media`
+- `manage_hotel_facilities`
+- `manage_hotel_policies`
+
 ## First Super Admin
 
 Set these values in local `.env` only:
