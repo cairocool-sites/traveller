@@ -40,6 +40,12 @@ final class Access
         'manage_exchange_rates',
         'view_facilities',
         'manage_facilities',
+        'view_hotels',
+        'manage_hotels',
+        'publish_hotels',
+        'manage_hotel_media',
+        'manage_hotel_facilities',
+        'manage_hotel_policies',
     ];
 
     public const ROLE_PERMISSIONS = [
@@ -54,6 +60,10 @@ final class Access
             'manage_cities',
             'view_areas',
             'manage_areas',
+            'view_hotels',
+            'manage_hotels',
+            'manage_hotel_facilities',
+            'manage_hotel_policies',
         ],
         'reservation_manager' => [
             'access_admin',
@@ -80,6 +90,12 @@ final class Access
             'manage_areas',
             'view_facilities',
             'manage_facilities',
+            'view_hotels',
+            'manage_hotels',
+            'publish_hotels',
+            'manage_hotel_media',
+            'manage_hotel_facilities',
+            'manage_hotel_policies',
         ],
         'api_manager' => [
             'access_admin',
@@ -95,6 +111,7 @@ final class Access
             'view_currencies',
             'view_exchange_rates',
             'view_facilities',
+            'view_hotels',
         ],
     ];
 
