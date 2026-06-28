@@ -24,7 +24,12 @@ class AdminFoundationSeeder extends Seeder
 
         foreach (Access::ROLES as $roleName) {
             $role = Role::findOrCreate($roleName, 'web');
-            $role->syncPermissions(Access::ROLE_PERMISSIONS[$roleName] ?? ['access_admin']);
+            $role->syncPermissions(
+                Permission::query()
+                    ->whereIn('name', Access::ROLE_PERMISSIONS[$roleName] ?? ['access_admin'])
+                    ->where('guard_name', 'web')
+                    ->get(),
+            );
         }
 
         $this->createDevelopmentSuperAdmin();

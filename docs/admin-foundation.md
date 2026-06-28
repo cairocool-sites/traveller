@@ -37,6 +37,21 @@ Phase 2 adds the internal administration foundation only. It does not add hotel,
 - `view_audit_logs`
 - `manage_system_settings`
 
+Phase 3 reference-data permissions:
+
+- `view_countries`
+- `manage_countries`
+- `view_cities`
+- `manage_cities`
+- `view_areas`
+- `manage_areas`
+- `view_currencies`
+- `manage_currencies`
+- `view_exchange_rates`
+- `manage_exchange_rates`
+- `view_facilities`
+- `manage_facilities`
+
 ## First Super Admin
 
 Set these values in local `.env` only:
