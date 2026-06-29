@@ -51,6 +51,12 @@ jobs:
           QUEUE_CONNECTION: sync
           MAIL_MAILER: log
 
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
       - name: Run tests
         run: php artisan test
         env:
@@ -64,9 +70,3 @@ jobs:
 
       - name: Run Pint
         run: vendor/bin/pint --test
-
-      - name: Install Node dependencies
-        run: npm ci
-
-      - name: Build frontend
-        run: npm run build
