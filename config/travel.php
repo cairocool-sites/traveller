@@ -32,4 +32,15 @@ return [
 
     'timezone' => env('TRAVEL_TIMEZONE', 'Africa/Cairo'),
 
+    'public_search' => [
+        'max_rooms' => (int) env('TRAVEL_SEARCH_MAX_ROOMS', 4),
+        'max_adults_per_room' => (int) env('TRAVEL_SEARCH_MAX_ADULTS_PER_ROOM', 4),
+        'max_children_per_room' => (int) env('TRAVEL_SEARCH_MAX_CHILDREN_PER_ROOM', 4),
+        'max_child_age' => (int) env('TRAVEL_SEARCH_MAX_CHILD_AGE', 17),
+        'max_stay_nights' => (int) env('TRAVEL_SEARCH_MAX_STAY_NIGHTS', 30),
+        'session_lifetime_minutes' => (int) env('TRAVEL_SEARCH_SESSION_LIFETIME_MINUTES', 30),
+        'suppliers' => ['mock_hotels'],
+        'results_limit' => (int) env('TRAVEL_SEARCH_RESULTS_LIMIT', 30),
+    ],
+
 ];

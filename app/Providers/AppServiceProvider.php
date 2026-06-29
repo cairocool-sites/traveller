@@ -12,6 +12,7 @@ use App\Models\Hotel;
 use App\Models\HotelContact;
 use App\Models\HotelImage;
 use App\Models\HotelPolicy as HotelPolicyModel;
+use App\Models\SearchSession;
 use App\Models\Supplier;
 use App\Models\SupplierCredential;
 use App\Models\SupplierOperationLog;
@@ -27,6 +28,7 @@ use App\Policies\HotelImagePolicy;
 use App\Policies\HotelPolicy;
 use App\Policies\HotelPolicyPolicy;
 use App\Policies\RolePolicy;
+use App\Policies\SearchSessionPolicy;
 use App\Policies\SupplierCredentialPolicy;
 use App\Policies\SupplierOperationLogPolicy;
 use App\Policies\SupplierPolicy;
@@ -65,6 +67,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Supplier::class, SupplierPolicy::class);
         Gate::policy(SupplierCredential::class, SupplierCredentialPolicy::class);
         Gate::policy(SupplierOperationLog::class, SupplierOperationLogPolicy::class);
+        Gate::policy(SearchSession::class, SearchSessionPolicy::class);
 
         Gate::define('view_roles', fn (User $user): bool => $user->hasPermissionTo('view_roles'));
         Gate::define('manage_roles', fn (User $user): bool => $user->hasPermissionTo('manage_roles'));
