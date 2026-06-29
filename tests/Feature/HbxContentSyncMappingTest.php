@@ -17,6 +17,7 @@ use App\Models\SupplierOperationLog;
 use App\Services\Supplier\Hbx\HbxContentApiClient;
 use App\Services\Supplier\Hbx\HbxContentSyncService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
 use Spatie\Permission\PermissionRegistrar;
@@ -48,7 +49,8 @@ it('uses official hbx content api endpoints with signed sanitized requests', fun
     Http::assertSent(fn ($request): bool => str_starts_with($request->url(), 'https://api.test.hotelbeds.com/hotel-content-api/1.0/locations/countries')
         && $request->method() === 'GET'
         && $request->hasHeader('Api-key')
-        && $request->hasHeader('X-Signature'));
+        && $request->hasHeader('X-Signature')
+        && $request->hasHeader('Accept-Encoding', 'gzip'));
 
     $log = SupplierOperationLog::query()->where('request_url', HbxContentApiClient::COUNTRIES_PATH)->firstOrFail();
     $encoded = json_encode([$log->request_headers, $log->request_payload], JSON_THROW_ON_ERROR);
@@ -56,6 +58,41 @@ it('uses official hbx content api endpoints with signed sanitized requests', fun
     expect($encoded)->not->toContain('content-api-key')
         ->and($encoded)->not->toContain('content-api-secret')
         ->and($encoded)->toContain('[REDACTED]');
+});
+
+it('diagnoses the official hotels endpoint without exposing credentials or raw signatures', function () {
+    Http::fake(['api.test.hotelbeds.com/*' => Http::response([
+        'auditData' => ['timestamp' => '2026-06-30 12:00:00.000'],
+        'hotels' => ['hotels' => []],
+        'from' => 1,
+        'to' => 10,
+        'total' => 0,
+    ], 200, ['Content-Type' => 'application/json'])]);
+
+    $this->artisan('hbx:content:diagnose-hotels --from=1 --to=10 --language=ENG')
+        ->expectsOutputToContain('Resolved base URL: https://api.test.hotelbeds.com')
+        ->expectsOutputToContain('Endpoint path: /hotel-content-api/1.0/hotels')
+        ->expectsOutputToContain('Query parameters: {"fields":"all","language":"ENG","from":1,"to":10}')
+        ->expectsOutputToContain('Api-key header present: yes')
+        ->expectsOutputToContain('X-Signature header present: yes')
+        ->expectsOutputToContain('Accept-Encoding header: gzip')
+        ->expectsOutputToContain('HTTP status: 200')
+        ->expectsOutputToContain('Response envelope keys: auditData, hotels, from, to, total')
+        ->expectsOutputToContain('Classification: success')
+        ->assertSuccessful();
+
+    $output = Artisan::output();
+
+    expect($output)->not->toContain('content-api-key')
+        ->and($output)->not->toContain('content-api-secret')
+        ->and($output)->not->toContain('X-Signature:');
+
+    Http::assertSent(fn ($request): bool => str_starts_with($request->url(), 'https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels')
+        && str_contains($request->url(), 'fields=all')
+        && str_contains($request->url(), 'language=ENG')
+        && str_contains($request->url(), 'from=1')
+        && str_contains($request->url(), 'to=10')
+        && $request->hasHeader('Accept-Encoding', 'gzip'));
 });
 
 it('syncs destinations with pagination and idempotent upserts', function () {
@@ -140,6 +177,53 @@ it('syncs hotels for a bounded destination and prevents duplicates', function ()
 
     Http::assertSent(fn ($request): bool => str_starts_with($request->url(), 'https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels')
         && $request->method() === 'GET');
+});
+
+it('syncs hotels by official hotel codes returned from availability', function () {
+    Http::fake(['api.test.hotelbeds.com/*' => Http::response(['hotels' => ['hotels' => [[
+        'code' => 2002,
+        'name' => ['content' => 'HBX Code Filter Hotel'],
+        'destinationCode' => 'CAI',
+        'countryCode' => 'EG',
+        'categoryCode' => '4EST',
+    ]]]], 200)]);
+
+    $supplier = Supplier::query()->where('code', 'hbx_hotels')->firstOrFail();
+    $result = app(HbxContentSyncService::class)->syncHotels($supplier, '', [
+        'hotel_codes' => '2002,not-a-code',
+        'from' => 1,
+        'to' => 1,
+    ]);
+
+    expect($result['processed'])->toBe(1)
+        ->and(HbxHotel::query()->where('hotel_code', '2002')->value('hotel_name'))->toBe('HBX Code Filter Hotel');
+
+    Http::assertSent(fn ($request): bool => str_starts_with($request->url(), 'https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels')
+        && str_contains($request->url(), 'codes=2002'));
+});
+
+it('syncs hotel details by official hotel code fallback', function () {
+    Http::fake(['api.test.hotelbeds.com/*' => Http::response([
+        'hotel' => [
+            'code' => 3003,
+            'name' => ['content' => 'HBX Details Hotel'],
+            'destination' => ['code' => 'CAI'],
+            'country' => ['code' => 'EG'],
+            'category' => ['code' => '5EST'],
+            'address' => ['content' => 'Sandbox Address'],
+        ],
+    ], 200)]);
+
+    $supplier = Supplier::query()->where('code', 'hbx_hotels')->firstOrFail();
+    $result = app(HbxContentSyncService::class)->syncHotelDetailsByCodes($supplier, '3003', ['language' => 'ENG']);
+
+    expect($result['processed'])->toBe(1)
+        ->and(HbxHotel::query()->where('hotel_code', '3003')->value('hotel_name'))->toBe('HBX Details Hotel')
+        ->and(HbxHotel::query()->where('hotel_code', '3003')->value('destination_code'))->toBe('CAI');
+
+    Http::assertSent(fn ($request): bool => str_starts_with($request->url(), 'https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels/3003/details')
+        && str_contains($request->url(), 'language=ENG')
+        && $request->hasHeader('Accept-Encoding', 'gzip'));
 });
 
 it('syncs generic hbx content resources with idempotent payload storage', function () {

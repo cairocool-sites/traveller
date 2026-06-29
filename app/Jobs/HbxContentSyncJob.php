@@ -21,6 +21,7 @@ class HbxContentSyncJob implements ShouldQueue
             '--resource' => $this->options['resource'] ?? null,
             '--country' => $this->options['country'] ?? null,
             '--destination' => $this->options['destination'] ?? null,
+            '--hotel-codes' => $this->options['hotel_codes'] ?? null,
             '--language' => $this->options['language'] ?? 'ENG',
             '--limit' => $this->options['limit'] ?? null,
             '--from' => $this->options['from'] ?? null,

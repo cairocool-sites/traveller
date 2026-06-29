@@ -34,6 +34,7 @@ beforeEach(function (): void {
         'services.hbx.api_key' => 'phase12-api-key',
         'services.hbx.api_secret' => 'phase12-api-secret',
         'services.hbx.base_url' => 'https://api.test.hotelbeds.com',
+        'services.hbx.sandbox_booking_enabled' => false,
         'travel.public_search.suppliers' => ['hbx_hotels', 'mock_hotels'],
         'travel.public_search.markup_basis_points' => 0,
     ]);

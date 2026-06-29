@@ -19,6 +19,8 @@ class HbxContentSyncCommand extends Command
         {--resource= : Content resource: countries, destinations, hotels, all, or a supported master resource}
         {--country= : Country code filter such as EG}
         {--destination= : HBX destination code}
+        {--hotel-codes= : Comma-separated official HBX hotel codes from Availability}
+        {--details : Use the official /hotels/{hotelCodes}/details fallback for --hotel-codes}
         {--language=ENG : HBX language code}
         {--limit= : Maximum records to request using official from/to range}
         {--from= : Official HBX Content API from offset}
@@ -50,8 +52,12 @@ class HbxContentSyncCommand extends Command
                 throw new RuntimeException('Full authorized portfolio sync requires --confirm.');
             }
 
-            if (! $this->option('full-authorized-portfolio') && ! $this->option('country') && ! $this->option('destination') && in_array($resource, ['all', 'destinations', 'hotels'], true)) {
-                throw new RuntimeException('Use --country={ISO2} or --destination={HBX_CODE} for bounded sync, or explicitly use --full-authorized-portfolio --confirm.');
+            if (! $this->option('full-authorized-portfolio') && ! $this->option('country') && ! $this->option('destination') && ! $this->option('hotel-codes') && in_array($resource, ['all', 'destinations', 'hotels'], true)) {
+                throw new RuntimeException('Use --country={ISO2}, --destination={HBX_CODE}, or --hotel-codes={codes} for bounded sync, or explicitly use --full-authorized-portfolio --confirm.');
+            }
+
+            if ($this->option('details') && ! $this->option('hotel-codes')) {
+                throw new RuntimeException('Use --hotel-codes with --details.');
             }
 
             $options = [
@@ -59,6 +65,8 @@ class HbxContentSyncCommand extends Command
                 'page_limit' => (int) $this->option('page-limit'),
                 'country_code' => $this->option('country') ? strtoupper((string) $this->option('country')) : null,
                 'destination_code' => $this->option('destination') ? strtoupper((string) $this->option('destination')) : null,
+                'hotel_codes' => $this->option('hotel-codes'),
+                'details' => (bool) $this->option('details'),
                 'language' => strtoupper((string) $this->option('language')),
                 'limit' => $this->option('limit') ? (int) $this->option('limit') : null,
                 'from' => $this->option('from') ? (int) $this->option('from') : null,
@@ -74,6 +82,8 @@ class HbxContentSyncCommand extends Command
                     'resource' => $resource,
                     'country' => $this->option('country'),
                     'destination' => $this->option('destination'),
+                    'hotel_codes' => $this->option('hotel-codes'),
+                    'details' => (bool) $this->option('details'),
                     'language' => $options['language'],
                     'limit' => $options['limit'],
                     'from' => $options['from'],
@@ -130,7 +140,9 @@ class HbxContentSyncCommand extends Command
         return match ($resource) {
             'countries' => $this->syncCountries($supplier, $options),
             'destinations' => $sync->syncDestinations($supplier, $options),
-            'hotels' => $sync->syncHotels($supplier, (string) ($options['destination_code'] ?: ''), $options),
+            'hotels' => $options['details']
+                ? $sync->syncHotelDetailsByCodes($supplier, $options['hotel_codes'], $options)
+                : $sync->syncHotels($supplier, (string) ($options['destination_code'] ?: ''), $options),
             default => $sync->syncGenericResource($supplier, $resource, $options),
         };
     }
@@ -205,6 +217,8 @@ class HbxContentSyncCommand extends Command
                 'requested_from' => $options['from'],
                 'requested_to' => $options['to'],
                 'requested_limit' => $options['limit'],
+                'hotel_codes' => $options['hotel_codes'],
+                'details' => $options['details'] ? true : null,
             ], fn ($value): bool => $value !== null),
             'last_update_time' => $options['last_update_time'],
             'dry_run' => $options['dry_run'],

@@ -9,7 +9,13 @@ The Content API is kept separate from the Booking API adapter and uses the same 
 - `GET /hotel-content-api/1.0/locations/countries`
 - `GET /hotel-content-api/1.0/locations/destinations`
 - `GET /hotel-content-api/1.0/hotels`
-- `GET /hotel-content-api/1.0/hotels/{code}/details`
+- `GET /hotel-content-api/1.0/hotels/{hotelCodes}/details`
+
+The official OpenAPI server is `https://api.test.hotelbeds.com/hotel-content-api/{version}` with version `1.0`; the application stores the host as `https://api.test.hotelbeds.com` and keeps the versioned path in the client constants.
+
+Official hotels filters used by the application include `destinationCode`, `countryCode`, `codes`, `fields`, `language`, `from`, `to`, `useSecondaryLanguage`, `lastUpdateTime`, and `PMSRoomCode` where needed. Official destination filters include `codes`, `countryCodes`, `fields`, `language`, `from`, `to`, `useSecondaryLanguage`, and `lastUpdateTime`. Countries support `codes`, `fields`, `language`, `from`, `to`, `useSecondaryLanguage`, and `lastUpdateTime`.
+
+The response envelope includes resource keys such as `hotels`, `destinations`, or `countries`, plus pagination metadata such as `from`, `to`, and `total` when returned. Error responses may contain a safe `error` string or an `error.code` / `error.message` object. The official default pagination window is `from=1` and `to=100`; the local sync service uses 100-record pages unless an explicit smaller bounded range is supplied.
 
 Availability, CheckRate, booking lookup, booking, and cancellation remain in the Booking API path under `/hotel-api/1.0/*`.
 
@@ -20,6 +26,7 @@ Content API requests use:
 - `Api-key`
 - `X-Signature`
 - `Accept: application/json`
+- `Accept-Encoding: gzip`
 - `Content-Type: application/json`
 - `X-Correlation-ID`
 
@@ -72,6 +79,10 @@ php artisan hbx:content:sync --resource=destinations --country=EG --page-limit=1
 php artisan hbx:content:sync --resource=destinations --country=EG --limit=100
 php artisan hbx:content:sync --resource=hotels --country=EG --page-limit=1
 php artisan hbx:content:sync --resource=hotels --from=1 --to=100
+php artisan hbx:content:sync --resource=hotels --hotel-codes=12345,67890 --from=1 --to=2
+php artisan hbx:content:sync --resource=hotels --hotel-codes=12345,67890 --details
+php artisan hbx:content:diagnose-hotels --from=1 --to=10 --language=ENG
+php artisan hbx:content:diagnose-hotels --details --codes=12345 --language=ENG
 php artisan hbx:content:sync --resource=boards --country=EG --last-update-time=2026-06-01
 php artisan hbx:content:sync --resource=all --country=EG --page-limit=1
 php artisan hbx:content:sync --resource=all --full-authorized-portfolio --confirm --page-limit=1
@@ -83,6 +94,19 @@ php artisan hbx:content:enable-public --country=EG --dry-run
 Full authorized portfolio mode is blocked unless both `--full-authorized-portfolio` and `--confirm` are provided. The command prints sanitized progress and never sends booking, modification, cancellation, or production requests.
 
 Each run writes a content sync batch. `--queue` creates a pending batch and dispatches `HbxContentSyncJob`; the job reruns the same guarded command with the existing batch id. Admin users with supplier-view permission can inspect the batch list in Filament without seeing sensitive payloads.
+
+`hbx:content:diagnose-hotels` sends one read-only `GET /hotel-content-api/1.0/hotels` request and prints only the resolved sandbox base URL, endpoint path, API version, sanitized query names and values, authentication header presence, HTTP status, safe HBX error code/message, response content type, envelope keys, elapsed time, and classification. It never persists credentials or raw responses.
+
+If bulk hotels requests remain unavailable after the official request is validated, use the incremental fallback from real Availability:
+
+1. Run a safe Availability dry-run to obtain supplier hotel codes.
+2. Call `hbx:content:sync --resource=hotels --hotel-codes={codes} --from=1 --to={count}`.
+3. If `/hotels?codes=...` is unavailable, call `hbx:content:sync --resource=hotels --hotel-codes={codes} --details`, which uses the official `/hotels/{hotelCodes}/details` endpoint.
+4. Upsert only returned official hotel records into `hbx_hotels`.
+5. Enable public visibility only after content review.
+6. Continue bounded imports as new hotel codes appear in searches.
+
+This fallback still uses official Content API filters and never lets supplier search results overwrite canonical internal hotel content.
 
 Scheduled jobs are intentionally bounded:
 

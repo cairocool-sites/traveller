@@ -107,6 +107,7 @@ class HbxContentSyncService
         $ranges = $this->ranges($options);
         $dryRun = (bool) ($options['dry_run'] ?? false);
         $countryCode = $options['country_code'] ?? null;
+        $hotelCodes = $this->hotelCodes($options['hotel_codes'] ?? []);
         $language = (string) ($options['language'] ?? 'ENG');
         if (! $countryCode && $destinationCode !== '') {
             $countryCode = HbxDestination::query()
@@ -124,6 +125,7 @@ class HbxContentSyncService
                 'useSecondaryLanguage' => 'false',
                 'countryCode' => $countryCode,
                 'destinationCode' => $destinationCode !== '' ? $destinationCode : null,
+                'codes' => $hotelCodes !== [] ? implode(',', $hotelCodes) : null,
                 'lastUpdateTime' => $options['last_update_time'] ?? null,
                 'from' => $range['from'],
                 'to' => $range['to'],
@@ -146,41 +148,7 @@ class HbxContentSyncService
                 $seen[] = $code;
 
                 if (! $dryRun) {
-                    $name = $this->localizedName($item, 'name') ?: $code;
-                    $hotel = HbxHotel::query()->updateOrCreate(
-                        ['supplier_code' => $supplier->code, 'hotel_code' => $code],
-                        [
-                            'destination_code' => (string) ($item['destinationCode'] ?? $destinationCode),
-                            'country_code' => $item['countryCode'] ?? $countryCode,
-                            'zone_code' => isset($item['zoneCode']) ? (string) $item['zoneCode'] : null,
-                            'hotel_name' => $this->localizedName($item, 'name') ?: $code,
-                            'category_code' => $item['categoryCode'] ?? null,
-                            'star_rating' => $this->stars($item['categoryCode'] ?? null),
-                            'latitude' => $item['coordinates']['latitude'] ?? $item['latitude'] ?? null,
-                            'longitude' => $item['coordinates']['longitude'] ?? $item['longitude'] ?? null,
-                            'address' => $this->localizedName($item, 'address') ?: ($item['address']['content'] ?? null),
-                            'postal_code' => $item['postalCode'] ?? null,
-                            'accommodation_type_code' => $item['accommodationTypeCode'] ?? null,
-                            'chain_code' => $item['chainCode'] ?? null,
-                            'primary_phone' => $item['phones'][0]['phoneNumber'] ?? null,
-                            'primary_email' => $item['email'] ?? null,
-                            'supplier_active' => true,
-                            'public_enabled' => ($item['countryCode'] ?? $countryCode) === config('travel.hbx.public_country', 'EG'),
-                            'name_en' => $language === 'ENG' ? $name : null,
-                            'name_ar' => $language === 'ARA' ? $name : null,
-                            'slug' => $this->uniqueSlug(HbxHotel::class, $supplier->code, $name, $code),
-                            'seo_title' => $name,
-                            'seo_description' => $this->localizedName($item, 'description'),
-                            'display_order' => 100,
-                            'last_supplier_update_at' => $item['lastUpdateTime'] ?? null,
-                            'last_synced_at' => now(),
-                            'payload_checksum' => hash('sha256', json_encode($item, JSON_THROW_ON_ERROR)),
-                            'is_active' => true,
-                            'synced_at' => now(),
-                        ],
-                    );
-
-                    $this->syncHotelDetails($hotel, $item, $language);
+                    $this->storeHotel($supplier, $item, $language, $destinationCode, $countryCode);
                 }
             }
         }
@@ -188,6 +156,7 @@ class HbxContentSyncService
         if (! $dryRun && $seen !== [] && (bool) ($options['deactivate_missing'] ?? false)) {
             HbxHotel::query()
                 ->where('supplier_code', $supplier->code)
+                ->when($hotelCodes !== [], fn ($query) => $query->whereIn('hotel_code', $hotelCodes))
                 ->when($destinationCode !== '', fn ($query) => $query->where('destination_code', $destinationCode))
                 ->when($countryCode && $destinationCode === '', fn ($query) => $query->whereIn('destination_code', HbxDestination::query()
                     ->select('destination_code')
@@ -198,6 +167,41 @@ class HbxContentSyncService
         }
 
         return ['processed' => $total, 'stored' => $dryRun ? 0 : count(array_unique($seen))];
+    }
+
+    public function syncHotelDetailsByCodes(Supplier $supplier, mixed $hotelCodes, array $options = []): array
+    {
+        $codes = $this->hotelCodes($hotelCodes);
+        $dryRun = (bool) ($options['dry_run'] ?? false);
+        $language = (string) ($options['language'] ?? 'ENG');
+
+        if ($codes === []) {
+            return ['processed' => 0, 'stored' => 0];
+        }
+
+        $response = $this->client->hotelDetails($supplier, implode(',', $codes), [
+            'language' => $language,
+            'useSecondaryLanguage' => 'false',
+        ]);
+
+        $items = $this->detailItems($response['body']);
+        $seen = [];
+
+        foreach ($items as $item) {
+            $code = (string) ($item['code'] ?? '');
+
+            if ($code === '') {
+                continue;
+            }
+
+            $seen[] = $code;
+
+            if (! $dryRun) {
+                $this->storeHotel($supplier, $item, $language);
+            }
+        }
+
+        return ['processed' => count($items), 'stored' => $dryRun ? 0 : count(array_unique($seen))];
     }
 
     public function syncGenericResource(Supplier $supplier, string $resource, array $options = []): array
@@ -335,6 +339,19 @@ class HbxContentSyncService
         return is_array($items) ? array_values($items) : [];
     }
 
+    private function detailItems(array $body): array
+    {
+        if (isset($body['hotels']) && is_array($body['hotels'])) {
+            return array_values($body['hotels']);
+        }
+
+        if (isset($body['hotel']) && is_array($body['hotel'])) {
+            return [$body['hotel']];
+        }
+
+        return $this->items($body, 'hotels');
+    }
+
     private function ranges(array $options): array
     {
         $from = isset($options['from']) ? max(1, (int) $options['from']) : 1;
@@ -360,6 +377,22 @@ class HbxContentSyncService
         }
 
         return $ranges;
+    }
+
+    private function hotelCodes(mixed $codes): array
+    {
+        if (is_string($codes)) {
+            $codes = explode(',', $codes);
+        }
+
+        if (! is_array($codes)) {
+            return [];
+        }
+
+        return array_values(array_unique(array_filter(array_map(
+            fn (mixed $code): string => (string) preg_replace('/\D+/', '', (string) $code),
+            $codes,
+        ))));
     }
 
     private function localizedName(array $item, string $key): ?string
@@ -488,6 +521,52 @@ class HbxContentSyncService
                 ],
             );
         }
+    }
+
+    private function storeHotel(Supplier $supplier, array $item, string $language, string $destinationCode = '', ?string $countryCode = null): HbxHotel
+    {
+        $code = (string) ($item['code'] ?? '');
+        $name = $this->localizedName($item, 'name') ?: $code;
+        $resolvedDestinationCode = (string) ($item['destinationCode'] ?? $item['destination']['code'] ?? $destinationCode);
+        $resolvedCountryCode = $item['countryCode'] ?? $item['country']['code'] ?? $item['country']['isoCode'] ?? $countryCode;
+        $categoryCode = $item['categoryCode'] ?? $item['category']['code'] ?? null;
+
+        $hotel = HbxHotel::query()->updateOrCreate(
+            ['supplier_code' => $supplier->code, 'hotel_code' => $code],
+            [
+                'destination_code' => $resolvedDestinationCode,
+                'country_code' => $resolvedCountryCode,
+                'zone_code' => isset($item['zoneCode']) ? (string) $item['zoneCode'] : (isset($item['zone']['code']) ? (string) $item['zone']['code'] : null),
+                'hotel_name' => $name,
+                'category_code' => $categoryCode,
+                'star_rating' => $this->stars($categoryCode),
+                'latitude' => $item['coordinates']['latitude'] ?? $item['latitude'] ?? null,
+                'longitude' => $item['coordinates']['longitude'] ?? $item['longitude'] ?? null,
+                'address' => $this->localizedName($item, 'address') ?: ($item['address']['content'] ?? null),
+                'postal_code' => $item['postalCode'] ?? null,
+                'accommodation_type_code' => $item['accommodationTypeCode'] ?? $item['accommodationType']['code'] ?? null,
+                'chain_code' => $item['chainCode'] ?? $item['chain']['code'] ?? null,
+                'primary_phone' => $item['phones'][0]['phoneNumber'] ?? null,
+                'primary_email' => $item['email'] ?? null,
+                'supplier_active' => true,
+                'public_enabled' => $resolvedCountryCode === config('travel.hbx.public_country', 'EG'),
+                'name_en' => $language === 'ENG' ? $name : null,
+                'name_ar' => $language === 'ARA' ? $name : null,
+                'slug' => $this->uniqueSlug(HbxHotel::class, $supplier->code, $name, $code),
+                'seo_title' => $name,
+                'seo_description' => $this->localizedName($item, 'description'),
+                'display_order' => 100,
+                'last_supplier_update_at' => $item['lastUpdateTime'] ?? $item['lastUpdate'] ?? null,
+                'last_synced_at' => now(),
+                'payload_checksum' => hash('sha256', json_encode($item, JSON_THROW_ON_ERROR)),
+                'is_active' => true,
+                'synced_at' => now(),
+            ],
+        );
+
+        $this->syncHotelDetails($hotel, $item, $language);
+
+        return $hotel;
     }
 
     private function uniqueSlug(string $model, string $supplierCode, string $name, string $fallback): string

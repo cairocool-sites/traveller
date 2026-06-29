@@ -24,6 +24,8 @@ class HbxContentApiClient
 
     public const HOTELS_PATH = '/hotel-content-api/1.0/hotels';
 
+    public const HOTEL_DETAILS_PATH_TEMPLATE = '/hotel-content-api/1.0/hotels/%s/details';
+
     public const RESOURCE_PATHS = [
         'zones' => '/hotel-content-api/1.0/locations/zones',
         'rooms' => '/hotel-content-api/1.0/types/rooms',
@@ -68,7 +70,12 @@ class HbxContentApiClient
 
     public function hotelDetails(Supplier $supplier, string $hotelCode, array $query = [], ?string $correlationId = null): array
     {
-        return $this->get($supplier, self::HOTELS_PATH.'/'.rawurlencode($hotelCode).'/details', $query, $correlationId);
+        $codes = implode(',', array_map(
+            fn (string $code): string => rawurlencode($code),
+            array_filter(array_map('trim', explode(',', $hotelCode))),
+        ));
+
+        return $this->get($supplier, sprintf(self::HOTEL_DETAILS_PATH_TEMPLATE, $codes), $query, $correlationId);
     }
 
     public function resource(Supplier $supplier, string $resource, array $query = [], ?string $correlationId = null): array
@@ -93,6 +100,7 @@ class HbxContentApiClient
             'Api-key' => $credentials->apiKey,
             'X-Signature' => $this->signatures->signature($credentials->apiKey, $credentials->apiSecret),
             'Accept' => 'application/json',
+            'Accept-Encoding' => 'gzip',
             'Content-Type' => 'application/json',
             'X-Correlation-ID' => $correlationId,
         ];
