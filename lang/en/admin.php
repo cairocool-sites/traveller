@@ -441,6 +441,28 @@ return [
             'synced_at' => 'Synced at',
         ],
     ],
+    'hbx_capabilities' => [
+        'model_label' => 'HBX API capability',
+        'plural_model_label' => 'HBX API capabilities',
+        'fields' => [
+            'api_family' => 'API family',
+            'display_name' => 'Capability',
+            'capability_code' => 'Code',
+            'http_method' => 'Method',
+            'endpoint_path' => 'Endpoint',
+            'implemented' => 'Implemented',
+            'configured' => 'Configured',
+            'credential_access_confirmed' => 'Credential access',
+            'sandbox_tested' => 'Sandbox tested',
+            'production_enabled' => 'Production enabled',
+            'admin_enabled' => 'Admin enabled',
+            'public_enabled' => 'Public enabled',
+            'last_successful_call_at' => 'Last success',
+        ],
+        'actions' => [
+            'refresh' => 'Refresh matrix',
+        ],
+    ],
     'supplier_mappings' => [
         'fields' => [
             'local_entity_type' => 'Local type',

@@ -2,6 +2,7 @@
 
 use App\Enums\SupplierStatus;
 use App\Models\City;
+use App\Models\HbxContentResource;
 use App\Models\HbxDestination;
 use App\Models\HbxHotel;
 use App\Models\Supplier;
@@ -95,6 +96,30 @@ it('syncs hotels for a bounded destination and prevents duplicates', function ()
         && $request->method() === 'GET');
 });
 
+it('syncs generic hbx content resources with idempotent payload storage', function () {
+    Http::fake(['api.test.hotelbeds.com/*' => Http::response(['boards' => ['boards' => [[
+        'code' => 'BB',
+        'description' => ['content' => 'Bed and Breakfast'],
+        'lastUpdateTime' => '2026-06-01',
+    ]]]], 200)]);
+
+    $supplier = Supplier::query()->where('code', 'hbx_hotels')->firstOrFail();
+    $result = app(HbxContentSyncService::class)->syncGenericResource($supplier, 'boards', [
+        'country_code' => 'EG',
+        'page_limit' => 1,
+        'last_update_time' => '2026-06-01',
+    ]);
+
+    expect($result['processed'])->toBe(1)
+        ->and(HbxContentResource::query()->where('resource_type', 'boards')->where('resource_code', 'BB')->count())->toBe(1)
+        ->and(HbxContentResource::query()->where('resource_code', 'BB')->value('name'))->toBe('Bed and Breakfast');
+
+    Http::assertSent(fn ($request): bool => str_starts_with($request->url(), 'https://api.test.hotelbeds.com/hotel-content-api/1.0/types/boards')
+        && $request->method() === 'GET'
+        && data_get($request->data(), 'countryCode') === 'EG'
+        && data_get($request->data(), 'lastUpdateTime') === '2026-06-01');
+});
+
 it('suggests and allows confirmation of cairo destination mappings', function () {
     HbxDestination::query()->create(['supplier_code' => 'hbx_hotels', 'destination_code' => 'CAI', 'destination_name' => 'Cairo', 'country_code' => 'EG', 'is_active' => true, 'synced_at' => now()]);
 
@@ -119,6 +144,21 @@ it('sync command dry-run sends content requests but writes no records', function
 
     expect(HbxDestination::query()->where('destination_code', 'CAI')->exists())->toBeFalse();
     Http::assertSent(fn ($request): bool => str_starts_with($request->url(), 'https://api.test.hotelbeds.com/hotel-content-api/1.0/locations/destinations'));
+});
+
+it('new content sync command supports official resource names and blocks unconfirmed full portfolio', function () {
+    Http::fake(['api.test.hotelbeds.com/*' => Http::response(['boards' => ['boards' => [['code' => 'RO', 'description' => ['content' => 'Room Only']]]]], 200)]);
+
+    $this->artisan('hbx:content:sync --resource=boards --country=EG --dry-run --page-limit=1')
+        ->expectsOutputToContain('boards: processed 1; stored 0.')
+        ->expectsOutputToContain('No booking, modification, cancellation, or production request was sent by this command.')
+        ->assertSuccessful();
+
+    expect(HbxContentResource::query()->where('resource_code', 'RO')->exists())->toBeFalse();
+
+    $this->artisan('hbx:content:sync --resource=all --full-authorized-portfolio')
+        ->expectsOutputToContain('Full authorized portfolio sync requires --confirm.')
+        ->assertFailed();
 });
 
 it('keeps production booking endpoint blocked during content work', function () {

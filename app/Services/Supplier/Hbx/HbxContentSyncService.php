@@ -3,6 +3,7 @@
 namespace App\Services\Supplier\Hbx;
 
 use App\Models\City;
+use App\Models\HbxContentResource;
 use App\Models\HbxDestination;
 use App\Models\HbxHotel;
 use App\Models\Supplier;
@@ -82,10 +83,13 @@ class HbxContentSyncService
     {
         $pageLimit = max(1, min((int) ($options['page_limit'] ?? 1), 25));
         $dryRun = (bool) ($options['dry_run'] ?? false);
-        $countryCode = HbxDestination::query()
-            ->where('supplier_code', $supplier->code)
-            ->where('destination_code', $destinationCode)
-            ->value('country_code');
+        $countryCode = $options['country_code'] ?? null;
+        if (! $countryCode && $destinationCode !== '') {
+            $countryCode = HbxDestination::query()
+                ->where('supplier_code', $supplier->code)
+                ->where('destination_code', $destinationCode)
+                ->value('country_code');
+        }
         $seen = [];
         $total = 0;
 
@@ -95,7 +99,7 @@ class HbxContentSyncService
                 'language' => 'ENG',
                 'useSecondaryLanguage' => 'false',
                 'countryCode' => $countryCode,
-                'destinationCode' => $destinationCode,
+                'destinationCode' => $destinationCode !== '' ? $destinationCode : null,
                 'from' => (($page - 1) * self::PAGE_SIZE) + 1,
                 'to' => $page * self::PAGE_SIZE,
             ]);
@@ -138,8 +142,89 @@ class HbxContentSyncService
         if (! $dryRun && $seen !== []) {
             HbxHotel::query()
                 ->where('supplier_code', $supplier->code)
-                ->where('destination_code', $destinationCode)
+                ->when($destinationCode !== '', fn ($query) => $query->where('destination_code', $destinationCode))
+                ->when($countryCode && $destinationCode === '', fn ($query) => $query->whereIn('destination_code', HbxDestination::query()
+                    ->select('destination_code')
+                    ->where('supplier_code', $supplier->code)
+                    ->where('country_code', $countryCode)))
                 ->whereNotIn('hotel_code', array_unique($seen))
+                ->update(['is_active' => false]);
+        }
+
+        return ['processed' => $total, 'stored' => $dryRun ? 0 : count(array_unique($seen))];
+    }
+
+    public function syncGenericResource(Supplier $supplier, string $resource, array $options = []): array
+    {
+        $pageLimit = max(1, min((int) ($options['page_limit'] ?? 1), 25));
+        $dryRun = (bool) ($options['dry_run'] ?? false);
+        $language = (string) ($options['language'] ?? 'ENG');
+        $countryCode = $options['country_code'] ?? null;
+        $destinationCode = $options['destination_code'] ?? null;
+        $lastUpdateTime = $options['last_update_time'] ?? null;
+        $seen = [];
+        $total = 0;
+
+        for ($page = 1; $page <= $pageLimit; $page++) {
+            $response = $this->client->resource($supplier, $resource, [
+                'fields' => 'all',
+                'language' => $language,
+                'countryCode' => $countryCode,
+                'countryCodes' => $countryCode,
+                'destinationCode' => $destinationCode,
+                'lastUpdateTime' => $lastUpdateTime,
+                'from' => (($page - 1) * self::PAGE_SIZE) + 1,
+                'to' => $page * self::PAGE_SIZE,
+            ]);
+
+            $items = $this->items($response['body'], $resource);
+            $total += count($items);
+
+            if ($items === []) {
+                break;
+            }
+
+            foreach ($items as $item) {
+                $code = $this->resourceCode($item);
+
+                if ($code === '') {
+                    continue;
+                }
+
+                $seen[] = $code;
+
+                if (! $dryRun) {
+                    HbxContentResource::query()->updateOrCreate(
+                        [
+                            'supplier_code' => $supplier->code,
+                            'resource_type' => $resource,
+                            'resource_code' => $code,
+                            'language' => $language,
+                        ],
+                        [
+                            'name' => $this->localizedName($item, 'description') ?: $this->localizedName($item, 'name') ?: $code,
+                            'country_code' => $item['countryCode'] ?? $item['country'] ?? $countryCode,
+                            'destination_code' => $item['destinationCode'] ?? $destinationCode,
+                            'parent_code' => $item['parentCode'] ?? $item['groupCode'] ?? $item['categoryGroupCode'] ?? null,
+                            'payload' => $item,
+                            'payload_hash' => hash('sha256', json_encode($item, JSON_THROW_ON_ERROR)),
+                            'last_update_time' => $item['lastUpdateTime'] ?? null,
+                            'is_active' => true,
+                            'synced_at' => now(),
+                        ],
+                    );
+                }
+            }
+        }
+
+        if (! $dryRun && $seen !== []) {
+            HbxContentResource::query()
+                ->where('supplier_code', $supplier->code)
+                ->where('resource_type', $resource)
+                ->where('language', $language)
+                ->when($countryCode, fn ($query) => $query->where('country_code', $countryCode))
+                ->when($destinationCode, fn ($query) => $query->where('destination_code', $destinationCode))
+                ->whereNotIn('resource_code', array_unique($seen))
                 ->update(['is_active' => false]);
         }
 
@@ -186,7 +271,20 @@ class HbxContentSyncService
 
     private function items(array $body, string $key): array
     {
-        $items = Arr::get($body, $key.'.'.$key, Arr::get($body, $key, []));
+        $keys = array_unique([
+            $key,
+            Str::camel($key),
+            str_replace('_', '', $key),
+        ]);
+        $items = [];
+
+        foreach ($keys as $candidate) {
+            $items = Arr::get($body, $candidate.'.'.$candidate, Arr::get($body, $candidate, []));
+
+            if (is_array($items) && $items !== []) {
+                break;
+            }
+        }
 
         return is_array($items) ? array_values($items) : [];
     }
@@ -200,6 +298,17 @@ class HbxContentSyncService
         }
 
         return is_string($value) ? $value : null;
+    }
+
+    private function resourceCode(array $item): string
+    {
+        foreach (['code', 'id', 'isoCode', 'languageCode', 'currencyCode'] as $key) {
+            if (filled($item[$key] ?? null)) {
+                return (string) $item[$key];
+            }
+        }
+
+        return '';
     }
 
     private function stars(?string $categoryCode): ?int

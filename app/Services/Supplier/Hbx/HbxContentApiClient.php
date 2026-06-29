@@ -24,6 +24,26 @@ class HbxContentApiClient
 
     public const HOTELS_PATH = '/hotel-content-api/1.0/hotels';
 
+    public const RESOURCE_PATHS = [
+        'zones' => '/hotel-content-api/1.0/locations/zones',
+        'rooms' => '/hotel-content-api/1.0/types/rooms',
+        'boards' => '/hotel-content-api/1.0/types/boards',
+        'accommodations' => '/hotel-content-api/1.0/types/accommodations',
+        'categories' => '/hotel-content-api/1.0/types/categories',
+        'category_groups' => '/hotel-content-api/1.0/types/categorygroups',
+        'chains' => '/hotel-content-api/1.0/types/chains',
+        'facilities' => '/hotel-content-api/1.0/types/facilities',
+        'facility_groups' => '/hotel-content-api/1.0/types/facilitygroups',
+        'issues' => '/hotel-content-api/1.0/types/issues',
+        'languages' => '/hotel-content-api/1.0/types/languages',
+        'promotions' => '/hotel-content-api/1.0/types/promotions',
+        'segments' => '/hotel-content-api/1.0/types/segments',
+        'image_types' => '/hotel-content-api/1.0/types/imagetypes',
+        'currencies' => '/hotel-content-api/1.0/types/currencies',
+        'terminals' => '/hotel-content-api/1.0/types/terminals',
+        'rate_comments' => '/hotel-content-api/1.0/types/ratecomments',
+    ];
+
     public function __construct(
         private readonly HbxConfiguration $config,
         private readonly HbxSignatureService $signatures,
@@ -49,6 +69,15 @@ class HbxContentApiClient
     public function hotelDetails(Supplier $supplier, string $hotelCode, array $query = [], ?string $correlationId = null): array
     {
         return $this->get($supplier, self::HOTELS_PATH.'/'.rawurlencode($hotelCode).'/details', $query, $correlationId);
+    }
+
+    public function resource(Supplier $supplier, string $resource, array $query = [], ?string $correlationId = null): array
+    {
+        if (! isset(self::RESOURCE_PATHS[$resource])) {
+            throw new \InvalidArgumentException("Unsupported HBX Content API resource [{$resource}].");
+        }
+
+        return $this->get($supplier, self::RESOURCE_PATHS[$resource], $query, $correlationId);
     }
 
     public function fullUrl(Supplier $supplier, string $path): string

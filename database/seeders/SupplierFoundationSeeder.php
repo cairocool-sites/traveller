@@ -7,6 +7,7 @@ use App\Enums\SupplierHealthStatus;
 use App\Enums\SupplierIntegrationType;
 use App\Enums\SupplierStatus;
 use App\Models\Supplier;
+use App\Services\Supplier\Hbx\HbxApiCapabilityRegistry;
 use Illuminate\Database\Seeder;
 
 class SupplierFoundationSeeder extends Seeder
@@ -60,5 +61,7 @@ class SupplierFoundationSeeder extends Seeder
                 'health_status' => SupplierHealthStatus::Unknown,
             ],
         );
+
+        app(HbxApiCapabilityRegistry::class)->sync();
     }
 }

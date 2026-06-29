@@ -31,6 +31,8 @@ Credentials, signatures, headers, and raw sensitive payloads are never printed. 
 
 `hbx_hotels` stores supplier code, HBX hotel code, destination code, hotel name, category/star signal, coordinates, address, active state, and sync timestamp.
 
+`hbx_content_resources` stores generic official Content API master/descriptive resources such as boards, rooms, accommodations, categories, category groups, chains, facilities, facility groups, issues, languages, promotions, segments, image types, currencies, terminals, rate comments, and zones. The table preserves supplier codes, language, relationship hints, payload hash, sanitized JSON payload, last update time, active state, and sync timestamp.
+
 Upserts are idempotent. Records missing from later bounded syncs are deactivated rather than deleted.
 
 ## Mapping Workflow
@@ -53,6 +55,21 @@ Upserts are idempotent. Records missing from later bounded syncs are deactivated
    `php artisan hbx:verify-sandbox-booking --dry-run`
 
 Do not sync the entire global catalog during this phase.
+
+## Expanded Content Command
+
+The newer command supports the Phase 14 API-suite sync shape:
+
+```bash
+php artisan hbx:content:sync --resource=countries --dry-run
+php artisan hbx:content:sync --resource=destinations --country=EG --page-limit=1
+php artisan hbx:content:sync --resource=hotels --country=EG --page-limit=1
+php artisan hbx:content:sync --resource=boards --country=EG --last-update-time=2026-06-01
+php artisan hbx:content:sync --resource=all --country=EG --page-limit=1
+php artisan hbx:content:sync --resource=all --full-authorized-portfolio --confirm --page-limit=1
+```
+
+Full authorized portfolio mode is blocked unless both `--full-authorized-portfolio` and `--confirm` are provided. The command prints sanitized progress and never sends booking, modification, cancellation, or production requests.
 
 ## Public Search Flow
 

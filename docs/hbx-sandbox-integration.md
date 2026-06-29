@@ -162,3 +162,15 @@ Before production certification, HBX documentation and account-specific requirem
 - Hotel content mapping to canonical hotels remains a future supplier-mapping phase.
 - Public search includes HBX only if `travel.public_search.suppliers` is configured to include `hbx_hotels`.
 - The adapter provides Phase 11 normalization foundations and must be expanded during certification.
+
+## Hotels API Suite Capability Registry
+
+Phase 14 adds a persisted HBX capability matrix in `hbx_api_capabilities`. It separates implementation status from HBX account authorization, admin enablement, public enablement, sandbox testing, and production activation.
+
+Refresh/display the matrix without making HBX calls:
+
+```bash
+php artisan hbx:api-suite:status
+```
+
+The admin resource `HBX API capabilities` is read-only for standard users and never displays credentials, signatures, raw payloads, rate keys, or card data.
