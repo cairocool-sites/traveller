@@ -1,4 +1,4 @@
-<form wire:submit="submit" class="cct-card p-4 sm:p-5 lg:p-5">
+<form wire:submit="submit" class="cct-card p-4">
     @if ($errors->any())
         <div class="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-800" role="alert">
             <ul class="list-inside list-disc space-y-1">

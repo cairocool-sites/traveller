@@ -1,17 +1,17 @@
 <x-layouts.public :meta-title="$metaTitle" :meta-description="$metaDescription">
     <section class="cct-hero relative overflow-hidden text-white">
         <div class="cct-hero-pattern absolute inset-0 opacity-60" aria-hidden="true"></div>
-        <div class="cct-shell relative pb-14 pt-10 sm:pt-12 lg:pb-20 lg:pt-11">
+        <div class="cct-shell relative pb-12 pt-9 sm:pt-11 lg:pb-16 lg:pt-9">
             <div class="max-w-4xl">
                 <h1 class="text-3xl font-black leading-[1.08] tracking-normal sm:text-4xl lg:max-w-3xl lg:text-5xl">{{ __('public.home.title') }}</h1>
                 <p class="mt-3 max-w-2xl text-base font-medium leading-7 text-teal-50 sm:text-lg">{{ __('public.home.subtitle') }}</p>
             </div>
-            <div class="mt-5 grid max-w-2xl gap-2 text-sm font-semibold text-teal-50 sm:grid-cols-3">
+            <div class="mt-4 grid max-w-2xl gap-2 text-sm font-semibold text-teal-50 sm:grid-cols-3">
                 <span class="rounded-full border border-white/15 bg-white/10 px-4 py-2">{{ __('public.home.hero_point_1') }}</span>
                 <span class="rounded-full border border-white/15 bg-white/10 px-4 py-2">{{ __('public.home.hero_point_2') }}</span>
                 <span class="rounded-full border border-white/15 bg-white/10 px-4 py-2">{{ __('public.home.hero_point_3') }}</span>
             </div>
-            <div class="relative z-10 mt-6 lg:-mb-32">
+            <div class="relative z-10 mt-4 lg:-mb-36">
                 <livewire:hotel-search-form :locale="app()->getLocale()" />
             </div>
         </div>
