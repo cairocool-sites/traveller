@@ -39,8 +39,9 @@ return [
         'max_child_age' => (int) env('TRAVEL_SEARCH_MAX_CHILD_AGE', 17),
         'max_stay_nights' => (int) env('TRAVEL_SEARCH_MAX_STAY_NIGHTS', 30),
         'session_lifetime_minutes' => (int) env('TRAVEL_SEARCH_SESSION_LIFETIME_MINUTES', 30),
-        'suppliers' => ['mock_hotels'],
+        'suppliers' => ['hbx_hotels', 'mock_hotels'],
         'results_limit' => (int) env('TRAVEL_SEARCH_RESULTS_LIMIT', 30),
+        'markup_basis_points' => (int) env('TRAVEL_PUBLIC_SEARCH_MARKUP_BASIS_POINTS', 0),
     ],
 
     'booking' => [

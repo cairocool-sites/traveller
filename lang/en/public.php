@@ -95,6 +95,8 @@ return [
     ],
     'booking' => [
         'check_rate' => 'Check rate',
+        'bookable' => 'Bookable',
+        'requires_recheck' => 'Price requires recheck',
         'rate_unavailable' => 'This rate is no longer available.',
         'guest_details_title' => 'Guest details',
         'price_changed' => 'The supplier returned an updated price. Please accept it before booking.',

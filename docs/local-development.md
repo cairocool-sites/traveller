@@ -78,9 +78,9 @@ Hotel catalog management is available under `/admin/hotels` for users with hotel
 
 Supplier management is available under `/admin/suppliers` for users with supplier permissions. Supplier operation logs are available under the Supplier Management navigation group.
 
-Public hotel search is available at `/` and `/hotels`. Search results are generated through the `mock_hotels` supplier only and stored in short-lived `search_sessions`.
+Public hotel search is available at `/` and `/hotels`. Search results prefer the active `hbx_hotels` sandbox supplier when configured, then fall back to `mock_hotels`; normalized offers are stored in short-lived `search_sessions`.
 
-Phase 7 booking flow is available from a hotel details page by choosing Check rate, entering guest details, and submitting the deterministic Mock Supplier booking. No real supplier, payment, voucher, customer account, cancellation, quotation, or B2B feature is connected.
+Phase 7 booking flow is available from a hotel details page by choosing Check rate, entering guest details, and submitting the deterministic Mock Supplier booking. Phase 12 allows HBX Sandbox Availability and CheckRate only; HBX booking and cancellation submission are explicitly blocked. No online payment gateway, customer account, quotation, or B2B feature is connected.
 
 Phase 8 manual payment flow is available from confirmed booking pages. Evidence is stored privately on the local disk. Seeded payment methods use safe placeholder account details only.
 
@@ -104,7 +104,7 @@ php artisan db:seed --class=CoreReferenceDataSeeder
 
 No fake hotels are seeded by default.
 
-The supplier seeder creates only the deterministic `mock_hotels` sandbox supplier. It does not seed real endpoints, usernames, passwords, tokens, API keys, or production connections.
+The supplier seeder creates the deterministic `mock_hotels` sandbox supplier and an `hbx_hotels` sandbox supplier shell. It does not seed usernames, passwords, tokens, API keys, or production connections.
 
 Search limits can be adjusted with safe local values such as `TRAVEL_SEARCH_MAX_ROOMS`, `TRAVEL_SEARCH_MAX_ADULTS_PER_ROOM`, `TRAVEL_SEARCH_MAX_CHILDREN_PER_ROOM`, `TRAVEL_SEARCH_MAX_CHILD_AGE`, `TRAVEL_SEARCH_MAX_STAY_NIGHTS`, and `TRAVEL_SEARCH_SESSION_LIFETIME_MINUTES`.
 

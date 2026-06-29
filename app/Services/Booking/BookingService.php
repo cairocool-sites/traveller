@@ -33,6 +33,7 @@ class BookingService
     public function createAndSubmit(RateCheck $rateCheck, array $payload): Booking
     {
         $this->validateRate($rateCheck, (bool) ($payload['accept_price_change'] ?? false));
+        $this->assertSupplierBookingAllowed($rateCheck);
 
         $idempotencyKey = (string) ($payload['idempotency_key'] ?? '');
         $hash = hash('sha256', json_encode(Arr::except($payload, ['idempotency_key']), JSON_THROW_ON_ERROR));
@@ -176,6 +177,13 @@ class BookingService
 
         if ($rateCheck->price_changed && ! $acceptPriceChange) {
             throw BookingFlowException::invalidRate('The checked price changed and must be accepted before booking.');
+        }
+    }
+
+    private function assertSupplierBookingAllowed(RateCheck $rateCheck): void
+    {
+        if ($rateCheck->supplier->code === 'hbx_hotels') {
+            throw new BookingFlowException('HBX sandbox booking submission is disabled in Phase 12.');
         }
     }
 

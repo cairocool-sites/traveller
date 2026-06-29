@@ -70,6 +70,9 @@
                                 @foreach (array_slice($hotel['rates'], 0, 2) as $rate)
                                     <p class="text-sm text-slate-700">{{ str_replace('_', ' ', $rate['board_basis']) }} · {{ str_replace('_', ' ', $rate['refundability']) }}</p>
                                     <p class="text-sm text-slate-600">{{ $rate['cancellation_summary'] }}</p>
+                                    <p class="text-xs font-medium {{ $rate['requires_check_rate'] ? 'text-amber-700' : 'text-emerald-700' }}">
+                                        {{ $rate['requires_check_rate'] ? __('public.booking.requires_recheck') : __('public.booking.bookable') }}
+                                    </p>
                                 @endforeach
                             </div>
                         @endif

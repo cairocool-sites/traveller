@@ -49,6 +49,9 @@
                                         <h3 class="font-semibold text-slate-950">{{ $rate['room_name'] }}</h3>
                                         <p class="mt-1 text-sm text-slate-600">{{ str_replace('_', ' ', $rate['board_basis']) }} · {{ str_replace('_', ' ', $rate['refundability']) }}</p>
                                         <p class="mt-1 text-sm text-slate-600">{{ $rate['cancellation_summary'] }}</p>
+                                        <p class="mt-1 text-xs font-medium {{ ($rate['requires_check_rate'] ?? false) ? 'text-amber-700' : 'text-emerald-700' }}">
+                                            {{ ($rate['requires_check_rate'] ?? false) ? __('public.booking.requires_recheck') : __('public.booking.bookable') }}
+                                        </p>
                                         <p class="mt-1 text-sm text-slate-500">{{ $rate['occupancy']['adults'] }} adults · {{ $rate['occupancy']['children'] }} children</p>
                                     </div>
                                     <div class="sm:text-end">

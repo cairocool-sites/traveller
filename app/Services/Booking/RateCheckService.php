@@ -8,6 +8,7 @@ use App\Models\Currency;
 use App\Models\RateCheck;
 use App\Models\SearchSession;
 use App\Models\Supplier;
+use App\Services\PublicSearch\OfferPricingService;
 use App\Services\Supplier\CorrelationIdFactory;
 use App\Services\Supplier\Data\CheckRateRequestData;
 use App\Services\Supplier\Data\RoomOccupancyData;
@@ -21,6 +22,7 @@ class RateCheckService
     public function __construct(
         private readonly SupplierManager $suppliers,
         private readonly CorrelationIdFactory $correlationIds,
+        private readonly OfferPricingService $pricing,
     ) {}
 
     public function check(SearchSession $session, string $hotelToken, string $rateToken, array $metadata = []): RateCheck
@@ -63,6 +65,8 @@ class RateCheckService
             default => RateCheckStatus::Failed,
         };
 
+        $checkedTotal = $result->confirmedTotal ? $this->pricing->sellingPrice($result->confirmedTotal) : null;
+
         return DB::transaction(fn (): RateCheck => RateCheck::query()->create([
             'public_uuid' => (string) Str::uuid(),
             'search_session_id' => $session->id,
@@ -74,7 +78,7 @@ class RateCheckService
             'supplier_rate_reference' => $result->confirmedRateKey ?? $rate['supplier_rate_key'],
             'supplier_room_reference' => $rate['supplier_room_id'] ?? null,
             'original_amount_minor' => Arr::get($rate, 'total.minor_amount'),
-            'checked_amount_minor' => $result->confirmedTotal?->minorAmount,
+            'checked_amount_minor' => $checkedTotal?->minorAmount,
             'price_changed' => $result->priceChanged,
             'cancellation_policy_snapshot' => array_map(fn ($policy): array => $policy->jsonSerialize(), $result->cancellationPolicies),
             'room_snapshot' => $rate,

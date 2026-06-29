@@ -95,6 +95,8 @@ return [
     ],
     'booking' => [
         'check_rate' => 'تأكيد السعر',
+        'bookable' => 'قابل للحجز',
+        'requires_recheck' => 'السعر يحتاج إلى إعادة تحقق',
         'rate_unavailable' => 'هذا السعر لم يعد متاحا.',
         'guest_details_title' => 'بيانات النزلاء',
         'price_changed' => 'عاد المورد بسعر محدث. يرجى قبول السعر قبل الحجز.',
