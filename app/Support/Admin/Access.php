@@ -46,6 +46,12 @@ final class Access
         'manage_hotel_media',
         'manage_hotel_facilities',
         'manage_hotel_policies',
+        'view_suppliers',
+        'manage_suppliers',
+        'manage_supplier_credentials',
+        'run_supplier_health_checks',
+        'view_supplier_logs',
+        'view_sensitive_supplier_logs',
     ];
 
     public const ROLE_PERMISSIONS = [
@@ -64,6 +70,8 @@ final class Access
             'manage_hotels',
             'manage_hotel_facilities',
             'manage_hotel_policies',
+            'view_suppliers',
+            'view_supplier_logs',
         ],
         'reservation_manager' => [
             'access_admin',
@@ -99,6 +107,12 @@ final class Access
         ],
         'api_manager' => [
             'access_admin',
+            'view_suppliers',
+            'manage_suppliers',
+            'manage_supplier_credentials',
+            'run_supplier_health_checks',
+            'view_supplier_logs',
+            'view_sensitive_supplier_logs',
         ],
         'auditor' => [
             'access_admin',
@@ -112,6 +126,8 @@ final class Access
             'view_exchange_rates',
             'view_facilities',
             'view_hotels',
+            'view_suppliers',
+            'view_supplier_logs',
         ],
     ];
 

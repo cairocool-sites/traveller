@@ -16,5 +16,6 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(AdminFoundationSeeder::class);
         $this->call(CoreReferenceDataSeeder::class);
+        $this->call(SupplierFoundationSeeder::class);
     }
 }
