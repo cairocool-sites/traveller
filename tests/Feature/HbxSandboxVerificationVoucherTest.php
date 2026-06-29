@@ -75,11 +75,58 @@ it('runs dry-run through CheckRate and sends no booking request', function () {
 
     $this->artisan('hbx:verify-sandbox-booking --dry-run')
         ->expectsConfirmation('This command is for one controlled HBX sandbox verification only. Continue?', 'yes')
+        ->expectsOutputToContain('Supplier: hbx_hotels')
+        ->expectsOutputToContain('Search source confirmed: HBX Sandbox')
+        ->expectsOutputToContain('CheckRate source confirmed: HBX Sandbox')
         ->expectsOutputToContain('Selling total:')
         ->expectsOutputToContain('Dry run complete. No booking request was sent.')
         ->assertSuccessful();
 
     Http::assertSent(fn ($request): bool => str_contains($request->url(), '/hotel-api/1.0/checkrates'));
+    Http::assertNotSent(fn ($request): bool => str_contains($request->url(), '/hotel-api/1.0/bookings'));
+});
+
+it('dry-run refuses public mock fallback and still uses hbx_hotels', function () {
+    config([
+        'services.hbx.sandbox_booking_enabled' => true,
+        'travel.public_search.suppliers' => ['mock_hotels'],
+    ]);
+
+    Http::fakeSequence()
+        ->push(phase14AvailabilityPayload())
+        ->push(phase14CheckRatePayload());
+
+    $this->artisan('hbx:verify-sandbox-booking --dry-run')
+        ->expectsConfirmation('This command is for one controlled HBX sandbox verification only. Continue?', 'yes')
+        ->expectsOutputToContain('Supplier: hbx_hotels')
+        ->expectsOutputToContain('Hotel: HBX Phase 14 Sandbox Hotel')
+        ->expectsOutputToContain('Search source confirmed: HBX Sandbox')
+        ->expectsOutputToContain('CheckRate source confirmed: HBX Sandbox')
+        ->doesntExpectOutputToContain('Mock Cairo Nile Hotel')
+        ->expectsOutputToContain('Dry run complete. No booking request was sent.')
+        ->assertSuccessful();
+
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/hotels');
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/checkrates');
+    Http::assertNotSent(fn ($request): bool => str_contains($request->url(), '/hotel-api/1.0/bookings'));
+});
+
+it('fails safely when hbx availability is unavailable instead of using mock fallback', function () {
+    config([
+        'services.hbx.sandbox_booking_enabled' => true,
+        'travel.public_search.suppliers' => ['mock_hotels'],
+    ]);
+
+    Http::fake(fn () => Http::response(['error' => 'unavailable'], 503));
+
+    $this->artisan('hbx:verify-sandbox-booking --dry-run')
+        ->expectsConfirmation('This command is for one controlled HBX sandbox verification only. Continue?', 'yes')
+        ->expectsOutputToContain('HBX sandbox availability search returned no offers')
+        ->doesntExpectOutputToContain('Mock Cairo Nile Hotel')
+        ->assertFailed();
+
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/hotels');
+    Http::assertNotSent(fn ($request): bool => str_contains($request->url(), '/hotel-api/1.0/checkrates'));
     Http::assertNotSent(fn ($request): bool => str_contains($request->url(), '/hotel-api/1.0/bookings'));
 });
 

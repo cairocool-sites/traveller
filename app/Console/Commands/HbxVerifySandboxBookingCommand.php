@@ -13,8 +13,10 @@ use App\Services\Booking\RateCheckService;
 use App\Services\PublicSearch\HotelSearchService;
 use App\Services\PublicSearch\MoneyFormatter;
 use Illuminate\Console\Command;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use RuntimeException;
+use Throwable;
 
 class HbxVerifySandboxBookingCommand extends Command
 {
@@ -34,11 +36,14 @@ class HbxVerifySandboxBookingCommand extends Command
     ): int {
         try {
             $supplier = $this->guardSupplier();
+            config(['travel.public_search.suppliers' => [self::SUPPLIER_CODE]]);
+
             $this->confirmManualIntent();
 
             $session = $searches->search($this->criteria(), 'hbx-manual-verification');
             [$hotel, $rate] = $this->firstAvailableRate($session);
             $rateCheck = $rateChecks->check($session, $hotel['public_token'], $rate['public_rate_token']);
+            $this->assertHbxCheckRate($rateCheck);
 
             if (! $rateCheck->status->allowsBooking()) {
                 $this->error('HBX CheckRate did not return a bookable sandbox rate.');
@@ -46,7 +51,7 @@ class HbxVerifySandboxBookingCommand extends Command
                 return self::FAILURE;
             }
 
-            $this->displaySanitizedSummary($session, $rateCheck, $money);
+            $this->displaySanitizedSummary($session, $rateCheck, $money, $supplier);
 
             if ($this->option('dry-run')) {
                 $this->info('Dry run complete. No booking request was sent.');
@@ -73,6 +78,11 @@ class HbxVerifySandboxBookingCommand extends Command
             return self::SUCCESS;
         } catch (RuntimeException $exception) {
             $this->error($exception->getMessage());
+
+            return self::FAILURE;
+        } catch (Throwable $exception) {
+            report($exception);
+            $this->error('HBX sandbox verification failed safely before completion. Check sanitized supplier logs for details.');
 
             return self::FAILURE;
         }
@@ -137,7 +147,11 @@ class HbxVerifySandboxBookingCommand extends Command
         $hotel = collect($session->results_snapshot)->first(fn (array $candidate): bool => filled($candidate['rates'] ?? []));
 
         if (! $hotel) {
-            throw new RuntimeException('HBX sandbox search returned no available hotel rates.');
+            throw new RuntimeException($this->availabilityFailureMessage($session));
+        }
+
+        if (($hotel['supplier_code'] ?? null) !== self::SUPPLIER_CODE) {
+            throw new RuntimeException('HBX sandbox verification refused a non-HBX search result. Mock fallback is not allowed.');
         }
 
         $rate = collect($hotel['rates'])->first();
@@ -149,9 +163,33 @@ class HbxVerifySandboxBookingCommand extends Command
         return [$hotel, $rate];
     }
 
-    private function displaySanitizedSummary(SearchSession $session, RateCheck $rateCheck, MoneyFormatter $money): void
+    private function assertHbxCheckRate(RateCheck $rateCheck): void
     {
-        $this->line('Hotel: '.(string) ($rateCheck->searchSession->results_snapshot[0]['name'] ?? 'Selected HBX sandbox hotel'));
+        if ($rateCheck->supplier?->code !== self::SUPPLIER_CODE) {
+            throw new RuntimeException('HBX sandbox verification refused a non-HBX CheckRate result. Mock fallback is not allowed.');
+        }
+    }
+
+    private function availabilityFailureMessage(SearchSession $session): string
+    {
+        $warning = collect($session->warnings ?? [])
+            ->filter(fn (string $value): bool => filled($value))
+            ->map(fn (string $value): string => Str::of($value)->squish()->limit(120, '')->toString())
+            ->first();
+
+        return $warning
+            ? 'HBX sandbox availability search returned no offers. '.$warning
+            : 'HBX sandbox availability search returned no offers.';
+    }
+
+    private function displaySanitizedSummary(SearchSession $session, RateCheck $rateCheck, MoneyFormatter $money, Supplier $supplier): void
+    {
+        $hotelName = Arr::get($rateCheck->searchSession->results_snapshot, '0.name', 'Selected HBX sandbox hotel');
+
+        $this->line('Supplier: '.$supplier->code);
+        $this->line('Search source confirmed: HBX Sandbox');
+        $this->line('CheckRate source confirmed: HBX Sandbox');
+        $this->line('Hotel: '.(string) $hotelName);
         $this->line('Dates: '.$session->check_in->toDateString().' to '.$session->check_out->toDateString());
         $this->line('Currency: '.$session->currency);
         $this->line('Selling total: '.$money->formatMinor((int) ($rateCheck->checked_amount_minor ?? $rateCheck->original_amount_minor), $session->currency));
