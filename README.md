@@ -2,7 +2,7 @@
 
 Cairo Cool Travel is a Laravel hotel booking platform planned for Egypt first, with future expansion to Saudi Arabia and the UAE.
 
-This repository is currently in Phase 6: Customer Hotel Search and Hotel Details only.
+This repository is currently in Phase 7: Check Rate, Guest Details, and Booking Creation only.
 
 ## Current Scope
 
@@ -31,6 +31,7 @@ This repository is currently in Phase 6: Customer Hotel Search and Hotel Details
 - Secure supplier credentials, sanitized operation logs, correlation IDs, idempotency records, transport abstractions, and deterministic Mock Supplier.
 - Public Blade/Livewire hotel search and hotel-details foundation using the Mock Supplier only.
 - Secure expiring search sessions with non-sequential public UUIDs and public result tokens.
+- Public Check Rate, guest details, internal booking creation, Mock Supplier booking confirmation, and booking reconciliation foundations.
 
 ## Out of Scope
 
@@ -39,10 +40,13 @@ The following are intentionally not implemented yet:
 - Real supplier adapters or integrations
 - Supplier hotel mappings
 - Room types, room inventory, or rate plans
-- Booking flow
-- Check Rate or pre-booking flow
+- Real supplier booking integrations
 - Payments
+- Manual payment approval
+- Booking vouchers or PDFs
+- Customer cancellation workflow
 - Quotations
+- Customer accounts
 - B2B or B2B2C features
 - Real API credentials
 - Deployment automation
@@ -58,6 +62,8 @@ See [docs/hotel-catalog.md](docs/hotel-catalog.md) for hotel catalog entities, p
 See [docs/supplier-integration.md](docs/supplier-integration.md), [docs/supplier-contract.md](docs/supplier-contract.md), [docs/mock-supplier.md](docs/mock-supplier.md), and [docs/supplier-security.md](docs/supplier-security.md) for the Phase 5 supplier foundation.
 
 See [docs/hotel-search.md](docs/hotel-search.md) for the Phase 6 public search and hotel details foundation.
+
+See [docs/booking-flow.md](docs/booking-flow.md) for the Phase 7 Check Rate, guest details, and booking creation foundation.
 
 ## Local Documentation
 

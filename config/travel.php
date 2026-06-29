@@ -43,4 +43,9 @@ return [
         'results_limit' => (int) env('TRAVEL_SEARCH_RESULTS_LIMIT', 30),
     ],
 
+    'booking' => [
+        'rate_check_lifetime_minutes' => (int) env('TRAVEL_RATE_CHECK_LIFETIME_MINUTES', 20),
+        'draft_lifetime_minutes' => (int) env('TRAVEL_BOOKING_DRAFT_LIFETIME_MINUTES', 30),
+    ],
+
 ];
