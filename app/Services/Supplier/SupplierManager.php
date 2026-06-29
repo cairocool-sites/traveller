@@ -10,6 +10,7 @@ use App\Services\Supplier\Contracts\HotelSupplierInterface;
 use App\Services\Supplier\Exceptions\DisabledSupplierException;
 use App\Services\Supplier\Exceptions\MissingSupplierException;
 use App\Services\Supplier\Exceptions\UnsupportedSupplierOperationException;
+use App\Services\Supplier\Hbx\HbxHotelSupplier;
 use App\Services\Supplier\Mock\MockHotelSupplier;
 use Illuminate\Support\Collection;
 
@@ -27,6 +28,9 @@ class SupplierManager
 
         return match ($supplier->integration_type) {
             SupplierIntegrationType::Mock => app(MockHotelSupplier::class, ['supplier' => $supplier]),
+            SupplierIntegrationType::Json => $supplier->code === 'hbx_hotels'
+                ? app(HbxHotelSupplier::class, ['supplier' => $supplier])
+                : throw new UnsupportedSupplierOperationException('No JSON adapter is registered for this supplier.'),
             default => throw new UnsupportedSupplierOperationException('No adapter is registered for this supplier integration type.'),
         };
     }

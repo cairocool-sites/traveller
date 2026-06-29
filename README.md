@@ -2,7 +2,7 @@
 
 Cairo Cool Travel is a Laravel hotel booking platform planned for Egypt first, with future expansion to Saudi Arabia and the UAE.
 
-This repository is currently in Phase 10: Production Hardening, Operations, and Deployment Readiness only.
+This repository is currently in Phase 11: HBX Hotel API Sandbox Integration only.
 
 ## Current Scope
 
@@ -35,12 +35,13 @@ This repository is currently in Phase 10: Production Hardening, Operations, and 
 - Manual payment methods, customer payment submission, private evidence storage, admin payment review, printable vouchers, commercial invoices, receipts, and document verification tokens.
 - Customer cancellation requests, cancellation-policy evaluation, Mock Supplier cancellation, cancellation status history, manual refund tracking, refund histories, and customer-safe cancellation/refund status pages.
 - Production-readiness checks, safe health endpoints, scheduler heartbeat, named rate limiters, security headers, operational cleanup, DirectAdmin/Nginx deployment documentation, backup/restore documentation, and CI workflow.
+- HBX Hotels Sandbox adapter foundation behind the supplier contract, with authentication/signature generation, safe sandbox health checks, availability, CheckRate, booking, lookup, cancellation normalization, and fake-HTTP automated tests.
 
 ## Out of Scope
 
 The following are intentionally not implemented yet:
 
-- Real supplier adapters or integrations
+- Production supplier adapters or integrations
 - Supplier hotel mappings
 - Room types, room inventory, or rate plans
 - Real supplier booking integrations
@@ -75,6 +76,8 @@ See [docs/manual-payments.md](docs/manual-payments.md) and [docs/documents.md](d
 See [docs/cancellations.md](docs/cancellations.md) and [docs/refunds.md](docs/refunds.md) for the Phase 9 cancellation and manual refund foundation.
 
 See [docs/deployment-directadmin-nginx.md](docs/deployment-directadmin-nginx.md), [docs/operations-runbook.md](docs/operations-runbook.md), [docs/backup-restore.md](docs/backup-restore.md), [docs/security-hardening.md](docs/security-hardening.md), and [docs/data-retention.md](docs/data-retention.md) for Phase 10 operations readiness.
+
+See [docs/hbx-sandbox-integration.md](docs/hbx-sandbox-integration.md) for the Phase 11 HBX Hotels Sandbox supplier integration.
 
 ## Local Documentation
 

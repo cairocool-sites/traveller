@@ -61,7 +61,7 @@ class HotelSearchService
                 ));
 
                 $warnings = array_merge($warnings, $response->warnings);
-                $results = array_merge($results, $this->normalizeHotels($response->hotels, $validated['locale']));
+                $results = array_merge($results, $this->normalizeHotels($response->hotels, $validated['locale'], $response->supplierCode));
             } catch (Throwable $exception) {
                 $warnings[] = $this->customerWarning($exception);
                 $this->logFailure($supplier, $correlationId, $criteria, $exception);
@@ -215,9 +215,9 @@ class HotelSearchService
             ->values();
     }
 
-    private function normalizeHotels(array $hotels, string $locale): array
+    private function normalizeHotels(array $hotels, string $locale, string $supplierCode): array
     {
-        return collect($hotels)->map(function (SupplierHotelData $hotel) use ($locale): array {
+        return collect($hotels)->map(function (SupplierHotelData $hotel) use ($locale, $supplierCode): array {
             $rates = collect($hotel->rooms)->map(fn ($rate): array => [
                 'public_rate_token' => Str::lower(Str::random(18)),
                 'supplier_room_id' => $rate->supplierRoomId,
@@ -230,12 +230,13 @@ class HotelSearchService
                 'refundability' => $rate->refundability->value,
                 'cancellation_summary' => $this->cancellations->summarize($rate->cancellationPolicies, $locale),
                 'occupancy' => $rate->occupancy->jsonSerialize(),
+                'requires_check_rate' => (bool) ($rate->metadata['requires_check_rate'] ?? false),
             ])->all();
 
             return [
                 'public_token' => Str::lower(Str::random(16)),
                 'supplier_hotel_id' => $hotel->supplierHotelId,
-                'supplier_code' => 'mock_hotels',
+                'supplier_code' => $supplierCode,
                 'canonical_hotel_id' => $hotel->canonicalHotelId,
                 'name' => $hotel->name,
                 'star_rating' => $hotel->starRating,
@@ -270,7 +271,7 @@ class HotelSearchService
             'response_payload' => ['message' => 'Search failed before normalized response.'],
             'successful' => false,
             'error_type' => $exception instanceof SupplierException ? SupplierErrorType::InvalidResponse : SupplierErrorType::Unavailable,
-            'error_message' => class_basename($exception),
+            'error_message' => class_basename($exception).': '.$exception->getMessage(),
         ]);
     }
 }
