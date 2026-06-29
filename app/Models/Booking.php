@@ -67,6 +67,16 @@ class Booking extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    public function cancellations(): HasMany
+    {
+        return $this->hasMany(BookingCancellation::class);
+    }
+
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(Refund::class);
+    }
+
     protected function casts(): array
     {
         return [

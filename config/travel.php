@@ -65,4 +65,17 @@ return [
         'show_supplier_confirmation_reference' => (bool) env('TRAVEL_DOCUMENT_SHOW_SUPPLIER_CONFIRMATION', false),
     ],
 
+    'cancellations' => [
+        'request_lifetime_hours' => (int) env('TRAVEL_CANCELLATION_REQUEST_LIFETIME_HOURS', 24),
+        'submission_rate_limit' => env('TRAVEL_CANCELLATION_RATE_LIMIT', '6,1'),
+        'auto_supplier_cancel_mock' => (bool) env('TRAVEL_AUTO_SUPPLIER_CANCEL_MOCK', true),
+        'manual_review_threshold_minor' => (int) env('TRAVEL_CANCELLATION_MANUAL_REVIEW_THRESHOLD_MINOR', 1000000),
+    ],
+
+    'refunds' => [
+        'reference_prefix' => env('TRAVEL_REFUND_REFERENCE_PREFIX', 'RFD'),
+        'max_age_days' => (int) env('TRAVEL_REFUND_MAX_AGE_DAYS', 180),
+        'customer_processing_message' => env('TRAVEL_REFUND_PROCESSING_MESSAGE', 'Refunds are tracked manually and may take time to process.'),
+    ],
+
 ];

@@ -404,11 +404,14 @@ return [
             'supplier_failed' => 'Supplier failed',
             'manual_review' => 'Manual review',
             'expired' => 'Expired',
+            'cancelled' => 'Cancelled',
         ],
         'payment_statuses' => [
             'not_required' => 'Not required',
             'pending' => 'Pending',
             'paid' => 'Paid',
+            'partially_refunded' => 'Partially refunded',
+            'refunded' => 'Refunded',
         ],
     ],
     'payments' => [
@@ -420,6 +423,8 @@ return [
             'rejected' => 'Rejected',
             'paid' => 'Paid',
             'cancelled' => 'Cancelled',
+            'partially_refunded' => 'Partially refunded',
+            'refunded' => 'Refunded',
         ],
         'actions' => [
             'under_review' => 'Mark under review',

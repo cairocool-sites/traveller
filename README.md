@@ -2,7 +2,7 @@
 
 Cairo Cool Travel is a Laravel hotel booking platform planned for Egypt first, with future expansion to Saudi Arabia and the UAE.
 
-This repository is currently in Phase 8: Manual Payments, Payment Review, Voucher, and Invoice only.
+This repository is currently in Phase 9: Cancellation Requests and Refund Tracking only.
 
 ## Current Scope
 
@@ -33,6 +33,7 @@ This repository is currently in Phase 8: Manual Payments, Payment Review, Vouche
 - Secure expiring search sessions with non-sequential public UUIDs and public result tokens.
 - Public Check Rate, guest details, internal booking creation, Mock Supplier booking confirmation, and booking reconciliation foundations.
 - Manual payment methods, customer payment submission, private evidence storage, admin payment review, printable vouchers, commercial invoices, receipts, and document verification tokens.
+- Customer cancellation requests, cancellation-policy evaluation, Mock Supplier cancellation, cancellation status history, manual refund tracking, refund histories, and customer-safe cancellation/refund status pages.
 
 ## Out of Scope
 
@@ -45,6 +46,8 @@ The following are intentionally not implemented yet:
 - Real online payment gateways
 - Payment webhooks
 - Refunds
+- Real payment-gateway refunds
+- Chargebacks
 - Booking PDFs
 - Customer cancellation workflow
 - Quotations
@@ -68,6 +71,8 @@ See [docs/hotel-search.md](docs/hotel-search.md) for the Phase 6 public search a
 See [docs/booking-flow.md](docs/booking-flow.md) for the Phase 7 Check Rate, guest details, and booking creation foundation.
 
 See [docs/manual-payments.md](docs/manual-payments.md) and [docs/documents.md](docs/documents.md) for the Phase 8 manual payment and document foundation.
+
+See [docs/cancellations.md](docs/cancellations.md) and [docs/refunds.md](docs/refunds.md) for the Phase 9 cancellation and manual refund foundation.
 
 ## Local Documentation
 

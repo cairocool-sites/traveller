@@ -110,3 +110,5 @@ The seeder validates password strength, creates roles and permissions idempotent
 Phase 8 adds manual payment review, evidence access, document generation, and document viewing permissions. Auditors remain read-only. Reservation agents can see limited payment status but cannot approve or reject payments.
 
 The maker-checker rule prevents an admin operator from approving a payment they submitted. Super admins may override only with an explicit reason.
+
+Phase 9 adds cancellation and refund administration. Auditors remain read-only. Refund maker-checker controls prevent creators from approving or completing their own refund without a super-admin override reason.

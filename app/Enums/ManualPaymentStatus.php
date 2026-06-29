@@ -11,6 +11,8 @@ enum ManualPaymentStatus: string
     case Rejected = 'rejected';
     case Paid = 'paid';
     case Cancelled = 'cancelled';
+    case PartiallyRefunded = 'partially_refunded';
+    case Refunded = 'refunded';
 
     public function label(): string
     {

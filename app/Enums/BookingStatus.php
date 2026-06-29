@@ -13,6 +13,7 @@ enum BookingStatus: string
     case SupplierFailed = 'supplier_failed';
     case ManualReview = 'manual_review';
     case Expired = 'expired';
+    case Cancelled = 'cancelled';
 
     public function label(): string
     {

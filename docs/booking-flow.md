@@ -77,3 +77,5 @@ Auditors can view bookings and rate checks but cannot mutate or reconcile record
 ## Phase 8 Boundary
 
 Phase 8 may add payment or manual payment workflow depending on product priority. It must not overwrite the internal booking source of truth or expose supplier identifiers publicly.
+
+Phase 9 adds cancellation requests and manual refund tracking. Successful cancellations update the booking status but preserve immutable booking, invoice, receipt, and document snapshots.

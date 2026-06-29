@@ -131,4 +131,17 @@ return [
         'type' => 'Document type',
         'issued_at' => 'Issued at',
     ],
+    'cancellations' => [
+        'title' => 'Cancel booking',
+        'status_title' => 'Cancellation status',
+        'penalty' => 'Estimated penalty',
+        'refundable' => 'Estimated refundable amount',
+        'reason' => 'Reason',
+        'acknowledge_non_refundable' => 'I understand this booking may be non-refundable.',
+        'confirm' => 'I confirm this cancellation request.',
+        'submit' => 'Request cancellation',
+    ],
+    'refunds' => [
+        'title' => 'Refund status',
+    ],
 ];
