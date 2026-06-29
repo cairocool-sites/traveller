@@ -475,6 +475,24 @@ return [
             'refresh' => 'Refresh matrix',
         ],
     ],
+    'hbx_content_batches' => [
+        'model_label' => 'HBX content sync batch',
+        'plural_model_label' => 'HBX content sync batches',
+        'fields' => [
+            'created_at' => 'Created',
+            'resource' => 'Resource',
+            'mode' => 'Mode',
+            'status' => 'Status',
+            'country_code' => 'Country',
+            'language' => 'Language',
+            'processed_count' => 'Processed',
+            'stored_count' => 'Stored',
+            'dry_run' => 'Dry run',
+            'queued' => 'Queued',
+            'finished_at' => 'Finished',
+            'error_message' => 'Safe error',
+        ],
+    ],
     'supplier_mappings' => [
         'fields' => [
             'local_entity_type' => 'Local type',

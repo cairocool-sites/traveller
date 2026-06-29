@@ -37,6 +37,8 @@ Credentials, signatures, headers, and raw sensitive payloads are never printed. 
 
 `hbx_content_resources` stores generic official Content API master/descriptive resources such as boards, rooms, accommodations, categories, category groups, chains, facilities, facility groups, issues, languages, promotions, segments, image types, currencies, terminals, rate comments, and zones. The table preserves supplier codes, language, relationship hints, payload hash, sanitized JSON payload, last update time, active state, and sync timestamp.
 
+`hbx_content_sync_batches` records each manual, scheduled, or queued content sync. It stores the resource, mode, country/destination filters, language, page limit, differential timestamp, checkpoint summary, processed/stored counts, dry-run flag, queue flag, safe status, and sanitized error message. It never stores API keys, signatures, supplier credentials, raw headers, or raw response bodies.
+
 Upserts are idempotent. Records missing from later bounded syncs are deactivated rather than deleted.
 
 ## Mapping Workflow
@@ -71,9 +73,19 @@ php artisan hbx:content:sync --resource=hotels --country=EG --page-limit=1
 php artisan hbx:content:sync --resource=boards --country=EG --last-update-time=2026-06-01
 php artisan hbx:content:sync --resource=all --country=EG --page-limit=1
 php artisan hbx:content:sync --resource=all --full-authorized-portfolio --confirm --page-limit=1
+php artisan hbx:content:sync --resource=hotels --country=EG --last-update-time=2026-06-01 --queue
 ```
 
 Full authorized portfolio mode is blocked unless both `--full-authorized-portfolio` and `--confirm` are provided. The command prints sanitized progress and never sends booking, modification, cancellation, or production requests.
+
+Each run writes a content sync batch. `--queue` creates a pending batch and dispatches `HbxContentSyncJob`; the job reruns the same guarded command with the existing batch id. Admin users with supplier-view permission can inspect the batch list in Filament without seeing sensitive payloads.
+
+Scheduled jobs are intentionally bounded:
+
+- Daily hotel differential update for the configured public country.
+- Weekly destination refresh for the configured public country.
+
+The scheduler does not execute unless the normal Laravel scheduler cron is configured on the server.
 
 ## Public Search Flow
 
@@ -89,6 +101,18 @@ For HBX destinations, the browser submits an opaque local token such as `hbx_des
 For HBX hotels, the browser submits `hbx_hotel:{id}`. The server resolves the protected HBX hotel code internally and sends `hotels.hotel`.
 
 The free-text name `Cairo` is never sent as the HBX availability identifier. Local IDs are never sent as supplier codes. Content API is never called during public autocomplete or search-page rendering. Real HBX searches do not silently fall back to Mock.
+
+## Public Catalogue and SEO
+
+Synchronized public records produce crawlable local pages:
+
+- `/destinations/{slug}`
+- `/hotels/{destination-slug}/{hotel-slug}`
+- `/sitemap.xml`
+
+These pages render from the local database only. They do not call the Content API, Booking API, CheckRate, booking, modification, or cancellation endpoints. Destination and hotel pages include canonical tags from the shared public layout and minimal structured data only for visible local content. Search-result parameter combinations remain separate from the crawlable static catalogue.
+
+Static hotel pages do not advertise unavailable prices. Live prices are requested only after the user submits dates, guests, rooms, and currency through the public search flow.
 
 ## Quota and Pagination
 

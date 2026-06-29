@@ -77,8 +77,8 @@ Tracked but not yet implemented/enabled:
 ## Ordered Phase 14 Sub-Plan
 
 1. Capability registry, status command, and admin read-only matrix. Completed in commit `c735144`.
-2. Typed HBX destination/hotel catalogue, local autocomplete, and HBX search resolution without mandatory city mapping. In progress.
-3. Full Content API resource catalogue, generic resource storage, sync checkpoints, and differential sync.
+2. Typed HBX destination/hotel catalogue, local autocomplete, and HBX search resolution without mandatory city mapping. Completed in the typed catalogue foundation.
+3. Full Content API resource catalogue, generic resource storage, sync checkpoints, queued batches, and differential-sync command options. Foundation completed; large live imports remain manual and bounded.
 4. Booking API operation coverage for list/detail/change/cancel simulation/cancel/reconfirmation.
 5. Payment-data and 3DS schema support behind explicit security feature flags.
 6. Cache API adapter, safe ZIP extraction, file validation, import status, and rollback.
@@ -105,6 +105,16 @@ The public search form submits local opaque tokens:
 - `hbx_hotel:{id}` for hotel-code searches.
 
 The server resolves those records to official HBX identifiers internally. Raw HBX destination codes, hotel codes, and rate keys must not be trusted from browser input.
+
+The local crawlable catalogue uses:
+
+- `/destinations/{slug}`
+- `/hotels/{destination-slug}/{hotel-slug}`
+- `/sitemap.xml`
+
+These pages are powered by synchronized local content, public visibility flags, SEO fields, and minimal schema.org data for visible content only. They do not display fabricated prices, ratings, reviews, offers, or availability.
+
+Content synchronization records safe batches in `hbx_content_sync_batches`. Admin users can inspect resource, status, counts, checkpoints, and sanitized errors from Filament. The batch table is an operational audit trail and must not contain credentials, signed headers, or raw supplier payloads.
 
 ## Safety Gates
 

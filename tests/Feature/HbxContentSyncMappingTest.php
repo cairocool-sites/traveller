@@ -1,8 +1,10 @@
 <?php
 
 use App\Enums\SupplierStatus;
+use App\Jobs\HbxContentSyncJob;
 use App\Models\City;
 use App\Models\HbxContentResource;
+use App\Models\HbxContentSyncBatch;
 use App\Models\HbxDestination;
 use App\Models\HbxHotel;
 use App\Models\HbxHotelFacility;
@@ -15,6 +17,7 @@ use App\Models\SupplierOperationLog;
 use App\Services\Supplier\Hbx\HbxContentApiClient;
 use App\Services\Supplier\Hbx\HbxContentSyncService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -174,6 +177,43 @@ it('new content sync command supports official resource names and blocks unconfi
     $this->artisan('hbx:content:sync --resource=all --full-authorized-portfolio')
         ->expectsOutputToContain('Full authorized portfolio sync requires --confirm.')
         ->assertFailed();
+});
+
+it('records hbx content sync batch checkpoints without storing secrets', function () {
+    Http::fake(['api.test.hotelbeds.com/*' => Http::response(['boards' => ['boards' => [['code' => 'RO', 'description' => ['content' => 'Room Only']]]]], 200)]);
+
+    $this->artisan('hbx:content:sync --resource=boards --country=EG --page-limit=1')
+        ->expectsOutputToContain('boards: processed 1; stored 1.')
+        ->assertSuccessful();
+
+    $batch = HbxContentSyncBatch::query()->latest()->firstOrFail();
+    $encoded = json_encode($batch->checkpoint, JSON_THROW_ON_ERROR);
+
+    expect($batch->status)->toBe('completed')
+        ->and($batch->resource)->toBe('boards')
+        ->and($batch->mode)->toBe('bounded')
+        ->and($batch->processed_count)->toBe(1)
+        ->and($batch->stored_count)->toBe(1)
+        ->and($encoded)->toContain('boards')
+        ->and($encoded)->not->toContain('content-api-key')
+        ->and($encoded)->not->toContain('content-api-secret');
+});
+
+it('queues hbx content sync batches without making immediate content api requests', function () {
+    Bus::fake();
+    Http::preventStrayRequests();
+
+    $this->artisan('hbx:content:sync --resource=destinations --country=EG --page-limit=1 --queue')
+        ->expectsOutputToContain('Queued HBX content sync batch #')
+        ->assertSuccessful();
+
+    $batch = HbxContentSyncBatch::query()->latest()->firstOrFail();
+
+    expect($batch->status)->toBe('pending')
+        ->and($batch->resource)->toBe('destinations')
+        ->and($batch->queued)->toBeTrue();
+
+    Bus::assertDispatched(HbxContentSyncJob::class);
 });
 
 it('keeps production booking endpoint blocked during content work', function () {
