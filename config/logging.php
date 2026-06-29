@@ -73,6 +73,30 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'supplier' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/supplier.log'),
+            'level' => env('LOG_SUPPLIER_LEVEL', 'info'),
+            'days' => env('LOG_SUPPLIER_DAYS', 30),
+            'replace_placeholders' => true,
+        ],
+
+        'financial' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/financial.log'),
+            'level' => env('LOG_FINANCIAL_LEVEL', 'info'),
+            'days' => env('LOG_FINANCIAL_DAYS', 90),
+            'replace_placeholders' => true,
+        ],
+
+        'security' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/security.log'),
+            'level' => env('LOG_SECURITY_LEVEL', 'warning'),
+            'days' => env('LOG_SECURITY_DAYS', 90),
+            'replace_placeholders' => true,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),

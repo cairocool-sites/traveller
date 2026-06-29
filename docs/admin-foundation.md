@@ -112,3 +112,19 @@ Phase 8 adds manual payment review, evidence access, document generation, and do
 The maker-checker rule prevents an admin operator from approving a payment they submitted. Super admins may override only with an explicit reason.
 
 Phase 9 adds cancellation and refund administration. Auditors remain read-only. Refund maker-checker controls prevent creators from approving or completing their own refund without a super-admin override reason.
+
+## Phase 10 Operations Administration
+
+Phase 10 adds:
+
+- `view_system_health`
+- `manage_operational_tasks`
+
+The System Health page is available under Operations for authorized admins. It displays safe status summaries only and does not expose secrets, raw logs, full filesystem paths, credentials, or customer PII.
+
+Allocation follows the existing role model:
+
+- `super_admin`: all operations permissions.
+- `general_manager`: inherits the existing broad management permission set.
+- `operations_admin`, `api_manager`, and `auditor`: view system health.
+- `api_manager`: can manage operational tasks.

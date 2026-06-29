@@ -83,6 +83,8 @@ final class Access
         'reject_refunds',
         'view_refund_financials',
         'view_sensitive_cancellation_data',
+        'view_system_health',
+        'manage_operational_tasks',
     ];
 
     public const ROLE_PERMISSIONS = [
@@ -103,6 +105,7 @@ final class Access
             'manage_hotel_policies',
             'view_suppliers',
             'view_supplier_logs',
+            'view_system_health',
         ],
         'reservation_manager' => [
             'access_admin',
@@ -199,6 +202,8 @@ final class Access
             'run_supplier_health_checks',
             'view_supplier_logs',
             'view_sensitive_supplier_logs',
+            'view_system_health',
+            'manage_operational_tasks',
             'view_search_sessions',
             'view_rate_checks',
             'view_bookings',
@@ -238,6 +243,7 @@ final class Access
             'view_cancellations',
             'view_refunds',
             'view_refund_financials',
+            'view_system_health',
         ],
     ];
 

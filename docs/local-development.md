@@ -86,6 +86,16 @@ Phase 8 manual payment flow is available from confirmed booking pages. Evidence 
 
 Phase 9 cancellation flow is available from confirmed booking pages. Refunds are manual tracking records only and do not call banks, cards, gateways, or real suppliers.
 
+Phase 10 operational checks can be run locally with:
+
+```bash
+php artisan app:check-environment
+php artisan ops:scheduler-heartbeat
+php artisan ops:cleanup --dry-run
+```
+
+Local health endpoints are available at `/health/live` and `/health/ready`. They are intentionally minimal and do not expose environment values, paths, credentials, or versions.
+
 Reference data can be seeded with:
 
 ```bash
@@ -103,6 +113,8 @@ Stale draft/rate-confirmed booking records can be expired locally with:
 ```bash
 php artisan bookings:expire-drafts
 ```
+
+The scheduler heartbeat is registered for Laravel's scheduler. A production server must run `php artisan schedule:run` every minute through cron; local development can run `php artisan ops:scheduler-heartbeat` manually.
 
 PHP XML extensions required for future production integrations include `dom`, `libxml`, `SimpleXML`, `xmlreader`, and `xmlwriter`. PHP SOAP is not installed in the current local toolchain and is only scaffolded in Phase 5.
 

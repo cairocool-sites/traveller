@@ -78,4 +78,35 @@ return [
         'customer_processing_message' => env('TRAVEL_REFUND_PROCESSING_MESSAGE', 'Refunds are tracked manually and may take time to process.'),
     ],
 
+    'security' => [
+        'csp_report_only' => (bool) env('TRAVEL_CSP_REPORT_ONLY', true),
+    ],
+
+    'rate_limits' => [
+        'health' => ['per_minute' => (int) env('TRAVEL_RATE_LIMIT_HEALTH_PER_MINUTE', 30)],
+        'public-search' => ['per_minute' => (int) env('TRAVEL_RATE_LIMIT_SEARCH_PER_MINUTE', 30)],
+        'booking-submission' => ['per_minute' => (int) env('TRAVEL_RATE_LIMIT_BOOKING_PER_MINUTE', 10)],
+        'payment-submission' => ['per_minute' => (int) env('TRAVEL_RATE_LIMIT_PAYMENT_PER_MINUTE', 6)],
+        'evidence-downloads' => ['per_minute' => (int) env('TRAVEL_RATE_LIMIT_EVIDENCE_PER_MINUTE', 20)],
+        'document-verification' => ['per_minute' => (int) env('TRAVEL_RATE_LIMIT_DOCUMENT_VERIFY_PER_MINUTE', 30)],
+        'cancellation-requests' => ['per_minute' => (int) env('TRAVEL_RATE_LIMIT_CANCELLATION_PER_MINUTE', 6)],
+        'status-pages' => ['per_minute' => (int) env('TRAVEL_RATE_LIMIT_STATUS_PER_MINUTE', 30)],
+    ],
+
+    'operations' => [
+        'scheduler_stale_after_minutes' => (int) env('TRAVEL_SCHEDULER_STALE_AFTER_MINUTES', 5),
+        'retention' => [
+            'supplier_logs_days' => (int) env('TRAVEL_RETENTION_SUPPLIER_LOGS_DAYS', 90),
+            'search_sessions_days' => (int) env('TRAVEL_RETENTION_SEARCH_SESSIONS_DAYS', 2),
+            'rate_checks_days' => (int) env('TRAVEL_RETENTION_RATE_CHECKS_DAYS', 2),
+            'booking_drafts_days' => (int) env('TRAVEL_RETENTION_BOOKING_DRAFTS_DAYS', 7),
+            'notifications_days' => (int) env('TRAVEL_RETENTION_NOTIFICATIONS_DAYS', 180),
+            'temporary_uploads_days' => (int) env('TRAVEL_RETENTION_TEMP_UPLOADS_DAYS', 2),
+        ],
+    ],
+
+    'suppliers' => [
+        'soap_enabled' => (bool) env('TRAVEL_SUPPLIER_SOAP_ENABLED', false),
+    ],
+
 ];
