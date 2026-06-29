@@ -61,6 +61,24 @@ Phase 4 hotel-catalog permissions:
 - `manage_hotel_facilities`
 - `manage_hotel_policies`
 
+Phase 5 supplier permissions:
+
+- `view_suppliers`
+- `manage_suppliers`
+- `manage_supplier_credentials`
+- `run_supplier_health_checks`
+- `view_supplier_logs`
+- `view_sensitive_supplier_logs`
+
+Allocation:
+
+- `super_admin`: all permissions.
+- `general_manager`: all permissions.
+- `api_manager`: all supplier permissions.
+- `operations_admin`: view suppliers and non-sensitive supplier logs.
+- `auditor`: view suppliers and non-sensitive supplier logs only.
+- Other roles receive no supplier permissions unless already covered by all-permission roles.
+
 ## First Super Admin
 
 Set these values in local `.env` only:

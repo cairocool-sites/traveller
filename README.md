@@ -2,7 +2,7 @@
 
 Cairo Cool Travel is a Laravel hotel booking platform planned for Egypt first, with future expansion to Saudi Arabia and the UAE.
 
-This repository is currently in Phase 4: Hotel Catalog Foundation only.
+This repository is currently in Phase 5: Supplier Integration Foundation and Mock Supplier only.
 
 ## Current Scope
 
@@ -27,13 +27,15 @@ This repository is currently in Phase 4: Hotel Catalog Foundation only.
 - Canonical internal hotel catalog foundation.
 - Hotel translations, facilities, contacts, image metadata, and hotel policies.
 - Protected Filament hotel content management.
+- Supplier integration foundation for mock, REST, JSON, XML, SOAP, and OTA XML provider types.
+- Secure supplier credentials, sanitized operation logs, correlation IDs, idempotency records, transport abstractions, and deterministic Mock Supplier.
 
 ## Out of Scope
 
 The following are intentionally not implemented yet:
 
-- Hotel search, content, or inventory features
-- Supplier adapters or integrations
+- Customer-facing hotel search website
+- Real supplier adapters or integrations
 - Supplier hotel mappings
 - Room types, room inventory, or rate plans
 - Booking flow
@@ -50,6 +52,8 @@ See [docs/admin-foundation.md](docs/admin-foundation.md) for admin setup, roles,
 See [docs/core-reference-data.md](docs/core-reference-data.md) for reference-data entities, seeders, permissions, and currency behavior.
 
 See [docs/hotel-catalog.md](docs/hotel-catalog.md) for hotel catalog entities, publication rules, permissions, and media metadata behavior.
+
+See [docs/supplier-integration.md](docs/supplier-integration.md), [docs/supplier-contract.md](docs/supplier-contract.md), [docs/mock-supplier.md](docs/mock-supplier.md), and [docs/supplier-security.md](docs/supplier-security.md) for the Phase 5 supplier foundation.
 
 ## Local Documentation
 

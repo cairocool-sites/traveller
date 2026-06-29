@@ -76,6 +76,8 @@ The admin panel is available at `/admin`.
 
 Hotel catalog management is available under `/admin/hotels` for users with hotel permissions.
 
+Supplier management is available under `/admin/suppliers` for users with supplier permissions. Supplier operation logs are available under the Supplier Management navigation group.
+
 Reference data can be seeded with:
 
 ```bash
@@ -83,6 +85,10 @@ php artisan db:seed --class=CoreReferenceDataSeeder
 ```
 
 No fake hotels are seeded by default.
+
+The supplier seeder creates only the deterministic `mock_hotels` sandbox supplier. It does not seed real endpoints, usernames, passwords, tokens, API keys, or production connections.
+
+PHP XML extensions required for future production integrations include `dom`, `libxml`, `SimpleXML`, `xmlreader`, and `xmlwriter`. PHP SOAP is not installed in the current local toolchain and is only scaffolded in Phase 5.
 
 Run tests:
 

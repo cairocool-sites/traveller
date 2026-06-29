@@ -1,0 +1,48 @@
+# Supplier Contract
+
+`HotelSupplierInterface` is the stable Phase 5 hotel supplier contract.
+
+Methods:
+
+- `search(HotelSearchRequestData): HotelSearchResultData`
+- `getHotelDetails(HotelDetailsRequestData): HotelDetailsResultData`
+- `checkRate(CheckRateRequestData): CheckRateResultData`
+- `book(SupplierBookingRequestData): SupplierBookingResultData`
+- `getBooking(SupplierBookingLookupRequestData): SupplierBookingDetailsData`
+- `cancel(SupplierCancellationRequestData): SupplierCancellationResultData`
+- `healthCheck(): SupplierHealthResultData`
+
+## DTO Rules
+
+Public supplier contracts use typed DTOs, not raw arrays. DTOs preserve supplier currency and use metadata only for controlled supplier-specific values.
+
+Request validation includes:
+
+- check-out after check-in
+- no past check-in date
+- at least one room
+- at least one adult per room
+- child count equals child-age count
+- lead guest must be an adult
+- supported locale and currency
+- booking and cancellation idempotency keys
+
+## Money
+
+`App\Support\Money\Money` stores integer minor units and decimal-place metadata. Supplier DTOs do not use floats, do not silently convert currencies, and preserve the supplier currency.
+
+## Occupancy
+
+Occupancy is DTO-only in Phase 5. No internal room inventory, room stock, booking guest table, or room type table is created.
+
+## Cancellation Policies
+
+Cancellation policies support multiple windows with nullable valid-from/valid-until values, penalty type, penalty amount/currency, penalty nights, percentage, no-show flag, non-refundable flag, and description. The system preserves supplier meaning and does not invent free-cancellation deadlines.
+
+## Transport Strategy
+
+- REST, JSON, and XML-over-HTTP use Laravel HTTP Client through `SupplierHttpTransport`.
+- XML parsing uses `SecureSupplierXmlTransport`, rejects DTD/entity declarations, uses `LIBXML_NONET`, and reports malformed XML as a controlled exception.
+- SOAP is represented by `SupplierSoapTransport` and a deferred implementation for future WSDL/non-WSDL clients.
+
+No internet calls are made in tests.
