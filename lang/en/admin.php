@@ -26,6 +26,10 @@ return [
             'timezone' => 'Timezone',
             'currency' => 'Default currency',
             'role' => 'Role',
+            'payments_pending_review' => 'Payments pending review',
+            'payments_approved' => 'Payments approved',
+            'payments_rejected' => 'Payments rejected',
+            'documents_issued' => 'Documents issued',
         ],
     ],
     'locales' => [
@@ -100,6 +104,19 @@ return [
         'manage_booking_status' => 'Manage booking status',
         'reconcile_bookings' => 'Reconcile bookings',
         'view_booking_sensitive_data' => 'View booking sensitive data',
+        'view_payments' => 'View payments',
+        'submit_manual_payments' => 'Submit manual payments',
+        'review_payments' => 'Review payments',
+        'approve_payments' => 'Approve payments',
+        'reject_payments' => 'Reject payments',
+        'view_payment_evidence' => 'View payment evidence',
+        'manage_payment_methods' => 'Manage payment methods',
+        'view_financial_totals' => 'View financial totals',
+        'generate_receipts' => 'Generate receipts',
+        'generate_vouchers' => 'Generate vouchers',
+        'generate_invoices' => 'Generate invoices',
+        'view_documents' => 'View documents',
+        'view_sensitive_payment_data' => 'View sensitive payment data',
     ],
     'countries' => [
         'model_label' => 'Country',
@@ -409,6 +426,26 @@ return [
         'payment_statuses' => [
             'not_required' => 'Not required',
             'pending' => 'Pending',
+            'paid' => 'Paid',
+        ],
+    ],
+    'payments' => [
+        'statuses' => [
+            'pending' => 'Pending',
+            'submitted' => 'Submitted',
+            'under_review' => 'Under review',
+            'approved' => 'Approved',
+            'rejected' => 'Rejected',
+            'paid' => 'Paid',
+            'cancelled' => 'Cancelled',
+        ],
+        'actions' => [
+            'under_review' => 'Mark under review',
+            'approve' => 'Approve',
+            'reject' => 'Reject',
+        ],
+        'fields' => [
+            'reason' => 'Reason',
         ],
     ],
 ];

@@ -82,6 +82,8 @@ Public hotel search is available at `/` and `/hotels`. Search results are genera
 
 Phase 7 booking flow is available from a hotel details page by choosing Check rate, entering guest details, and submitting the deterministic Mock Supplier booking. No real supplier, payment, voucher, customer account, cancellation, quotation, or B2B feature is connected.
 
+Phase 8 manual payment flow is available from confirmed booking pages. Evidence is stored privately on the local disk. Seeded payment methods use safe placeholder account details only.
+
 Reference data can be seeded with:
 
 ```bash

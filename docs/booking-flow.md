@@ -37,7 +37,7 @@ Booking statuses are controlled by `App\Enums\BookingStatus`:
 - `manual_review`
 - `expired`
 
-Payment is intentionally minimal: `not_required` or `pending`. No online payment, refund, capture, or manual payment approval is implemented.
+Payment is now handled by the Phase 8 manual payment domain. Booking payment state remains a summary only and is synchronized after manual payment approval. Supplier booking state is not modified by payment review.
 
 ## Services
 
