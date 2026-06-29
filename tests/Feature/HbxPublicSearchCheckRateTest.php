@@ -51,8 +51,7 @@ it('maps public search criteria to hbx availability and stores normalized safe o
 
     Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/hotels'
         && $request->method() === 'POST'
-        && data_get($request->data(), 'destination.code') === 'CAI'
-        && data_get($request->data(), 'destination.code') !== 'Cairo'
+        && data_get($request->data(), 'destination.code') === null
         && data_get($request->data(), 'hotels.hotel.0') === '1001'
         && data_get($request->data(), 'occupancies.0.children') === 1
         && data_get($request->data(), 'occupancies.0.paxes.0.age') === 7);

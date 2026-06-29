@@ -115,9 +115,8 @@ it('dry-run refuses public mock fallback and still uses hbx_hotels', function ()
         ->assertSuccessful();
 
     Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/hotels'
-        && data_get($request->data(), 'destination.code') === 'CAI'
         && data_get($request->data(), 'hotels.hotel.0') === '1001'
-        && data_get($request->data(), 'destination.code') !== 'Cairo');
+        && data_get($request->data(), 'destination.code') === null);
     Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/checkrates');
     Http::assertNotSent(fn ($request): bool => str_contains($request->url(), '/hotel-api/1.0/bookings'));
 });

@@ -152,7 +152,30 @@ it('normalizes hbx availability with bookable and recheck rates', function () {
 
     Http::assertSent(fn ($request): bool => $request->hasHeader('Api-key')
         && $request->hasHeader('X-Signature')
-        && $request->hasHeader('Accept', 'application/json'));
+        && $request->hasHeader('Accept', 'application/json')
+        && data_get($request->data(), 'destination.code') === 'CAI'
+        && data_get($request->data(), 'occupancies.0.paxes') === null);
+});
+
+it('uses hbx hotel-code availability without mixing destination filters', function () {
+    Http::fake(['*' => Http::response(availabilityPayload(), 200)]);
+
+    hbx()->search(new HotelSearchRequestData(
+        destinationIdentifier: 'CAI',
+        checkIn: now()->toImmutable()->addDay(),
+        checkOut: now()->toImmutable()->addDays(2),
+        rooms: [new RoomOccupancyData(1, 1, [8])],
+        currency: 'EGP',
+        locale: 'ar',
+        metadata: ['hotel_codes' => ['1001', '1001', '']],
+    ));
+
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/hotels'
+        && $request->method() === 'POST'
+        && data_get($request->data(), 'destination.code') === null
+        && data_get($request->data(), 'hotels.hotel') === ['1001']
+        && data_get($request->data(), 'occupancies.0.paxes.0.type') === 'CH'
+        && data_get($request->data(), 'occupancies.0.paxes.0.age') === 8);
 });
 
 it('normalizes hbx check rate and detects price changes', function () {
@@ -170,6 +193,10 @@ it('normalizes hbx check rate and detects price changes', function () {
         ->and($result->priceChanged)->toBeTrue()
         ->and($result->confirmedTotal?->minorAmount)->toBe(13000)
         ->and($result->confirmedRateKey)->toBe('hbx-rate-checked');
+
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/checkrates'
+        && $request->method() === 'POST'
+        && data_get($request->data(), 'rooms') === [['rateKey' => 'hbx-rate-bookable']]);
 });
 
 it('normalizes booking confirmation', function () {
@@ -180,6 +207,15 @@ it('normalizes booking confirmation', function () {
     expect($confirmed->successful)->toBeTrue()
         ->and($confirmed->status)->toBe(BookingSupplierStatus::Confirmed)
         ->and($confirmed->supplierBookingReference)->toBe('HBX-1');
+
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/bookings'
+        && $request->method() === 'POST'
+        && data_get($request->data(), 'holder.name') === 'Ali'
+        && data_get($request->data(), 'clientReference') === 'idem-confirmed'
+        && data_get($request->data(), 'rooms.0.rateKey') === 'hbx-rate-checked'
+        && data_get($request->data(), 'rooms.0.paxes.0.roomId') === 1
+        && data_get($request->data(), 'rooms.0.paxes.0.type') === 'AD'
+        && data_get($request->data(), 'rooms.0.paxes.0.age') === null);
 });
 
 it('normalizes booking rejection', function () {
@@ -218,6 +254,9 @@ it('normalizes cancellation success, penalty, and unknown timeout', function () 
     expect($cancelled->successful)->toBeTrue()
         ->and($cancelled->status)->toBe(CancellationSupplierStatus::Cancelled)
         ->and($cancelled->penaltyAmount?->minorAmount)->toBe(3000);
+
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/bookings/HBX-1?cancellationFlag=CANCELLATION'
+        && $request->method() === 'DELETE');
 
     Http::fake(fn () => throw new ConnectionException('timeout'));
 

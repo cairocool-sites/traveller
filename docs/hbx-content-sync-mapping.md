@@ -61,9 +61,9 @@ The browser submits a local destination token such as `city:{id}`. The server re
 1. Local destination token
 2. Confirmed HBX destination mapping
 3. Active synchronized HBX hotel codes
-4. HBX availability payload using `destination.code` and `hotels.hotel`
+4. HBX availability payload using `hotels.hotel`
 
-The free-text name `Cairo` is never sent as the HBX availability identifier. If no mapping or no hotel codes exist, the search fails safely with a customer-safe message. Real HBX searches do not silently fall back to Mock.
+The free-text name `Cairo` is never sent as the HBX availability identifier. Once hotel codes are available, the Booking API availability payload does not mix `destination.code` with `hotels.hotel`; the hotel-code list is the bounded search input. If no mapping or no hotel codes exist, the search fails safely with a customer-safe message. Real HBX searches do not silently fall back to Mock.
 
 ## Quota and Pagination
 

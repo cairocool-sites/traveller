@@ -80,7 +80,7 @@ it('creates a confirmed hbx sandbox booking from trusted server-side rate data',
 
     Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/bookings'
         && $request->method() === 'POST'
-        && data_get($request->data(), 'clientReference') === $booking->idempotency_key
+        && data_get($request->data(), 'clientReference') === Str::of($booking->idempotency_key)->replaceMatches('/[^A-Za-z0-9_-]/', '')->limit(20, '')->toString()
         && data_get($request->data(), 'rooms.0.rateKey') === 'hbx-rate-checked'
         && data_get($request->data(), 'holder.name') === 'Ali');
 });
