@@ -1,23 +1,23 @@
 <x-layouts.public :meta-title="$metaTitle" :meta-description="$metaDescription">
     <section class="cct-hero relative overflow-hidden text-white">
         <div class="cct-hero-pattern absolute inset-0 opacity-60" aria-hidden="true"></div>
-        <div class="cct-shell relative pb-20 pt-14 sm:pt-20 lg:pb-32">
-            <div class="max-w-3xl">
-                <h1 class="text-4xl font-black leading-tight tracking-normal sm:text-5xl lg:text-6xl">{{ __('public.home.title') }}</h1>
-                <p class="mt-5 max-w-2xl text-lg font-medium leading-8 text-teal-50 sm:text-xl">{{ __('public.home.subtitle') }}</p>
+        <div class="cct-shell relative pb-14 pt-10 sm:pt-12 lg:pb-20 lg:pt-11">
+            <div class="max-w-4xl">
+                <h1 class="text-3xl font-black leading-[1.08] tracking-normal sm:text-4xl lg:max-w-3xl lg:text-5xl">{{ __('public.home.title') }}</h1>
+                <p class="mt-3 max-w-2xl text-base font-medium leading-7 text-teal-50 sm:text-lg">{{ __('public.home.subtitle') }}</p>
             </div>
-            <div class="mt-8 grid max-w-2xl gap-3 text-sm font-semibold text-teal-50 sm:grid-cols-3">
+            <div class="mt-5 grid max-w-2xl gap-2 text-sm font-semibold text-teal-50 sm:grid-cols-3">
                 <span class="rounded-full border border-white/15 bg-white/10 px-4 py-2">{{ __('public.home.hero_point_1') }}</span>
                 <span class="rounded-full border border-white/15 bg-white/10 px-4 py-2">{{ __('public.home.hero_point_2') }}</span>
                 <span class="rounded-full border border-white/15 bg-white/10 px-4 py-2">{{ __('public.home.hero_point_3') }}</span>
             </div>
-            <div class="relative z-10 mt-10 lg:-mb-44">
+            <div class="relative z-10 mt-6 lg:-mb-32">
                 <livewire:hotel-search-form :locale="app()->getLocale()" />
             </div>
         </div>
     </section>
 
-    <section class="cct-shell pt-14 lg:pt-52">
+    <section class="cct-shell pt-14 lg:pt-40">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
                 <h2 class="text-3xl font-black text-[#0B1F33]">{{ __('public.home.featured_destinations') }}</h2>
