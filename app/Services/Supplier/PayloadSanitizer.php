@@ -6,8 +6,11 @@ class PayloadSanitizer
 {
     private const SENSITIVE_KEYS = [
         'authorization',
+        'api-key',
         'api_key',
         'apikey',
+        'x-signature',
+        'signature',
         'access_token',
         'token',
         'password',

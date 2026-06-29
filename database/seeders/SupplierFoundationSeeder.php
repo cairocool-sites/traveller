@@ -36,5 +36,29 @@ class SupplierFoundationSeeder extends Seeder
                 'health_status' => SupplierHealthStatus::Unknown,
             ],
         );
+
+        Supplier::query()->updateOrCreate(
+            ['code' => 'hbx_hotels'],
+            [
+                'name' => 'HBX Hotels Sandbox',
+                'integration_type' => SupplierIntegrationType::Json,
+                'environment' => SupplierEnvironment::Sandbox,
+                'status' => config('services.hbx.enabled') && ! app()->environment('testing') ? SupplierStatus::Active : SupplierStatus::Inactive,
+                'priority' => 20,
+                'timeout_seconds' => (int) config('services.hbx.timeout', 20),
+                'connect_timeout_seconds' => (int) config('services.hbx.connect_timeout', 5),
+                'max_retries' => 1,
+                'retry_delay_milliseconds' => 250,
+                'search_enabled' => true,
+                'details_enabled' => true,
+                'check_rate_enabled' => true,
+                'booking_enabled' => true,
+                'cancellation_enabled' => true,
+                'booking_lookup_enabled' => true,
+                'health_check_enabled' => true,
+                'base_url' => config('services.hbx.base_url'),
+                'health_status' => SupplierHealthStatus::Unknown,
+            ],
+        );
     }
 }
