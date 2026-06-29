@@ -80,7 +80,7 @@ Supplier management is available under `/admin/suppliers` for users with supplie
 
 Public hotel search is available at `/` and `/hotels`. Search results prefer the active `hbx_hotels` sandbox supplier when configured, then fall back to `mock_hotels`; normalized offers are stored in short-lived `search_sessions`.
 
-Phase 7 booking flow is available from a hotel details page by choosing Check rate, entering guest details, and submitting the deterministic Mock Supplier booking. Phase 12 allows HBX Sandbox Availability and CheckRate only; HBX booking and cancellation submission are explicitly blocked. No online payment gateway, customer account, quotation, or B2B feature is connected.
+Phase 7 booking flow is available from a hotel details page by choosing Check rate, entering guest details, and submitting the deterministic Mock Supplier booking. Phase 13 allows HBX Sandbox booking only when `HBX_SANDBOX_BOOKING_ENABLED=true`, the supplier is active, credentials are configured locally, and the base URL is exactly `https://api.test.hotelbeds.com`. HBX production booking and cancellation submission remain blocked. No online payment gateway, customer account, quotation, or B2B feature is connected.
 
 Phase 8 manual payment flow is available from confirmed booking pages. Evidence is stored privately on the local disk. Seeded payment methods use safe placeholder account details only.
 

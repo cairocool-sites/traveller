@@ -45,9 +45,13 @@ class BookingResource extends Resource
             ->columns([
                 TextColumn::make('created_at')->label(__('admin.bookings.fields.created_at'))->dateTime()->sortable(),
                 TextColumn::make('booking_reference')->label(__('admin.bookings.fields.booking_reference'))->searchable()->copyable(),
+                TextColumn::make('supplier_booking_reference')->label(__('admin.bookings.fields.supplier_booking_reference'))->searchable()->toggleable(),
+                TextColumn::make('idempotency_key')->label(__('admin.bookings.fields.client_reference'))->copyable()->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('status')->label(__('admin.bookings.fields.status'))->badge()->sortable(),
                 TextColumn::make('payment_status')->label(__('admin.bookings.fields.payment_status'))->badge()->sortable(),
                 TextColumn::make('supplier.code')->label(__('admin.bookings.fields.supplier'))->sortable(),
+                TextColumn::make('check_in')->label(__('admin.bookings.fields.check_in'))->date()->sortable(),
+                TextColumn::make('check_out')->label(__('admin.bookings.fields.check_out'))->date()->sortable(),
                 TextColumn::make('currency.code')->label(__('admin.bookings.fields.currency')),
                 TextColumn::make('total_amount_minor')->label(__('admin.bookings.fields.total'))->numeric()->sortable(),
                 TextColumn::make('contact_email')->label(__('admin.bookings.fields.contact_email'))->searchable(),

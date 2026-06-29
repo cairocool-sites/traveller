@@ -28,14 +28,19 @@ class BookingService
         private readonly SupplierManager $suppliers,
         private readonly BookingReferenceGenerator $references,
         private readonly BookingStateMachine $states,
+        private readonly HbxSandboxBookingGuard $hbxGuard,
     ) {}
 
     public function createAndSubmit(RateCheck $rateCheck, array $payload): Booking
     {
         $this->validateRate($rateCheck, (bool) ($payload['accept_price_change'] ?? false));
-        $this->assertSupplierBookingAllowed($rateCheck);
+        $this->hbxGuard->assertAllowed($rateCheck->supplier);
 
         $idempotencyKey = (string) ($payload['idempotency_key'] ?? '');
+        if ($idempotencyKey === '') {
+            throw new InvalidArgumentException('A booking idempotency key is required.');
+        }
+
         $hash = hash('sha256', json_encode(Arr::except($payload, ['idempotency_key']), JSON_THROW_ON_ERROR));
 
         if ($existing = Booking::query()->where('idempotency_key', $idempotencyKey)->first()) {
@@ -47,12 +52,22 @@ class BookingService
         }
 
         return Cache::lock('booking:'.$idempotencyKey, 10)->block(5, fn (): Booking => DB::transaction(function () use ($rateCheck, $payload, $idempotencyKey, $hash): Booking {
+            if ($existing = Booking::query()->where('idempotency_key', $idempotencyKey)->lockForUpdate()->first()) {
+                if (! hash_equals($existing->idempotency_payload_hash, $hash)) {
+                    throw new InvalidArgumentException('Idempotency key was already used with different booking details.');
+                }
+
+                return $existing;
+            }
+
             $room = $rateCheck->room_snapshot;
             $occupancy = $rateCheck->occupancy_snapshot;
             $guests = $this->guestData($payload['guests'] ?? []);
             $leadGuest = collect($guests)->first(fn (GuestData $guest): bool => $guest->isLead);
             $expectedAdults = collect($occupancy)->sum('adults');
             $expectedChildren = collect($occupancy)->sum('children');
+            $expectedChildAges = collect($occupancy)->flatMap(fn (array $room): array => $room['child_ages'] ?? [])->map(fn ($age): int => (int) $age)->sort()->values()->all();
+            $actualChildAges = collect($guests)->filter(fn (GuestData $guest): bool => $guest->type === GuestType::Child)->map(fn (GuestData $guest): ?int => $guest->age)->sort()->values()->all();
 
             if (! $leadGuest) {
                 throw new InvalidArgumentException('A lead adult guest is required.');
@@ -60,6 +75,10 @@ class BookingService
 
             if (collect($guests)->filter(fn (GuestData $guest): bool => $guest->type === GuestType::Adult)->count() !== $expectedAdults || collect($guests)->filter(fn (GuestData $guest): bool => $guest->type === GuestType::Child)->count() !== $expectedChildren) {
                 throw new InvalidArgumentException('Guest details must match the checked occupancy.');
+            }
+
+            if ($actualChildAges !== $expectedChildAges) {
+                throw new InvalidArgumentException('Child ages must match the checked occupancy.');
             }
 
             $booking = Booking::query()->create([
@@ -92,9 +111,10 @@ class BookingService
                 'correlation_id' => $rateCheck->correlation_id,
                 'idempotency_key' => $idempotencyKey,
                 'idempotency_payload_hash' => $hash,
-                'contact_email' => $payload['contact_email'] ?? null,
-                'contact_phone' => $payload['contact_phone'] ?? null,
-                'special_requests' => $payload['special_requests'] ?? null,
+                'contact_email' => Str::lower(trim((string) ($payload['contact_email'] ?? ''))),
+                'contact_phone' => trim((string) ($payload['contact_phone'] ?? '')),
+                'customer_nationality' => Str::upper((string) ($payload['customer_nationality'] ?? '')),
+                'special_requests' => $this->cleanText($payload['special_requests'] ?? null, 1000),
                 'expires_at' => now()->addMinutes(config('travel.booking.draft_lifetime_minutes')),
             ]);
 
@@ -117,8 +137,8 @@ class BookingService
                     'booking_room_id' => $bookingRoom->id,
                     'type' => $guest['type'],
                     'title' => $guest['title'] ?? null,
-                    'first_name' => $guest['first_name'],
-                    'last_name' => $guest['last_name'],
+                    'first_name' => $this->cleanName($guest['first_name']),
+                    'last_name' => $this->cleanName($guest['last_name']),
                     'age' => $guest['age'] ?? null,
                     'is_lead_guest' => (bool) ($guest['is_lead_guest'] ?? false),
                     'sort_order' => $index + 1,
@@ -136,7 +156,7 @@ class BookingService
                 rooms: [$room],
                 leadGuest: $leadGuest,
                 guests: array_map(fn (GuestData $guest): array => $guest->jsonSerialize(), $guests),
-                customerContactData: ['email' => $booking->contact_email, 'phone' => $booking->contact_phone],
+                customerContactData: ['email' => $booking->contact_email, 'phone' => $booking->contact_phone, 'nationality' => $booking->customer_nationality],
                 expectedTotal: new Money($booking->total_amount_minor, $booking->currency->code),
                 specialRequests: $booking->special_requests,
                 correlationId: $booking->correlation_id,
@@ -147,6 +167,7 @@ class BookingService
                 'supplier_booking_reference' => $result->supplierBookingReference,
                 'supplier_confirmation_reference' => $result->supplierConfirmationReference,
                 'supplier_status' => $result->status->value,
+                'net_amount_minor' => $result->confirmedTotal?->minorAmount,
                 'supplier_response_snapshot' => $result->jsonSerialize(),
             ])->save();
 
@@ -180,22 +201,31 @@ class BookingService
         }
     }
 
-    private function assertSupplierBookingAllowed(RateCheck $rateCheck): void
-    {
-        if ($rateCheck->supplier->code === 'hbx_hotels') {
-            throw new BookingFlowException('HBX sandbox booking submission is disabled in Phase 12.');
-        }
-    }
-
     private function guestData(array $guests): array
     {
         return array_map(fn (array $guest): GuestData => new GuestData(
-            firstName: $guest['first_name'] ?? '',
-            lastName: $guest['last_name'] ?? '',
+            firstName: $this->cleanName($guest['first_name'] ?? ''),
+            lastName: $this->cleanName($guest['last_name'] ?? ''),
             type: GuestType::from($guest['type'] ?? GuestType::Adult->value),
             age: isset($guest['age']) ? (int) $guest['age'] : null,
             isLead: (bool) ($guest['is_lead_guest'] ?? false),
         ), $guests);
+    }
+
+    private function cleanName(string $value): string
+    {
+        return Str::of(strip_tags($value))->squish()->limit(80, '')->toString();
+    }
+
+    private function cleanText(?string $value, int $limit): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $clean = Str::of(strip_tags($value))->squish()->limit($limit, '')->toString();
+
+        return $clean === '' ? null : $clean;
     }
 
     private function notifySafely(Booking $booking): void

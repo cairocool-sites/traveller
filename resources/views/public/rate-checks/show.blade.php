@@ -39,13 +39,7 @@
                     <p class="mt-3 text-sm font-semibold text-slate-600">{{ __('public.booking.not_completed_notice') }}</p>
                 </div>
 
-                @if ($rateCheck->supplier?->code !== 'hbx_hotels')
-                    <livewire:guest-details-form :rate-check-uuid="$rateCheck->public_uuid" />
-                @else
-                    <div class="mt-6 rounded-2xl border border-blue-200 bg-blue-50 p-5 text-sm font-semibold leading-6 text-blue-900">
-                        {{ __('public.booking.hbx_booking_disabled') }}
-                    </div>
-                @endif
+                <livewire:guest-details-form :rate-check-uuid="$rateCheck->public_uuid" />
             </div>
 
             <aside class="cct-card h-fit p-6">
