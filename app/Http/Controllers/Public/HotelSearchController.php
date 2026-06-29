@@ -83,7 +83,7 @@ class HotelSearchController extends Controller
 
             try {
                 $supplierDetails = $suppliers
-                    ->resolve('mock_hotels')
+                    ->resolve($result['supplier_code'] ?? config('travel.public_search.suppliers.0'))
                     ->getHotelDetails(new HotelDetailsRequestData(
                         supplierHotelId: $result['supplier_hotel_id'],
                         destinationIdentifier: $searchSession?->destination_label,

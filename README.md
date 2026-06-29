@@ -2,7 +2,7 @@
 
 Cairo Cool Travel is a Laravel hotel booking platform planned for Egypt first, with future expansion to Saudi Arabia and the UAE.
 
-This repository is currently in Phase 11: HBX Hotel API Sandbox Integration only.
+This repository is currently in Phase 12: Public HBX Search and CheckRate Integration only.
 
 ## Current Scope
 
@@ -29,13 +29,14 @@ This repository is currently in Phase 11: HBX Hotel API Sandbox Integration only
 - Protected Filament hotel content management.
 - Supplier integration foundation for mock, REST, JSON, XML, SOAP, and OTA XML provider types.
 - Secure supplier credentials, sanitized operation logs, correlation IDs, idempotency records, transport abstractions, and deterministic Mock Supplier.
-- Public Blade/Livewire hotel search and hotel-details foundation using the Mock Supplier only.
+- Public Blade/Livewire hotel search and hotel-details foundation using HBX Sandbox search when enabled, with Mock Supplier fallback.
 - Secure expiring search sessions with non-sequential public UUIDs and public result tokens.
 - Public Check Rate, guest details, internal booking creation, Mock Supplier booking confirmation, and booking reconciliation foundations.
 - Manual payment methods, customer payment submission, private evidence storage, admin payment review, printable vouchers, commercial invoices, receipts, and document verification tokens.
 - Customer cancellation requests, cancellation-policy evaluation, Mock Supplier cancellation, cancellation status history, manual refund tracking, refund histories, and customer-safe cancellation/refund status pages.
 - Production-readiness checks, safe health endpoints, scheduler heartbeat, named rate limiters, security headers, operational cleanup, DirectAdmin/Nginx deployment documentation, backup/restore documentation, and CI workflow.
 - HBX Hotels Sandbox adapter foundation behind the supplier contract, with authentication/signature generation, safe sandbox health checks, availability, CheckRate, booking, lookup, cancellation normalization, and fake-HTTP automated tests.
+- Public HBX Availability and CheckRate flow using short-lived server-side offer snapshots, public rate tokens, sanitized logging, and an explicit guard that prevents HBX booking submission.
 
 ## Out of Scope
 
@@ -78,6 +79,8 @@ See [docs/cancellations.md](docs/cancellations.md) and [docs/refunds.md](docs/re
 See [docs/deployment-directadmin-nginx.md](docs/deployment-directadmin-nginx.md), [docs/operations-runbook.md](docs/operations-runbook.md), [docs/backup-restore.md](docs/backup-restore.md), [docs/security-hardening.md](docs/security-hardening.md), and [docs/data-retention.md](docs/data-retention.md) for Phase 10 operations readiness.
 
 See [docs/hbx-sandbox-integration.md](docs/hbx-sandbox-integration.md) for the Phase 11 HBX Hotels Sandbox supplier integration.
+
+See [docs/hbx-public-search-checkrate.md](docs/hbx-public-search-checkrate.md) for the Phase 12 public HBX search and CheckRate integration.
 
 ## Local Documentation
 

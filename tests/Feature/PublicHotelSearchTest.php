@@ -62,12 +62,12 @@ it('loads the public homepage with Arabic RTL by default and English LTR when se
         ->assertOk()
         ->assertSee('dir="rtl"', false)
         ->assertSee('Cairo Cool Travel')
-        ->assertSee('Search hotels');
+        ->assertSee('اعثر على إقامة');
 
     $this->get('/?locale=en')
         ->assertOk()
         ->assertSee('dir="ltr"', false)
-        ->assertSee('Find hotels for your next stay');
+        ->assertSee('Find a stay that feels right');
 });
 
 it('rejects invalid dates occupancy child ages inactive destinations and unsupported locale', function () {
@@ -123,10 +123,10 @@ it('handles no availability and supplier failures safely', function (string $sce
         ->assertDontSee('SupplierAuthenticationException')
         ->assertDontSee('mock_hotels');
 })->with([
-    ['no_availability', 'No availability was returned'],
-    ['timeout', 'timed out'],
-    ['authentication_failure', 'temporarily unavailable'],
-    ['rate_limited', 'temporarily busy'],
+    ['no_availability', 'لا توجد إقامات مطابقة'],
+    ['timeout', 'استغرق البحث وقتا أطول'],
+    ['authentication_failure', 'إتاحة الفنادق غير متاحة مؤقتا'],
+    ['rate_limited', 'البحث مشغول مؤقتا'],
 ]);
 
 it('filters and sorts stored normalized search results without exposing sensitive data', function () {
@@ -168,7 +168,7 @@ it('handles unmapped supplier hotels and expired search sessions safely', functi
 
     $this->get(route('hotels.show', ['hotel' => $token, 'search' => $session->public_uuid, 'locale' => 'en']))
         ->assertOk()
-        ->assertSee('no canonical hotel mapping exists');
+        ->assertSee('safe availability data');
 
     $session->forceFill(['expires_at' => now()->subMinute()])->save();
 

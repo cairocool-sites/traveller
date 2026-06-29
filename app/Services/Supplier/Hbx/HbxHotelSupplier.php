@@ -26,6 +26,7 @@ use App\Services\Supplier\Exceptions\InvalidSupplierResponseException;
 use App\Services\Supplier\Exceptions\SupplierTimeoutException;
 use App\Services\Supplier\IdempotencyService;
 use App\Support\Money\Money;
+use Illuminate\Support\Str;
 
 class HbxHotelSupplier implements HotelSupplierInterface
 {
@@ -50,7 +51,7 @@ class HbxHotelSupplier implements HotelSupplierInterface
                 'children' => $room->children,
                 'paxes' => array_map(fn (int $age): array => ['type' => 'CH', 'age' => $age], $room->childAges),
             ], $request->rooms),
-            'destination' => ['code' => $request->destinationIdentifier],
+            'destination' => ['code' => $this->destinationCode($request->destinationIdentifier)],
             'nationality' => $request->nationality,
             'currency' => $request->currency,
             'language' => $request->locale,
@@ -91,8 +92,9 @@ class HbxHotelSupplier implements HotelSupplierInterface
     public function checkRate(CheckRateRequestData $request): CheckRateResultData
     {
         $correlationId = $this->correlationIds->make($request->correlationId);
-        $previousTotal = isset($request->selectedRooms[0]['total']['minor_amount'])
-            ? new Money((int) $request->selectedRooms[0]['total']['minor_amount'], $request->currency)
+        $previousTotalSnapshot = $request->selectedRooms[0]['supplier_total'] ?? $request->selectedRooms[0]['total'] ?? null;
+        $previousTotal = isset($previousTotalSnapshot['minor_amount'])
+            ? new Money((int) $previousTotalSnapshot['minor_amount'], $request->currency)
             : null;
         $response = $this->client->request($this->supplier, SupplierOperation::CheckRate, 'POST', '/hotel-api/1.0/checkrates', [
             'rooms' => [['rateKey' => $request->supplierRateKey]],
@@ -253,6 +255,13 @@ class HbxHotelSupplier implements HotelSupplierInterface
     public function lastHealthHttpStatus(): ?int
     {
         return $this->lastHealthHttpStatus;
+    }
+
+    private function destinationCode(string $destinationIdentifier): string
+    {
+        $normalized = Str::of($destinationIdentifier)->lower()->trim()->toString();
+
+        return (string) (config("services.hbx.destination_codes.{$normalized}") ?: $destinationIdentifier);
     }
 
     private function paxes(SupplierBookingRequestData $request): array

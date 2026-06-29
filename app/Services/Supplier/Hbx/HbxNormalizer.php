@@ -137,7 +137,11 @@ class HbxNormalizer
 
     public function money(mixed $amount, string $currency): Money
     {
-        $value = is_numeric($amount) ? number_format((float) $amount, 2, '.', '') : '0.00';
+        $value = is_numeric($amount) ? (string) $amount : '0.00';
+
+        if (! str_contains($value, '.')) {
+            $value .= '.00';
+        }
 
         return Money::fromDecimalString($value, strtoupper($currency));
     }

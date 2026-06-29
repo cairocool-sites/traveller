@@ -43,6 +43,16 @@ return [
         'timeout' => (int) env('HBX_TIMEOUT', 45),
         'connect_timeout' => (int) env('HBX_CONNECT_TIMEOUT', 15),
         'integration_tests' => (bool) env('HBX_INTEGRATION_TESTS', false),
+        'destination_codes' => [
+            'cairo' => env('HBX_DESTINATION_CAIRO', 'CAI'),
+            'giza' => env('HBX_DESTINATION_GIZA', 'CAI'),
+            'alexandria' => env('HBX_DESTINATION_ALEXANDRIA', 'ALY'),
+            'hurghada' => env('HBX_DESTINATION_HURGHADA', 'HRG'),
+            'sharm el sheikh' => env('HBX_DESTINATION_SHARM_EL_SHEIKH', 'SSH'),
+            'dubai' => env('HBX_DESTINATION_DUBAI', 'DXB'),
+            'makkah' => env('HBX_DESTINATION_MAKKAH', 'MAK'),
+            'istanbul' => env('HBX_DESTINATION_ISTANBUL', 'IST'),
+        ],
     ],
 
 ];

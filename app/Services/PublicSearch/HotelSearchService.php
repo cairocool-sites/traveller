@@ -33,6 +33,7 @@ class HotelSearchService
         private readonly CorrelationIdFactory $correlationIds,
         private readonly SupplierOperationLogger $logger,
         private readonly CancellationSummaryService $cancellations,
+        private readonly OfferPricingService $pricing,
     ) {}
 
     public function search(array $criteria, ?string $anonymousSessionId = null): SearchSession
@@ -212,26 +213,39 @@ class HotelSearchService
 
         return $this->suppliers->enabledFor(SupplierOperation::Search)
             ->whereIn('code', $allowed)
+            ->sortBy(fn (Supplier $supplier): int => array_search($supplier->code, $allowed, true))
             ->values();
     }
 
     private function normalizeHotels(array $hotels, string $locale, string $supplierCode): array
     {
         return collect($hotels)->map(function (SupplierHotelData $hotel) use ($locale, $supplierCode): array {
-            $rates = collect($hotel->rooms)->map(fn ($rate): array => [
-                'public_rate_token' => Str::lower(Str::random(18)),
-                'supplier_room_id' => $rate->supplierRoomId,
-                'supplier_rate_key' => $rate->rateKey,
-                'room_name' => $rate->roomName,
-                'board_basis' => $rate->boardBasis->value,
-                'total' => $rate->totalAmount->jsonSerialize(),
-                'tax' => $rate->taxAmount?->jsonSerialize(),
-                'fee' => $rate->feeAmount?->jsonSerialize(),
-                'refundability' => $rate->refundability->value,
-                'cancellation_summary' => $this->cancellations->summarize($rate->cancellationPolicies, $locale),
-                'occupancy' => $rate->occupancy->jsonSerialize(),
-                'requires_check_rate' => (bool) ($rate->metadata['requires_check_rate'] ?? false),
-            ])->all();
+            $rates = collect($hotel->rooms)->map(function ($rate) use ($locale): array {
+                $sellingTotal = $this->pricing->sellingPrice($rate->totalAmount);
+
+                return [
+                    'public_rate_token' => Str::lower(Str::random(18)),
+                    'supplier_room_id' => $rate->supplierRoomId,
+                    'supplier_rate_key' => $rate->rateKey,
+                    'room_name' => $rate->roomName,
+                    'board_basis' => $rate->boardBasis->value,
+                    'supplier_total' => $rate->totalAmount->jsonSerialize(),
+                    'net' => $rate->netAmount?->jsonSerialize(),
+                    'total' => $sellingTotal->jsonSerialize(),
+                    'tax' => $rate->taxAmount?->jsonSerialize(),
+                    'fee' => $rate->feeAmount?->jsonSerialize(),
+                    'refundability' => $rate->refundability->value,
+                    'cancellation_summary' => $this->cancellations->summarize($rate->cancellationPolicies, $locale),
+                    'occupancy' => $rate->occupancy->jsonSerialize(),
+                    'requires_check_rate' => (bool) ($rate->metadata['requires_check_rate'] ?? false),
+                    'rate_type' => $rate->metadata['rate_type'] ?? ((bool) ($rate->metadata['requires_check_rate'] ?? false) ? 'RECHECK' : 'BOOKABLE'),
+                    'payment_type' => $rate->paymentType,
+                    'rate_expires_at' => $rate->rateExpiry?->toIso8601String(),
+                    'availability_timestamp' => now()->toIso8601String(),
+                ];
+            })->all();
+
+            $minimumRate = collect($rates)->sortBy('total.minor_amount')->first();
 
             return [
                 'public_token' => Str::lower(Str::random(16)),
@@ -244,8 +258,8 @@ class HotelSearchService
                 'coordinates' => $hotel->coordinates,
                 'facilities' => $hotel->facilities,
                 'rates' => $rates,
-                'minimum_price' => $hotel->minimumTotalPrice?->jsonSerialize(),
-                'minimum_price_minor' => $hotel->minimumTotalPrice?->minorAmount ?? 0,
+                'minimum_price' => $minimumRate['total'] ?? $hotel->minimumTotalPrice?->jsonSerialize(),
+                'minimum_price_minor' => $minimumRate['total']['minor_amount'] ?? $hotel->minimumTotalPrice?->minorAmount ?? 0,
                 'currency' => $hotel->currency,
                 'taxes_known' => $hotel->taxesAndFees !== [],
             ];
