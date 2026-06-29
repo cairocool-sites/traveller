@@ -27,19 +27,21 @@ class HbxContentSyncService
 
     public function syncDestinations(Supplier $supplier, array $options = []): array
     {
-        $pageLimit = max(1, min((int) ($options['page_limit'] ?? 1), 25));
+        $ranges = $this->ranges($options);
         $dryRun = (bool) ($options['dry_run'] ?? false);
         $countryCode = $options['country_code'] ?? null;
+        $language = (string) ($options['language'] ?? 'ENG');
         $seen = [];
         $total = 0;
 
-        for ($page = 1; $page <= $pageLimit; $page++) {
+        foreach ($ranges as $range) {
             $response = $this->client->destinations($supplier, [
                 'fields' => 'all',
-                'language' => 'ENG',
+                'language' => $language,
                 'countryCodes' => $countryCode,
-                'from' => (($page - 1) * self::PAGE_SIZE) + 1,
-                'to' => $page * self::PAGE_SIZE,
+                'lastUpdateTime' => $options['last_update_time'] ?? null,
+                'from' => $range['from'],
+                'to' => $range['to'],
             ]);
 
             $items = $this->items($response['body'], 'destinations');
@@ -60,7 +62,6 @@ class HbxContentSyncService
 
                 if (! $dryRun) {
                     $name = $this->localizedName($item, 'name') ?: $code;
-                    $language = (string) ($options['language'] ?? 'ENG');
                     HbxDestination::query()->updateOrCreate(
                         ['supplier_code' => $supplier->code, 'destination_code' => $code, 'content_language' => $language],
                         [
@@ -90,7 +91,7 @@ class HbxContentSyncService
             }
         }
 
-        if (! $dryRun && $seen !== []) {
+        if (! $dryRun && $seen !== [] && (bool) ($options['deactivate_missing'] ?? false)) {
             HbxDestination::query()
                 ->where('supplier_code', $supplier->code)
                 ->when($countryCode, fn ($query) => $query->where('country_code', $countryCode))
@@ -103,9 +104,10 @@ class HbxContentSyncService
 
     public function syncHotels(Supplier $supplier, string $destinationCode, array $options = []): array
     {
-        $pageLimit = max(1, min((int) ($options['page_limit'] ?? 1), 25));
+        $ranges = $this->ranges($options);
         $dryRun = (bool) ($options['dry_run'] ?? false);
         $countryCode = $options['country_code'] ?? null;
+        $language = (string) ($options['language'] ?? 'ENG');
         if (! $countryCode && $destinationCode !== '') {
             $countryCode = HbxDestination::query()
                 ->where('supplier_code', $supplier->code)
@@ -115,15 +117,16 @@ class HbxContentSyncService
         $seen = [];
         $total = 0;
 
-        for ($page = 1; $page <= $pageLimit; $page++) {
+        foreach ($ranges as $range) {
             $response = $this->client->hotels($supplier, [
                 'fields' => 'all',
-                'language' => 'ENG',
+                'language' => $language,
                 'useSecondaryLanguage' => 'false',
                 'countryCode' => $countryCode,
                 'destinationCode' => $destinationCode !== '' ? $destinationCode : null,
-                'from' => (($page - 1) * self::PAGE_SIZE) + 1,
-                'to' => $page * self::PAGE_SIZE,
+                'lastUpdateTime' => $options['last_update_time'] ?? null,
+                'from' => $range['from'],
+                'to' => $range['to'],
             ]);
 
             $items = $this->items($response['body'], 'hotels');
@@ -144,7 +147,6 @@ class HbxContentSyncService
 
                 if (! $dryRun) {
                     $name = $this->localizedName($item, 'name') ?: $code;
-                    $language = (string) ($options['language'] ?? 'ENG');
                     $hotel = HbxHotel::query()->updateOrCreate(
                         ['supplier_code' => $supplier->code, 'hotel_code' => $code],
                         [
@@ -183,7 +185,7 @@ class HbxContentSyncService
             }
         }
 
-        if (! $dryRun && $seen !== []) {
+        if (! $dryRun && $seen !== [] && (bool) ($options['deactivate_missing'] ?? false)) {
             HbxHotel::query()
                 ->where('supplier_code', $supplier->code)
                 ->when($destinationCode !== '', fn ($query) => $query->where('destination_code', $destinationCode))
@@ -200,7 +202,7 @@ class HbxContentSyncService
 
     public function syncGenericResource(Supplier $supplier, string $resource, array $options = []): array
     {
-        $pageLimit = max(1, min((int) ($options['page_limit'] ?? 1), 25));
+        $ranges = $this->ranges($options);
         $dryRun = (bool) ($options['dry_run'] ?? false);
         $language = (string) ($options['language'] ?? 'ENG');
         $countryCode = $options['country_code'] ?? null;
@@ -209,7 +211,7 @@ class HbxContentSyncService
         $seen = [];
         $total = 0;
 
-        for ($page = 1; $page <= $pageLimit; $page++) {
+        foreach ($ranges as $range) {
             $response = $this->client->resource($supplier, $resource, [
                 'fields' => 'all',
                 'language' => $language,
@@ -217,8 +219,8 @@ class HbxContentSyncService
                 'countryCodes' => $countryCode,
                 'destinationCode' => $destinationCode,
                 'lastUpdateTime' => $lastUpdateTime,
-                'from' => (($page - 1) * self::PAGE_SIZE) + 1,
-                'to' => $page * self::PAGE_SIZE,
+                'from' => $range['from'],
+                'to' => $range['to'],
             ]);
 
             $items = $this->items($response['body'], $resource);
@@ -261,7 +263,7 @@ class HbxContentSyncService
             }
         }
 
-        if (! $dryRun && $seen !== []) {
+        if (! $dryRun && $seen !== [] && (bool) ($options['deactivate_missing'] ?? false)) {
             HbxContentResource::query()
                 ->where('supplier_code', $supplier->code)
                 ->where('resource_type', $resource)
@@ -331,6 +333,33 @@ class HbxContentSyncService
         }
 
         return is_array($items) ? array_values($items) : [];
+    }
+
+    private function ranges(array $options): array
+    {
+        $from = isset($options['from']) ? max(1, (int) $options['from']) : 1;
+        $limit = isset($options['limit']) ? max(1, min((int) $options['limit'], self::PAGE_SIZE * 25)) : null;
+        $to = isset($options['to']) ? max($from, (int) $options['to']) : null;
+
+        if ($limit !== null) {
+            $to = $from + $limit - 1;
+        }
+
+        if ($to !== null) {
+            return [['from' => $from, 'to' => $to]];
+        }
+
+        $pageLimit = max(1, min((int) ($options['page_limit'] ?? 1), 25));
+        $ranges = [];
+
+        for ($page = 1; $page <= $pageLimit; $page++) {
+            $ranges[] = [
+                'from' => (($page - 1) * self::PAGE_SIZE) + 1,
+                'to' => $page * self::PAGE_SIZE,
+            ];
+        }
+
+        return $ranges;
     }
 
     private function localizedName(array $item, string $key): ?string
@@ -411,8 +440,8 @@ class HbxContentSyncService
                     'image_type_code' => $image['imageTypeCode'] ?? $image['type'] ?? null,
                     'room_code' => $image['roomCode'] ?? null,
                     'sort_order' => (int) ($image['order'] ?? $index + 1),
-                    'width' => $image['visualOrder'] ?? null,
-                    'height' => null,
+                    'width' => $image['width'] ?? null,
+                    'height' => $image['height'] ?? null,
                     'alt_text' => $hotel->hotel_name,
                     'is_primary' => $index === 0,
                     'is_active' => true,

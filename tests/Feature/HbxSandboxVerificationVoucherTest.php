@@ -51,8 +51,8 @@ beforeEach(function (): void {
     phase14SeedHbxMapping();
 });
 
-it('blocks manual verification while the sandbox booking guard is disabled', function () {
-    $this->artisan('hbx:verify-sandbox-booking --dry-run')
+it('blocks live manual booking verification while the sandbox booking guard is disabled', function () {
+    $this->artisan('hbx:verify-sandbox-booking')
         ->expectsOutputToContain('HBX sandbox booking verification is disabled')
         ->assertFailed();
 
@@ -79,18 +79,18 @@ it('runs dry-run through CheckRate and sends no booking request', function () {
         ->push(phase14CheckRatePayload());
 
     $this->artisan('hbx:verify-sandbox-booking --dry-run')
-        ->expectsConfirmation('This command is for one controlled HBX sandbox verification only. Continue?', 'yes')
         ->expectsOutputToContain('Supplier: hbx_hotels')
         ->expectsOutputToContain('Local destination:')
         ->expectsOutputToContain('HBX destination code: CAI')
-        ->expectsOutputToContain('Number of hotel codes searched: 1')
+        ->expectsOutputToContain('Number of hotel codes searched: 0')
         ->expectsOutputToContain('Availability result count: 1')
-        ->expectsOutputToContain('CheckRate source: HBX Sandbox')
+        ->expectsOutputToContain('Availability source: HBX Sandbox')
+        ->expectsOutputToContain('CheckRate source: not required')
         ->expectsOutputToContain('Selling total:')
-        ->expectsOutputToContain('Dry run complete; no booking request sent.')
+        ->expectsOutputToContain('Dry run complete. No booking request was sent.')
         ->assertSuccessful();
 
-    Http::assertSent(fn ($request): bool => str_contains($request->url(), '/hotel-api/1.0/checkrates'));
+    Http::assertNotSent(fn ($request): bool => str_contains($request->url(), '/hotel-api/1.0/checkrates'));
     Http::assertNotSent(fn ($request): bool => str_contains($request->url(), '/hotel-api/1.0/bookings'));
 });
 
@@ -104,20 +104,21 @@ it('dry-run refuses public mock fallback and still uses hbx_hotels', function ()
         ->push(phase14AvailabilityPayload())
         ->push(phase14CheckRatePayload());
 
-    $this->artisan('hbx:verify-sandbox-booking --dry-run')
-        ->expectsConfirmation('This command is for one controlled HBX sandbox verification only. Continue?', 'yes')
+    $hotel = HbxHotel::query()->where('hotel_code', '1001')->firstOrFail();
+
+    $this->artisan('hbx:verify-sandbox-booking --dry-run --hotel='.$hotel->id)
         ->expectsOutputToContain('Supplier: hbx_hotels')
         ->expectsOutputToContain('HBX destination code: CAI')
         ->expectsOutputToContain('Number of hotel codes searched: 1')
-        ->expectsOutputToContain('CheckRate source: HBX Sandbox')
+        ->expectsOutputToContain('CheckRate source: not required')
         ->doesntExpectOutputToContain('Mock Cairo Nile Hotel')
-        ->expectsOutputToContain('Dry run complete; no booking request sent.')
+        ->expectsOutputToContain('Dry run complete. No booking request was sent.')
         ->assertSuccessful();
 
     Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/hotels'
-        && data_get($request->data(), 'hotels.hotel.0') === '1001'
+        && data_get($request->data(), 'hotels.hotel.0') === 1001
         && data_get($request->data(), 'destination.code') === null);
-    Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/checkrates');
+    Http::assertNotSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/checkrates');
     Http::assertNotSent(fn ($request): bool => str_contains($request->url(), '/hotel-api/1.0/bookings'));
 });
 
@@ -130,7 +131,6 @@ it('fails safely when hbx availability is unavailable instead of using mock fall
     Http::fake(fn () => Http::response(['error' => 'unavailable'], 503));
 
     $this->artisan('hbx:verify-sandbox-booking --dry-run')
-        ->expectsConfirmation('This command is for one controlled HBX sandbox verification only. Continue?', 'yes')
         ->expectsOutputToContain('HBX sandbox availability search returned no offers')
         ->doesntExpectOutputToContain('Mock Cairo Nile Hotel')
         ->assertFailed();
@@ -280,12 +280,12 @@ function phase14SeedHbxMapping(): void
 
     HbxDestination::query()->updateOrCreate(
         ['supplier_code' => 'hbx_hotels', 'destination_code' => 'CAI'],
-        ['destination_name' => 'Cairo', 'country_code' => 'EG', 'is_active' => true, 'synced_at' => now()],
+        ['destination_name' => 'Cairo', 'country_code' => 'EG', 'supplier_active' => true, 'public_enabled' => true, 'is_active' => true, 'synced_at' => now()],
     );
 
     HbxHotel::query()->updateOrCreate(
         ['supplier_code' => 'hbx_hotels', 'hotel_code' => '1001'],
-        ['destination_code' => 'CAI', 'hotel_name' => 'HBX Phase 14 Sandbox Hotel', 'category_code' => '5EST', 'star_rating' => 5, 'is_active' => true, 'synced_at' => now()],
+        ['destination_code' => 'CAI', 'country_code' => 'EG', 'hotel_name' => 'HBX Phase 14 Sandbox Hotel', 'category_code' => '5EST', 'star_rating' => 5, 'supplier_active' => true, 'public_enabled' => true, 'is_active' => true, 'synced_at' => now()],
     );
 
     SupplierDestinationMapping::query()->updateOrCreate(

@@ -27,14 +27,32 @@ class DestinationLookupService
             return collect();
         }
 
-        return Cache::remember("hbx-autocomplete:{$locale}:".mb_strtolower($term).":{$limit}", now()->addMinutes(10), fn (): Collection => collect()
+        $cacheKey = "hbx-autocomplete:{$locale}:".mb_strtolower($term).":{$limit}";
+        $items = Cache::remember($cacheKey, now()->addMinutes(10), fn (): array => collect()
             ->merge($this->hbxDestinations($term, $locale, $limit))
             ->merge($this->hbxHotels($term, $locale, $limit))
             ->merge($this->cities($term, $locale, $limit))
             ->merge($this->areas($term, $locale, $limit))
             ->merge($this->countries($term, $locale, $limit))
             ->take($limit)
-            ->values());
+            ->values()
+            ->map(fn (DestinationOption $option): array => $option->jsonSerialize())
+            ->all());
+
+        if (! is_array($items)) {
+            Cache::forget($cacheKey);
+
+            return $this->search($term, $locale, $limit);
+        }
+
+        return collect($items)
+            ->map(fn (array $item): DestinationOption => new DestinationOption(
+                $item['token'],
+                $item['type'],
+                (int) $item['id'],
+                $item['label'],
+                $item['supplier_identifier'],
+            ));
     }
 
     public function resolve(string $token, string $locale = 'ar'): DestinationOption

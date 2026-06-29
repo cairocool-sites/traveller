@@ -173,7 +173,7 @@ it('uses hbx hotel-code availability without mixing destination filters', functi
     Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/hotels'
         && $request->method() === 'POST'
         && data_get($request->data(), 'destination.code') === null
-        && data_get($request->data(), 'hotels.hotel') === ['1001']
+        && data_get($request->data(), 'hotels.hotel') === [1001]
         && data_get($request->data(), 'occupancies.0.paxes.0.type') === 'CH'
         && data_get($request->data(), 'occupancies.0.paxes.0.age') === 8);
 });

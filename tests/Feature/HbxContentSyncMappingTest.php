@@ -77,7 +77,35 @@ it('syncs destinations with pagination and idempotent upserts', function () {
     expect($result['processed'])->toBe(2)
         ->and($again['stored'])->toBe(1)
         ->and(HbxDestination::query()->where('destination_code', 'CAI')->count())->toBe(1)
-        ->and(HbxDestination::query()->where('destination_code', 'GIZ')->value('is_active'))->toBeFalse();
+        ->and(HbxDestination::query()->where('destination_code', 'GIZ')->value('is_active'))->toBeTrue();
+});
+
+it('does not deactivate records from a bounded page unless explicitly requested', function () {
+    HbxDestination::query()->create([
+        'supplier_code' => 'hbx_hotels',
+        'destination_code' => 'OLD',
+        'destination_name' => 'Older Destination',
+        'country_code' => 'EG',
+        'is_active' => true,
+        'synced_at' => now(),
+    ]);
+
+    Http::fake(['api.test.hotelbeds.com/*' => Http::response(['destinations' => ['destinations' => [
+        ['code' => 'CAI', 'name' => ['content' => 'Cairo'], 'countryCode' => 'EG'],
+    ]]], 200)]);
+
+    $supplier = Supplier::query()->where('code', 'hbx_hotels')->firstOrFail();
+    app(HbxContentSyncService::class)->syncDestinations($supplier, ['country_code' => 'EG', 'limit' => 1]);
+
+    expect(HbxDestination::query()->where('destination_code', 'OLD')->value('is_active'))->toBeTrue();
+
+    Http::fake(['api.test.hotelbeds.com/*' => Http::response(['destinations' => ['destinations' => [
+        ['code' => 'CAI', 'name' => ['content' => 'Cairo'], 'countryCode' => 'EG'],
+    ]]], 200)]);
+
+    app(HbxContentSyncService::class)->syncDestinations($supplier, ['country_code' => 'EG', 'limit' => 1, 'deactivate_missing' => true]);
+
+    expect(HbxDestination::query()->where('destination_code', 'OLD')->value('is_active'))->toBeFalse();
 });
 
 it('syncs hotels for a bounded destination and prevents duplicates', function () {
@@ -177,6 +205,35 @@ it('new content sync command supports official resource names and blocks unconfi
     $this->artisan('hbx:content:sync --resource=all --full-authorized-portfolio')
         ->expectsOutputToContain('Full authorized portfolio sync requires --confirm.')
         ->assertFailed();
+});
+
+it('supports official from to limit syntax and local content status commands', function () {
+    Http::fake(['api.test.hotelbeds.com/*' => Http::response(['destinations' => ['destinations' => [['code' => 'CAI', 'name' => ['content' => 'Cairo'], 'countryCode' => 'EG']]]], 200)]);
+
+    $this->artisan('hbx:content:sync --resource=destinations --country=EG --from=1 --to=1')
+        ->expectsOutputToContain('destinations: processed 1; stored 1.')
+        ->assertSuccessful();
+
+    Http::assertSent(fn ($request): bool => str_contains($request->url(), 'from=1')
+        && str_contains($request->url(), 'to=1'));
+
+    $this->artisan('hbx:content:status')
+        ->expectsOutputToContain('HBX Content API local catalogue status')
+        ->expectsOutputToContain('No supplier request was sent by this command.')
+        ->assertSuccessful();
+
+    $this->artisan('hbx:content:enable-public --country=EG --dry-run')
+        ->expectsOutputToContain('Dry run complete. No public visibility was changed.')
+        ->assertSuccessful();
+});
+
+it('classifies invalid content api endpoint or schema responses safely', function () {
+    Http::fake(['api.test.hotelbeds.com/*' => Http::response(['error' => ['code' => 'INVALID_DATA']], 400)]);
+
+    $this->artisan('hbx:content:sync --resource=destinations --country=EG --limit=1')
+        ->assertFailed();
+
+    expect(HbxContentSyncBatch::query()->latest()->value('status'))->toBe('failed');
 });
 
 it('records hbx content sync batch checkpoints without storing secrets', function () {

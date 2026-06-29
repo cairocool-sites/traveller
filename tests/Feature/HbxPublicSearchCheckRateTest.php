@@ -53,7 +53,8 @@ it('maps public search criteria to hbx availability and stores normalized safe o
     Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/hotels'
         && $request->method() === 'POST'
         && data_get($request->data(), 'destination.code') === null
-        && data_get($request->data(), 'hotels.hotel.0') === '1001'
+        && data_get($request->data(), 'hotels.hotel.0') === 1001
+        && data_get($request->data(), 'language') === 'ENG'
         && data_get($request->data(), 'occupancies.0.children') === 1
         && data_get($request->data(), 'occupancies.0.paxes.0.age') === 7);
 
@@ -132,7 +133,7 @@ it('searches hbx by local public hotel using protected hotel code list', functio
     expect($session->results_snapshot[0]['name'])->toBe('HBX Cairo Sandbox Hotel');
     Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/hotels'
         && data_get($request->data(), 'destination.code') === null
-        && data_get($request->data(), 'hotels.hotel') === ['1001']);
+        && data_get($request->data(), 'hotels.hotel') === [1001]);
 });
 
 it('applies configured customer selling markup without mutating supplier totals', function () {

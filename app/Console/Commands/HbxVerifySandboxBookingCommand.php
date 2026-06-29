@@ -4,7 +4,8 @@ namespace App\Console\Commands;
 
 use App\Enums\BookingStatus;
 use App\Enums\SupplierStatus;
-use App\Models\City;
+use App\Models\HbxDestination;
+use App\Models\HbxHotel;
 use App\Models\RateCheck;
 use App\Models\SearchSession;
 use App\Models\Supplier;
@@ -25,7 +26,10 @@ class HbxVerifySandboxBookingCommand extends Command
 
     private const SANDBOX_BASE_URL = 'https://api.test.hotelbeds.com';
 
-    protected $signature = 'hbx:verify-sandbox-booking {--dry-run : Validate search and CheckRate without sending a booking request}';
+    protected $signature = 'hbx:verify-sandbox-booking
+        {--dry-run : Validate real HBX Sandbox Availability without sending a booking request}
+        {--destination= : Local HBX destination id to verify}
+        {--hotel= : Local HBX hotel id to verify}';
 
     protected $description = 'Manually verify exactly one guarded HBX sandbox booking and internal voucher readiness.';
 
@@ -47,19 +51,23 @@ class HbxVerifySandboxBookingCommand extends Command
             $hbxDestination = $supplierDestinations->forHbx($localDestination);
             $session = $searches->search($criteria, 'hbx-manual-verification');
             [$hotel, $rate] = $this->firstAvailableRate($session);
-            $rateCheck = $rateChecks->check($session, $hotel['public_token'], $rate['public_rate_token']);
-            $this->assertHbxCheckRate($rateCheck);
 
-            if (! $rateCheck->status->allowsBooking()) {
-                $this->error('HBX CheckRate did not return a bookable sandbox rate.');
+            $rateCheck = null;
+            if (! $this->option('dry-run') || (bool) ($rate['requires_check_rate'] ?? false)) {
+                $rateCheck = $rateChecks->check($session, $hotel['public_token'], $rate['public_rate_token']);
+                $this->assertHbxCheckRate($rateCheck);
 
-                return self::FAILURE;
+                if (! $rateCheck->status->allowsBooking()) {
+                    $this->error('HBX CheckRate did not return a bookable sandbox rate.');
+
+                    return self::FAILURE;
+                }
             }
 
-            $this->displaySanitizedSummary($session, $rateCheck, $money, $supplier, $localDestination->label, $hbxDestination['destination_code'], count($hbxDestination['hotel_codes']));
+            $this->displaySanitizedSummary($session, $rateCheck, $rate, $money, $supplier, $localDestination->label, $hbxDestination['destination_code'], count($hbxDestination['hotel_codes']));
 
             if ($this->option('dry-run')) {
-                $this->info('Dry run complete; no booking request sent.');
+                $this->info('Dry run complete. No booking request was sent.');
 
                 return self::SUCCESS;
             }
@@ -96,7 +104,9 @@ class HbxVerifySandboxBookingCommand extends Command
     private function guardSupplier(): Supplier
     {
         if (! (bool) config('services.hbx.sandbox_booking_enabled')) {
-            throw new RuntimeException('HBX sandbox booking verification is disabled. Set HBX_SANDBOX_BOOKING_ENABLED=true only for the controlled manual run.');
+            if (! $this->option('dry-run')) {
+                throw new RuntimeException('HBX sandbox booking verification is disabled. Set HBX_SANDBOX_BOOKING_ENABLED=true only for the controlled manual run.');
+            }
         }
 
         $supplier = Supplier::query()->where('code', self::SUPPLIER_CODE)->first();
@@ -124,6 +134,10 @@ class HbxVerifySandboxBookingCommand extends Command
 
     private function confirmManualIntent(): void
     {
+        if ($this->option('dry-run')) {
+            return;
+        }
+
         if (! $this->confirm('This command is for one controlled HBX sandbox verification only. Continue?')) {
             throw new RuntimeException('Verification cancelled before any booking request.');
         }
@@ -131,10 +145,10 @@ class HbxVerifySandboxBookingCommand extends Command
 
     private function criteria(): array
     {
-        $city = City::query()->where('name_en', 'Cairo')->firstOrFail();
+        $destination = $this->destinationToken();
 
         return [
-            'destination' => "city:{$city->id}",
+            'destination' => $destination,
             'check_in' => now()->addDays(21)->toDateString(),
             'check_out' => now()->addDays(22)->toDateString(),
             'rooms' => 1,
@@ -145,6 +159,42 @@ class HbxVerifySandboxBookingCommand extends Command
             'nationality' => 'EG',
             'residency_country' => 'EG',
         ];
+    }
+
+    private function destinationToken(): string
+    {
+        if ($this->option('destination')) {
+            return 'hbx_destination:'.(int) $this->option('destination');
+        }
+
+        if ($this->option('hotel')) {
+            return 'hbx_hotel:'.(int) $this->option('hotel');
+        }
+
+        $destination = HbxDestination::query()
+            ->where('supplier_code', self::SUPPLIER_CODE)
+            ->where('supplier_active', true)
+            ->where('public_enabled', true)
+            ->orderBy('country_code')
+            ->orderBy('destination_name')
+            ->first();
+
+        if ($destination) {
+            return 'hbx_destination:'.$destination->id;
+        }
+
+        $hotel = HbxHotel::query()
+            ->where('supplier_code', self::SUPPLIER_CODE)
+            ->where('supplier_active', true)
+            ->where('public_enabled', true)
+            ->orderBy('hotel_code')
+            ->first();
+
+        if ($hotel) {
+            return 'hbx_hotel:'.$hotel->id;
+        }
+
+        throw new RuntimeException('No public synchronized HBX destination or hotel is available for sandbox verification.');
     }
 
     private function firstAvailableRate(SearchSession $session): array
@@ -187,7 +237,7 @@ class HbxVerifySandboxBookingCommand extends Command
             : 'HBX sandbox availability search returned no offers.';
     }
 
-    private function displaySanitizedSummary(SearchSession $session, RateCheck $rateCheck, MoneyFormatter $money, Supplier $supplier, string $localDestination, string $hbxDestinationCode, int $hotelCodeCount): void
+    private function displaySanitizedSummary(SearchSession $session, ?RateCheck $rateCheck, array $rate, MoneyFormatter $money, Supplier $supplier, string $localDestination, string $hbxDestinationCode, int $hotelCodeCount): void
     {
         $this->line('Supplier: '.$supplier->code);
         $this->line('Local destination: '.$localDestination);
@@ -196,8 +246,14 @@ class HbxVerifySandboxBookingCommand extends Command
         $this->line('Dates: '.$session->check_in->toDateString().' to '.$session->check_out->toDateString());
         $this->line('Currency: '.$session->currency);
         $this->line('Availability result count: '.count($session->results_snapshot ?? []));
-        $this->line('CheckRate source: HBX Sandbox');
-        $this->line('Selling total: '.$money->formatMinor((int) ($rateCheck->checked_amount_minor ?? $rateCheck->original_amount_minor), $session->currency));
+        $this->line('Availability source: HBX Sandbox');
+        if ($rateCheck) {
+            $this->line('CheckRate source: HBX Sandbox');
+            $this->line('Selling total: '.$money->formatMinor((int) ($rateCheck->checked_amount_minor ?? $rateCheck->original_amount_minor), $session->currency));
+        } else {
+            $this->line('CheckRate source: not required for selected BOOKABLE rate');
+            $this->line('Selling total: '.$money->formatMinor((int) data_get($rate, 'total.minor_amount', 0), $session->currency));
+        }
     }
 
     private function bookingPayload(): array

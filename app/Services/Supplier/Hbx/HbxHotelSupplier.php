@@ -49,7 +49,7 @@ class HbxHotelSupplier implements HotelSupplierInterface
             'occupancies' => array_map(fn ($room): array => $this->occupancy($room), $request->rooms),
             'nationality' => $request->nationality,
             'currency' => $request->currency,
-            'language' => $request->locale,
+            'language' => $this->language($request->locale),
         ];
 
         if ($hotelCodes !== []) {
@@ -75,7 +75,7 @@ class HbxHotelSupplier implements HotelSupplierInterface
     public function getHotelDetails(HotelDetailsRequestData $request): HotelDetailsResultData
     {
         $correlationId = $this->correlationIds->make($request->correlationId);
-        $payload = ['hotels' => ['hotel' => [$request->supplierHotelId]], 'language' => $request->locale];
+        $payload = ['hotels' => ['hotel' => [$request->supplierHotelId]], 'language' => $this->language($request->locale)];
         $response = $this->client->request($this->supplier, SupplierOperation::HotelDetails, 'POST', '/hotel-api/1.0/hotels', $payload, $correlationId);
         $hotel = $this->normalizer->hotels($response['body'], $request->currency, [])[0] ?? null;
 
@@ -287,11 +287,19 @@ class HbxHotelSupplier implements HotelSupplierInterface
         }
 
         return collect($codes)
-            ->map(fn (mixed $code): string => trim((string) $code))
-            ->filter()
+            ->map(fn (mixed $code): int => (int) trim((string) $code))
+            ->filter(fn (int $code): bool => $code > 0)
             ->unique()
             ->values()
             ->all();
+    }
+
+    private function language(string $locale): string
+    {
+        return match (strtolower($locale)) {
+            'ar', 'ara' => 'ARA',
+            default => 'ENG',
+        };
     }
 
     private function rateKeyRooms(array $selectedRooms, string $fallbackRateKey): array

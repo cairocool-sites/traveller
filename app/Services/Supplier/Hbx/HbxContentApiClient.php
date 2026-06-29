@@ -123,6 +123,10 @@ class HbxContentApiClient
                 throw new SupplierRateLimitException('HBX Content API rate limit exceeded.', $correlationId);
             }
 
+            if ($response->clientError()) {
+                throw new InvalidSupplierResponseException('HBX Content API rejected the request schema, endpoint, or version.', $correlationId);
+            }
+
             if ($response->serverError()) {
                 throw new UnavailableSupplierException('HBX Content API is unavailable.', $correlationId);
             }

@@ -20,8 +20,12 @@ class HbxContentSyncCommand extends Command
         {--country= : Country code filter such as EG}
         {--destination= : HBX destination code}
         {--language=ENG : HBX language code}
+        {--limit= : Maximum records to request using official from/to range}
+        {--from= : Official HBX Content API from offset}
+        {--to= : Official HBX Content API to offset}
         {--page-limit=1 : Maximum pages to request}
         {--last-update-time= : Differential sync timestamp/date where supported}
+        {--deactivate-missing : Deactivate records missing from a full explicit sync window}
         {--full-authorized-portfolio : Allow a portfolio-wide sync mode}
         {--confirm : Required with --full-authorized-portfolio}
         {--queue : Dispatch the sync to the configured queue}
@@ -46,8 +50,8 @@ class HbxContentSyncCommand extends Command
                 throw new RuntimeException('Full authorized portfolio sync requires --confirm.');
             }
 
-            if (! $this->option('full-authorized-portfolio') && ! $this->option('country') && in_array($resource, ['all', 'destinations', 'hotels'], true)) {
-                throw new RuntimeException('Use --country={ISO2} for bounded sync, or explicitly use --full-authorized-portfolio --confirm.');
+            if (! $this->option('full-authorized-portfolio') && ! $this->option('country') && ! $this->option('destination') && in_array($resource, ['all', 'destinations', 'hotels'], true)) {
+                throw new RuntimeException('Use --country={ISO2} or --destination={HBX_CODE} for bounded sync, or explicitly use --full-authorized-portfolio --confirm.');
             }
 
             $options = [
@@ -56,7 +60,11 @@ class HbxContentSyncCommand extends Command
                 'country_code' => $this->option('country') ? strtoupper((string) $this->option('country')) : null,
                 'destination_code' => $this->option('destination') ? strtoupper((string) $this->option('destination')) : null,
                 'language' => strtoupper((string) $this->option('language')),
+                'limit' => $this->option('limit') ? (int) $this->option('limit') : null,
+                'from' => $this->option('from') ? (int) $this->option('from') : null,
+                'to' => $this->option('to') ? (int) $this->option('to') : null,
                 'last_update_time' => $this->option('last-update-time'),
+                'deactivate_missing' => (bool) $this->option('deactivate-missing'),
             ];
 
             if ($this->option('queue')) {
@@ -67,6 +75,9 @@ class HbxContentSyncCommand extends Command
                     'country' => $this->option('country'),
                     'destination' => $this->option('destination'),
                     'language' => $options['language'],
+                    'limit' => $options['limit'],
+                    'from' => $options['from'],
+                    'to' => $options['to'],
                     'page_limit' => $options['page_limit'],
                     'last_update_time' => $options['last_update_time'],
                     'full_authorized_portfolio' => (bool) $this->option('full-authorized-portfolio'),
@@ -190,8 +201,12 @@ class HbxContentSyncCommand extends Command
             'destination_code' => $options['destination_code'],
             'language' => $options['language'],
             'page_limit' => $options['page_limit'],
+            'checkpoint' => array_filter([
+                'requested_from' => $options['from'],
+                'requested_to' => $options['to'],
+                'requested_limit' => $options['limit'],
+            ], fn ($value): bool => $value !== null),
             'last_update_time' => $options['last_update_time'],
-            'checkpoint' => [],
             'dry_run' => $options['dry_run'],
             'full_authorized_portfolio' => (bool) $this->option('full-authorized-portfolio'),
             'queued' => $queued,

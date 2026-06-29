@@ -69,11 +69,15 @@ The newer command supports the Phase 14 API-suite sync shape:
 ```bash
 php artisan hbx:content:sync --resource=countries --dry-run
 php artisan hbx:content:sync --resource=destinations --country=EG --page-limit=1
+php artisan hbx:content:sync --resource=destinations --country=EG --limit=100
 php artisan hbx:content:sync --resource=hotels --country=EG --page-limit=1
+php artisan hbx:content:sync --resource=hotels --from=1 --to=100
 php artisan hbx:content:sync --resource=boards --country=EG --last-update-time=2026-06-01
 php artisan hbx:content:sync --resource=all --country=EG --page-limit=1
 php artisan hbx:content:sync --resource=all --full-authorized-portfolio --confirm --page-limit=1
 php artisan hbx:content:sync --resource=hotels --country=EG --last-update-time=2026-06-01 --queue
+php artisan hbx:content:status
+php artisan hbx:content:enable-public --country=EG --dry-run
 ```
 
 Full authorized portfolio mode is blocked unless both `--full-authorized-portfolio` and `--confirm` are provided. The command prints sanitized progress and never sends booking, modification, cancellation, or production requests.
@@ -113,6 +117,44 @@ Synchronized public records produce crawlable local pages:
 These pages render from the local database only. They do not call the Content API, Booking API, CheckRate, booking, modification, or cancellation endpoints. Destination and hotel pages include canonical tags from the shared public layout and minimal structured data only for visible local content. Search-result parameter combinations remain separate from the crawlable static catalogue.
 
 Static hotel pages do not advertise unavailable prices. Live prices are requested only after the user submits dates, guests, rooms, and currency through the public search flow.
+
+## Read-Only Sandbox Verification
+
+The first real read-only flow is:
+
+```text
+Content API destinations
+-> typed local destination records
+-> local autocomplete
+-> Booking API Availability
+-> normalized public search results
+```
+
+`php artisan hbx:verify-sandbox-booking --dry-run --destination={LOCAL_HBX_DESTINATION_ID}` verifies Availability only and works while `HBX_SANDBOX_BOOKING_ENABLED=false`. It does not send booking, modification, or cancellation requests. It sends CheckRate only when the selected rate explicitly requires recheck.
+
+Supported selectors:
+
+```bash
+php artisan hbx:verify-sandbox-booking --dry-run --destination=7
+php artisan hbx:verify-sandbox-booking --dry-run --hotel=123
+```
+
+The selector is a local database id. The command resolves the protected HBX destination or hotel code server-side and never trusts a raw browser-supplied HBX code.
+
+## Error Categories
+
+Sanitized logs and command messages distinguish:
+
+- authentication or forbidden access
+- rate limit
+- supplier timeout or connection failure
+- supplier server unavailable
+- invalid request schema, endpoint, or API version
+- empty catalogue page
+- no Availability results
+- unresolved local catalogue relationship
+
+When the Content API returns no authorized data or a server error, the platform records the safe failure and does not fabricate destinations, hotels, rooms, images, or rates.
 
 ## Quota and Pagination
 
