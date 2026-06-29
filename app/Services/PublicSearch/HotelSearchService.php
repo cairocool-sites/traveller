@@ -219,6 +219,9 @@ class HotelSearchService
     {
         return collect($hotels)->map(function (SupplierHotelData $hotel) use ($locale): array {
             $rates = collect($hotel->rooms)->map(fn ($rate): array => [
+                'public_rate_token' => Str::lower(Str::random(18)),
+                'supplier_room_id' => $rate->supplierRoomId,
+                'supplier_rate_key' => $rate->rateKey,
                 'room_name' => $rate->roomName,
                 'board_basis' => $rate->boardBasis->value,
                 'total' => $rate->totalAmount->jsonSerialize(),
@@ -232,6 +235,7 @@ class HotelSearchService
             return [
                 'public_token' => Str::lower(Str::random(16)),
                 'supplier_hotel_id' => $hotel->supplierHotelId,
+                'supplier_code' => 'mock_hotels',
                 'canonical_hotel_id' => $hotel->canonicalHotelId,
                 'name' => $hotel->name,
                 'star_rating' => $hotel->starRating,

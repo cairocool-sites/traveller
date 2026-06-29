@@ -53,7 +53,17 @@
                                     </div>
                                     <div class="sm:text-end">
                                         <p class="text-lg font-semibold text-slate-950">{{ $money->formatArray($rate['total']) }}</p>
-                                        <button type="button" disabled class="mt-2 rounded bg-slate-200 px-4 py-2 text-sm font-medium text-slate-600">{{ __('public.details.booking_disabled') }}</button>
+                                        @if (isset($rate['public_rate_token'], $searchSession))
+                                            <form method="POST" action="{{ route('rate-checks.store', ['locale' => app()->getLocale()]) }}" class="mt-2">
+                                                @csrf
+                                                <input type="hidden" name="search" value="{{ $searchSession->public_uuid }}">
+                                                <input type="hidden" name="hotel" value="{{ $result['public_token'] }}">
+                                                <input type="hidden" name="rate" value="{{ $rate['public_rate_token'] }}">
+                                                <button type="submit" class="rounded bg-teal-700 px-4 py-2 text-sm font-medium text-white">{{ __('public.booking.check_rate') }}</button>
+                                            </form>
+                                        @else
+                                            <button type="button" disabled class="mt-2 rounded bg-slate-200 px-4 py-2 text-sm font-medium text-slate-600">{{ __('public.details.booking_disabled') }}</button>
+                                        @endif
                                     </div>
                                 </div>
                             </div>

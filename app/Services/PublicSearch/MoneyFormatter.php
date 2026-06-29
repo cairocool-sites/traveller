@@ -22,6 +22,11 @@ class MoneyFormatter
         return $this->formatParts((int) $money['minor_amount'], $money['currency']);
     }
 
+    public function formatMinor(int $minorAmount, string $currencyCode): string
+    {
+        return $this->formatParts($minorAmount, $currencyCode);
+    }
+
     private function formatParts(int $minorAmount, string $currencyCode): string
     {
         $currency = Currency::query()

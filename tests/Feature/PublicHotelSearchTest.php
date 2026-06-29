@@ -153,7 +153,7 @@ it('shows canonical hotel content on details and blocks inactive canonical hotel
     $this->get(route('hotels.show', ['hotel' => $token, 'search' => $session->public_uuid, 'locale' => 'en']))
         ->assertOk()
         ->assertSee('Canonical editorial hotel description')
-        ->assertSee('Booking will be enabled in the next phase')
+        ->assertSee('Check rate')
         ->assertDontSee('MCK-CAI-001');
 
     $hotel->forceFill(['is_active' => false])->save();

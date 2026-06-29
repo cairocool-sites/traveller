@@ -53,6 +53,11 @@ final class Access
         'view_supplier_logs',
         'view_sensitive_supplier_logs',
         'view_search_sessions',
+        'view_rate_checks',
+        'view_bookings',
+        'manage_booking_status',
+        'reconcile_bookings',
+        'view_booking_sensitive_data',
     ];
 
     public const ROLE_PERMISSIONS = [
@@ -76,18 +81,25 @@ final class Access
         ],
         'reservation_manager' => [
             'access_admin',
+            'view_rate_checks',
+            'view_bookings',
+            'manage_booking_status',
+            'reconcile_bookings',
         ],
         'reservation_agent' => [
             'access_admin',
+            'view_bookings',
         ],
         'accountant' => [
             'access_admin',
             'view_currencies',
             'view_exchange_rates',
             'manage_exchange_rates',
+            'view_bookings',
         ],
         'customer_support' => [
             'access_admin',
+            'view_bookings',
         ],
         'content_manager' => [
             'access_admin',
@@ -115,6 +127,9 @@ final class Access
             'view_supplier_logs',
             'view_sensitive_supplier_logs',
             'view_search_sessions',
+            'view_rate_checks',
+            'view_bookings',
+            'reconcile_bookings',
         ],
         'auditor' => [
             'access_admin',
@@ -131,6 +146,8 @@ final class Access
             'view_suppliers',
             'view_supplier_logs',
             'view_search_sessions',
+            'view_rate_checks',
+            'view_bookings',
         ],
     ];
 

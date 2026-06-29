@@ -80,6 +80,8 @@ Supplier management is available under `/admin/suppliers` for users with supplie
 
 Public hotel search is available at `/` and `/hotels`. Search results are generated through the `mock_hotels` supplier only and stored in short-lived `search_sessions`.
 
+Phase 7 booking flow is available from a hotel details page by choosing Check rate, entering guest details, and submitting the deterministic Mock Supplier booking. No real supplier, payment, voucher, customer account, cancellation, quotation, or B2B feature is connected.
+
 Reference data can be seeded with:
 
 ```bash
@@ -91,6 +93,12 @@ No fake hotels are seeded by default.
 The supplier seeder creates only the deterministic `mock_hotels` sandbox supplier. It does not seed real endpoints, usernames, passwords, tokens, API keys, or production connections.
 
 Search limits can be adjusted with safe local values such as `TRAVEL_SEARCH_MAX_ROOMS`, `TRAVEL_SEARCH_MAX_ADULTS_PER_ROOM`, `TRAVEL_SEARCH_MAX_CHILDREN_PER_ROOM`, `TRAVEL_SEARCH_MAX_CHILD_AGE`, `TRAVEL_SEARCH_MAX_STAY_NIGHTS`, and `TRAVEL_SEARCH_SESSION_LIFETIME_MINUTES`.
+
+Stale draft/rate-confirmed booking records can be expired locally with:
+
+```bash
+php artisan bookings:expire-drafts
+```
 
 PHP XML extensions required for future production integrations include `dom`, `libxml`, `SimpleXML`, `xmlreader`, and `xmlwriter`. PHP SOAP is not installed in the current local toolchain and is only scaffolded in Phase 5.
 
