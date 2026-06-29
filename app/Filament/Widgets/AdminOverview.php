@@ -18,7 +18,7 @@ class AdminOverview extends StatsOverviewWidget
         $user = Auth::user();
 
         $stats = [
-            Stat::make(__('admin.dashboard.stats.project'), config('travel.brand.name')),
+            Stat::make(__('admin.dashboard.stats.project'), config('travel.brand_name')),
             Stat::make(__('admin.dashboard.stats.locale'), app()->getLocale()),
             Stat::make(__('admin.dashboard.stats.timezone'), config('app.timezone')),
             Stat::make(__('admin.dashboard.stats.currency'), config('travel.currency.default')),

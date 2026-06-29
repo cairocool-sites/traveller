@@ -28,7 +28,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->brandName(config('travel.brand.name', 'Cairo Cool Travel'))
+            ->brandName(config('travel.brand_name', 'Cairo Cool Travel'))
             ->login()
             ->colors([
                 'primary' => Color::Blue,

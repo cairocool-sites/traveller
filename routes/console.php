@@ -4,6 +4,7 @@ use App\Enums\BookingStatus;
 use App\Models\Booking;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -25,3 +26,6 @@ Artisan::command('bookings:expire-drafts', function (): int {
 
     return self::SUCCESS;
 })->purpose('Expire stale booking drafts without touching confirmed supplier bookings');
+
+Schedule::command('ops:scheduler-heartbeat')->everyMinute();
+Schedule::command('ops:cleanup')->dailyAt('02:15')->withoutOverlapping();

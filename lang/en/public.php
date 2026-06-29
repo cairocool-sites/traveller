@@ -144,4 +144,13 @@ return [
     'refunds' => [
         'title' => 'Refund status',
     ],
+    'errors' => [
+        'reference' => 'Reference',
+        'generic' => ['title' => 'Something went wrong', 'message' => 'Please try again shortly or contact support with the reference shown.'],
+        '404' => ['title' => 'Page not found', 'message' => 'The page you requested could not be found.'],
+        '419' => ['title' => 'Session expired', 'message' => 'Please refresh the page and try again.'],
+        '429' => ['title' => 'Too many requests', 'message' => 'Please wait a moment before trying again.'],
+        '500' => ['title' => 'Service error', 'message' => 'We could not complete the request safely.'],
+        '503' => ['title' => 'Service unavailable', 'message' => 'The service is temporarily unavailable.'],
+    ],
 ];

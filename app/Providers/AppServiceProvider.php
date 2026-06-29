@@ -51,7 +51,10 @@ use App\Policies\SupplierCredentialPolicy;
 use App\Policies\SupplierOperationLogPolicy;
 use App\Policies\SupplierPolicy;
 use App\Policies\UserPolicy;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\Models\Role;
 
@@ -101,5 +104,16 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('manage_roles', fn (User $user): bool => $user->hasPermissionTo('manage_roles'));
         Gate::define('view_audit_logs', fn (User $user): bool => $user->hasPermissionTo('view_audit_logs'));
         Gate::define('manage_system_settings', fn (User $user): bool => $user->hasPermissionTo('manage_system_settings'));
+        Gate::define('view_system_health', fn (User $user): bool => $user->hasPermissionTo('view_system_health'));
+        Gate::define('manage_operational_tasks', fn (User $user): bool => $user->hasPermissionTo('manage_operational_tasks'));
+
+        $this->configureRateLimiters();
+    }
+
+    private function configureRateLimiters(): void
+    {
+        foreach (config('travel.rate_limits', []) as $name => $settings) {
+            RateLimiter::for($name, fn (Request $request) => Limit::perMinute((int) ($settings['per_minute'] ?? 30))->by($request->user()?->id ?: $request->ip()));
+        }
     }
 }
