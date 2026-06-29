@@ -25,7 +25,28 @@ class HbxHttpClient
         private readonly SupplierOperationLogger $logger,
     ) {}
 
-    public function request(Supplier $supplier, SupplierOperation $operation, string $method, string $path, array $payload = [], ?string $correlationId = null): array
+    public function diagnostics(Supplier $supplier, string $method, string $path): HbxRequestDiagnostics
+    {
+        $baseUrl = $this->baseUrl($supplier);
+        $fullUrl = $this->fullUrl($supplier, $path);
+
+        return new HbxRequestDiagnostics(
+            targetHost: parse_url($baseUrl, PHP_URL_HOST) ?: $baseUrl,
+            targetPath: parse_url($fullUrl, PHP_URL_PATH) ?: $path,
+            method: strtoupper($method),
+            connectTimeoutSeconds: $this->connectTimeoutSeconds($supplier),
+            timeoutSeconds: $this->timeoutSeconds($supplier),
+            proxyConfigured: $this->proxyConfigured(),
+            responseReceived: false,
+        );
+    }
+
+    public function fullUrl(Supplier $supplier, string $path): string
+    {
+        return $this->baseUrl($supplier).'/'.ltrim($path, '/');
+    }
+
+    public function request(Supplier $supplier, SupplierOperation $operation, string $method, string $path, array $payload = [], ?string $correlationId = null, bool $allowRetry = true): array
     {
         $correlationId = $this->correlationIds->make($correlationId);
         $credentials = $this->config->credentials($correlationId);
@@ -37,12 +58,12 @@ class HbxHttpClient
             'Content-Type' => 'application/json',
             'X-Correlation-ID' => $correlationId,
         ];
-        $retries = $operation->isAutomaticallyRetryable() ? max(0, (int) $supplier->max_retries) : 0;
+        $retries = $allowRetry && $operation->isAutomaticallyRetryable() ? max(0, (int) $supplier->max_retries) : 0;
 
         try {
-            $response = Http::baseUrl($supplier->base_url ?: $this->config->baseUrl())
-                ->timeout((int) ($supplier->timeout_seconds ?: $this->config->timeoutSeconds()))
-                ->connectTimeout((int) ($supplier->connect_timeout_seconds ?: $this->config->connectTimeoutSeconds()))
+            $response = Http::baseUrl($this->baseUrl($supplier))
+                ->timeout($this->timeoutSeconds($supplier))
+                ->connectTimeout($this->connectTimeoutSeconds($supplier))
                 ->withHeaders($headers)
                 ->retry($retries, (int) $supplier->retry_delay_milliseconds)
                 ->send($method, $path, $payload === [] ? [] : ['json' => $payload]);
@@ -50,6 +71,8 @@ class HbxHttpClient
             $body = $response->json();
 
             if (! is_array($body)) {
+                $this->log($supplier, $operation, $correlationId, $method, $path, $headers, $payload, $response->status(), $response->headers(), ['message' => 'Malformed JSON response.'], false, $started, SupplierErrorType::InvalidResponse);
+
                 throw new InvalidSupplierResponseException('HBX returned a malformed JSON response.', $correlationId);
             }
 
@@ -73,6 +96,26 @@ class HbxHttpClient
 
             throw new SupplierTimeoutException('HBX request timed out or could not connect.', $correlationId);
         }
+    }
+
+    private function baseUrl(Supplier $supplier): string
+    {
+        return rtrim((string) ($supplier->base_url ?: $this->config->baseUrl()), '/');
+    }
+
+    private function timeoutSeconds(Supplier $supplier): int
+    {
+        return max(45, (int) ($supplier->timeout_seconds ?: $this->config->timeoutSeconds()));
+    }
+
+    private function connectTimeoutSeconds(Supplier $supplier): int
+    {
+        return max(15, (int) ($supplier->connect_timeout_seconds ?: $this->config->connectTimeoutSeconds()));
+    }
+
+    private function proxyConfigured(): bool
+    {
+        return filled(env('HTTP_PROXY')) || filled(env('HTTPS_PROXY')) || filled(env('ALL_PROXY'));
     }
 
     private function log(Supplier $supplier, SupplierOperation $operation, string $correlationId, string $method, string $path, array $headers, array $payload, ?int $status, ?array $responseHeaders, array $responsePayload, bool $successful, float $started, ?SupplierErrorType $errorType = null): void

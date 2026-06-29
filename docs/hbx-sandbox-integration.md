@@ -13,8 +13,8 @@ HBX_ENABLED=false
 HBX_API_KEY=
 HBX_API_SECRET=
 HBX_BASE_URL=https://api.test.hotelbeds.com
-HBX_TIMEOUT=20
-HBX_CONNECT_TIMEOUT=5
+HBX_TIMEOUT=45
+HBX_CONNECT_TIMEOUT=15
 HBX_INTEGRATION_TESTS=false
 ```
 
@@ -103,12 +103,19 @@ Safe health check:
 php artisan hbx:test-connection
 ```
 
+Safe diagnostic health check:
+
+```bash
+php artisan hbx:test-connection --diagnostic
+```
+
 The command:
 
 - Runs only when `HBX_ENABLED=true`.
 - Requires local credentials.
 - Calls only the HBX sandbox status endpoint.
 - Prints sanitized success/failure and correlation ID.
+- In diagnostic mode, prints only target host, path, method, timeout values, proxy presence, and whether an HTTP response was received.
 - Never prints credentials, signatures, or raw sensitive responses.
 
 No command is provided for creating a real sandbox booking without code-level safeguards.

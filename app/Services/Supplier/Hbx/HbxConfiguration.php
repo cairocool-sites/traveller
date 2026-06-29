@@ -18,12 +18,12 @@ class HbxConfiguration
 
     public function timeoutSeconds(): int
     {
-        return (int) config('services.hbx.timeout', 20);
+        return (int) config('services.hbx.timeout', 45);
     }
 
     public function connectTimeoutSeconds(): int
     {
-        return (int) config('services.hbx.connect_timeout', 5);
+        return (int) config('services.hbx.connect_timeout', 15);
     }
 
     public function credentials(?string $correlationId = null): HbxCredentials

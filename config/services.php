@@ -40,8 +40,8 @@ return [
         'api_key' => env('HBX_API_KEY'),
         'api_secret' => env('HBX_API_SECRET'),
         'base_url' => env('HBX_BASE_URL', 'https://api.test.hotelbeds.com'),
-        'timeout' => (int) env('HBX_TIMEOUT', 20),
-        'connect_timeout' => (int) env('HBX_CONNECT_TIMEOUT', 5),
+        'timeout' => (int) env('HBX_TIMEOUT', 45),
+        'connect_timeout' => (int) env('HBX_CONNECT_TIMEOUT', 15),
         'integration_tests' => (bool) env('HBX_INTEGRATION_TESTS', false),
     ],
 

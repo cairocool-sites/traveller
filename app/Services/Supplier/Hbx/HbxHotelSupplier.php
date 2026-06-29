@@ -29,6 +29,8 @@ use App\Support\Money\Money;
 
 class HbxHotelSupplier implements HotelSupplierInterface
 {
+    private ?int $lastHealthHttpStatus = null;
+
     public function __construct(
         private readonly Supplier $supplier,
         private readonly HbxHttpClient $client,
@@ -236,10 +238,21 @@ class HbxHotelSupplier implements HotelSupplierInterface
     {
         $correlationId = $this->correlationIds->make();
         $started = microtime(true);
-        $response = $this->client->request($this->supplier, SupplierOperation::HealthCheck, 'GET', '/hotel-api/1.0/status', [], $correlationId);
+        $response = $this->client->request($this->supplier, SupplierOperation::HealthCheck, 'GET', '/hotel-api/1.0/status', [], $correlationId, allowRetry: false);
+        $this->lastHealthHttpStatus = $response['status'];
         $ok = $response['status'] >= 200 && $response['status'] < 300;
 
         return new SupplierHealthResultData($ok, $ok ? SupplierHealthStatus::Healthy : SupplierHealthStatus::Unavailable, (int) round((microtime(true) - $started) * 1000), now()->toImmutable(), $ok ? 'HBX sandbox reachable.' : 'HBX sandbox unavailable.', $correlationId);
+    }
+
+    public function healthDiagnostics(): HbxRequestDiagnostics
+    {
+        return $this->client->diagnostics($this->supplier, 'GET', '/hotel-api/1.0/status');
+    }
+
+    public function lastHealthHttpStatus(): ?int
+    {
+        return $this->lastHealthHttpStatus;
     }
 
     private function paxes(SupplierBookingRequestData $request): array

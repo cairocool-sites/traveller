@@ -21,6 +21,8 @@ use App\Services\Supplier\Exceptions\InvalidSupplierResponseException;
 use App\Services\Supplier\Exceptions\SupplierAuthenticationException;
 use App\Services\Supplier\Exceptions\SupplierRateLimitException;
 use App\Services\Supplier\Exceptions\SupplierTimeoutException;
+use App\Services\Supplier\Hbx\HbxHotelSupplier;
+use App\Services\Supplier\Hbx\HbxHttpClient;
 use App\Services\Supplier\Hbx\HbxSignatureService;
 use App\Services\Supplier\SupplierManager;
 use App\Support\Money\Money;
@@ -90,9 +92,46 @@ it('maps hbx timeouts safely', function () {
 });
 
 it('maps malformed hbx responses safely', function () {
-    Http::fake(['*' => Http::response('not-json', 200)]);
+    Http::fake(['*' => Http::response('not-json', 404)]);
 
     expect(fn () => hbx()->healthCheck())->toThrow(InvalidSupplierResponseException::class);
+
+    $log = SupplierOperationLog::query()->latest('id')->firstOrFail();
+
+    expect($log->response_status)->toBe(404)
+        ->and($log->error_type->value)->toBe('invalid_response');
+});
+
+it('uses the exact hbx status URL and safe diagnostic timeouts', function () {
+    $supplier = Supplier::query()->where('code', 'hbx_hotels')->firstOrFail();
+    $supplier->forceFill([
+        'timeout_seconds' => 30,
+        'connect_timeout_seconds' => 5,
+        'max_retries' => 3,
+    ])->save();
+
+    $adapter = hbx();
+
+    expect($adapter)->toBeInstanceOf(HbxHotelSupplier::class);
+
+    $diagnostics = $adapter->healthDiagnostics();
+
+    expect(app(HbxHttpClient::class)->fullUrl($supplier, '/hotel-api/1.0/status'))
+        ->toBe('https://api.test.hotelbeds.com/hotel-api/1.0/status')
+        ->and($diagnostics->targetHost)->toBe('api.test.hotelbeds.com')
+        ->and($diagnostics->targetPath)->toBe('/hotel-api/1.0/status')
+        ->and($diagnostics->method)->toBe('GET')
+        ->and($diagnostics->connectTimeoutSeconds)->toBe(15)
+        ->and($diagnostics->timeoutSeconds)->toBe(45);
+});
+
+it('does not retry the hbx health status request', function () {
+    Supplier::query()->where('code', 'hbx_hotels')->update(['max_retries' => 3]);
+    Http::fake(['*' => Http::response(['status' => 'OK'], 200)]);
+
+    hbx()->healthCheck();
+
+    Http::assertSentCount(1);
 });
 
 it('normalizes hbx availability with bookable and recheck rates', function () {
