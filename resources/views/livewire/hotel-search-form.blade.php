@@ -1,4 +1,4 @@
-<form wire:submit="submit" class="cct-card p-5 sm:p-6 lg:p-7">
+<form wire:submit="submit" class="cct-card p-4 sm:p-5 lg:p-5">
     @if ($errors->any())
         <div class="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-800" role="alert">
             <ul class="list-inside list-disc space-y-1">
@@ -9,7 +9,7 @@
         </div>
     @endif
 
-    <div class="grid gap-4 lg:grid-cols-12">
+    <div class="grid gap-3 lg:grid-cols-12">
         <div class="relative lg:col-span-4">
             <label for="destination" class="cct-label">{{ __('public.search.destination') }}</label>
             <div class="relative">
@@ -17,7 +17,7 @@
                     <path d="M12 21s7-4.8 7-11a7 7 0 1 0-14 0c0 6.2 7 11 7 11Z" stroke="currentColor" stroke-width="2" />
                     <path d="M12 10.5h.01" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
                 </svg>
-                <input id="destination" type="text" wire:model.live.debounce.350ms="destinationTerm" autocomplete="off" class="cct-input ps-12" placeholder="{{ __('public.search.destination_placeholder') }}">
+                <input id="destination" type="text" wire:model.live.debounce.350ms="destinationTerm" autocomplete="off" class="cct-input min-h-11 py-2.5 ps-12" placeholder="{{ __('public.search.destination_placeholder') }}">
             </div>
             <input type="hidden" wire:model="destination">
             @if ($destinationOptions)
@@ -34,17 +34,17 @@
 
         <div class="lg:col-span-2">
             <label for="checkIn" class="cct-label">{{ __('public.search.check_in') }}</label>
-            <input id="checkIn" type="date" wire:model="checkIn" min="{{ now()->toDateString() }}" class="cct-input">
+            <input id="checkIn" type="date" wire:model="checkIn" min="{{ now()->toDateString() }}" class="cct-input min-h-11 py-2.5">
         </div>
 
         <div class="lg:col-span-2">
             <label for="checkOut" class="cct-label">{{ __('public.search.check_out') }}</label>
-            <input id="checkOut" type="date" wire:model="checkOut" min="{{ now()->addDay()->toDateString() }}" class="cct-input">
+            <input id="checkOut" type="date" wire:model="checkOut" min="{{ now()->addDay()->toDateString() }}" class="cct-input min-h-11 py-2.5">
         </div>
 
         <div class="lg:col-span-2">
             <label for="rooms" class="cct-label">{{ __('public.search.rooms') }}</label>
-            <select id="rooms" wire:model="rooms" class="cct-input">
+            <select id="rooms" wire:model="rooms" class="cct-input min-h-11 py-2.5">
                 @for ($room = 1; $room <= $maxRooms; $room++)
                     <option value="{{ $room }}">{{ $room }}</option>
                 @endfor
@@ -53,7 +53,7 @@
 
         <div class="lg:col-span-2">
             <label for="currency" class="cct-label">{{ __('public.search.currency') }}</label>
-            <select id="currency" wire:model="currency" class="cct-input">
+            <select id="currency" wire:model="currency" class="cct-input min-h-11 py-2.5">
                 @foreach ($currencies as $currencyOption)
                     <option value="{{ $currencyOption->code }}">{{ $currencyOption->code }}</option>
                 @endforeach
@@ -61,10 +61,10 @@
         </div>
     </div>
 
-    <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-12">
+    <div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-12">
         <div class="lg:col-span-3">
             <label for="adults" class="cct-label">{{ __('public.search.adults') }}</label>
-            <select id="adults" wire:model="adults" class="cct-input">
+            <select id="adults" wire:model="adults" class="cct-input min-h-11 py-2.5">
                 @for ($adult = 1; $adult <= $maxAdults; $adult++)
                     <option value="{{ $adult }}">{{ $adult }}</option>
                 @endfor
@@ -73,7 +73,7 @@
 
         <div class="lg:col-span-3">
             <label for="children" class="cct-label">{{ __('public.search.children') }}</label>
-            <select id="children" wire:model.live="children" class="cct-input">
+            <select id="children" wire:model.live="children" class="cct-input min-h-11 py-2.5">
                 @for ($child = 0; $child <= $maxChildren; $child++)
                     <option value="{{ $child }}">{{ $child }}</option>
                 @endfor
@@ -83,13 +83,13 @@
         @foreach ($childAges as $index => $age)
             <div class="lg:col-span-2">
                 <label for="childAge{{ $index }}" class="cct-label">{{ __('public.search.child_age', ['number' => $index + 1]) }}</label>
-                <input id="childAge{{ $index }}" type="number" wire:model="childAges.{{ $index }}" min="0" max="{{ $maxChildAge }}" class="cct-input">
+                <input id="childAge{{ $index }}" type="number" wire:model="childAges.{{ $index }}" min="0" max="{{ $maxChildAge }}" class="cct-input min-h-11 py-2.5">
             </div>
         @endforeach
 
         <div class="sm:col-span-2 lg:col-span-3 lg:col-start-auto">
             <label class="cct-label invisible hidden lg:block" aria-hidden="true">{{ __('public.search.submit') }}</label>
-            <button type="submit" class="cct-button mt-0 w-full lg:mt-6">
+            <button type="submit" class="cct-button min-h-11 w-full py-2.5">
                 <svg class="me-2 size-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="m21 21-4.3-4.3M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                 </svg>
