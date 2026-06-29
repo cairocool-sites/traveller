@@ -115,4 +115,20 @@ return [
             'lead_guest' => 'Exactly one adult lead guest is required.',
         ],
     ],
+    'payments' => [
+        'title' => 'Manual payment',
+        'booking_reference' => 'Booking reference',
+        'method' => 'Payment method',
+        'reference' => 'Payment reference',
+        'evidence' => 'Payment evidence',
+        'notes' => 'Notes',
+        'submit' => 'Submit payment',
+        'submitted' => 'Payment submitted for review. Reference: :reference',
+    ],
+    'documents' => [
+        'verify' => 'Document verification',
+        'verified' => 'Document verified',
+        'type' => 'Document type',
+        'issued_at' => 'Issued at',
+    ],
 ];

@@ -104,3 +104,9 @@ The seeder validates password strength, creates roles and permissions idempotent
 - Never commit passwords, API keys, supplier credentials, payment credentials, or production secrets.
 - Do not manually delete the final active `super_admin`.
 - Role editing is intentionally limited in Phase 2; the roles matrix is read-only.
+
+## Phase 8 Payment Administration
+
+Phase 8 adds manual payment review, evidence access, document generation, and document viewing permissions. Auditors remain read-only. Reservation agents can see limited payment status but cannot approve or reject payments.
+
+The maker-checker rule prevents an admin operator from approving a payment they submitted. Super admins may override only with an explicit reason.

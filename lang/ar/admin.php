@@ -26,6 +26,10 @@ return [
             'timezone' => 'المنطقة الزمنية',
             'currency' => 'العملة الافتراضية',
             'role' => 'الدور',
+            'payments_pending_review' => 'مدفوعات بانتظار المراجعة',
+            'payments_approved' => 'مدفوعات معتمدة',
+            'payments_rejected' => 'مدفوعات مرفوضة',
+            'documents_issued' => 'مستندات صادرة',
         ],
     ],
     'locales' => [
@@ -404,6 +408,26 @@ return [
         'payment_statuses' => [
             'not_required' => 'Not required',
             'pending' => 'Pending',
+            'paid' => 'Paid',
+        ],
+    ],
+    'payments' => [
+        'statuses' => [
+            'pending' => 'Pending',
+            'submitted' => 'Submitted',
+            'under_review' => 'Under review',
+            'approved' => 'Approved',
+            'rejected' => 'Rejected',
+            'paid' => 'Paid',
+            'cancelled' => 'Cancelled',
+        ],
+        'actions' => [
+            'under_review' => 'Mark under review',
+            'approve' => 'Approve',
+            'reject' => 'Reject',
+        ],
+        'fields' => [
+            'reason' => 'Reason',
         ],
     ],
 ];
