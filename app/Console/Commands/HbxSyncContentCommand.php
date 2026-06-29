@@ -36,7 +36,7 @@ class HbxSyncContentCommand extends Command
             ];
 
             if ($this->option('countries')) {
-                app(HbxContentApiClient::class)->countries($supplier, ['from' => 1, 'to' => 100]);
+                app(HbxContentApiClient::class)->countries($supplier, ['fields' => 'all', 'language' => 'ENG', 'from' => 1, 'to' => 100]);
                 $this->info('Countries endpoint validated. No local country records were changed.');
             }
 

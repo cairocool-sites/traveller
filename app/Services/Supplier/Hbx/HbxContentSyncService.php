@@ -15,6 +15,8 @@ class HbxContentSyncService
 {
     public const SUPPLIER_CODE = 'hbx_hotels';
 
+    private const PAGE_SIZE = 100;
+
     public function __construct(private readonly HbxContentApiClient $client) {}
 
     public function syncDestinations(Supplier $supplier, array $options = []): array
@@ -27,9 +29,11 @@ class HbxContentSyncService
 
         for ($page = 1; $page <= $pageLimit; $page++) {
             $response = $this->client->destinations($supplier, [
+                'fields' => 'all',
+                'language' => 'ENG',
                 'countryCodes' => $countryCode,
-                'from' => (($page - 1) * 1000) + 1,
-                'to' => $page * 1000,
+                'from' => (($page - 1) * self::PAGE_SIZE) + 1,
+                'to' => $page * self::PAGE_SIZE,
             ]);
 
             $items = $this->items($response['body'], 'destinations');
@@ -78,14 +82,22 @@ class HbxContentSyncService
     {
         $pageLimit = max(1, min((int) ($options['page_limit'] ?? 1), 25));
         $dryRun = (bool) ($options['dry_run'] ?? false);
+        $countryCode = HbxDestination::query()
+            ->where('supplier_code', $supplier->code)
+            ->where('destination_code', $destinationCode)
+            ->value('country_code');
         $seen = [];
         $total = 0;
 
         for ($page = 1; $page <= $pageLimit; $page++) {
             $response = $this->client->hotels($supplier, [
+                'fields' => 'all',
+                'language' => 'ENG',
+                'useSecondaryLanguage' => 'false',
+                'countryCode' => $countryCode,
                 'destinationCode' => $destinationCode,
-                'from' => (($page - 1) * 1000) + 1,
-                'to' => $page * 1000,
+                'from' => (($page - 1) * self::PAGE_SIZE) + 1,
+                'to' => $page * self::PAGE_SIZE,
             ]);
 
             $items = $this->items($response['body'], 'hotels');
