@@ -21,6 +21,7 @@ uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     app(PermissionRegistrar::class)->forgetCachedPermissions();
+    app()->setLocale('en');
 
     config([
         'services.hbx.enabled' => true,

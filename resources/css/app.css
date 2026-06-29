@@ -4,6 +4,71 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: Inter, 'Segoe UI', Tahoma, Arial, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        background: #f6f8fb;
+        color: #0b1f33;
+        font-family: Inter, 'Segoe UI', Tahoma, Arial, sans-serif;
+    }
+
+    [dir='rtl'] body {
+        letter-spacing: 0;
+    }
+
+    :focus-visible {
+        outline: 3px solid rgba(20, 184, 166, 0.55);
+        outline-offset: 3px;
+    }
+}
+
+@layer components {
+    .cct-shell {
+        @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+    }
+
+    .cct-card {
+        @apply rounded-2xl border border-slate-200/80 bg-white shadow-[0_18px_45px_rgba(11,31,51,0.08)];
+    }
+
+    .cct-label {
+        @apply mb-1.5 block text-sm font-bold text-[#0B1F33];
+    }
+
+    .cct-input {
+        @apply w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-[#0B1F33] shadow-sm transition placeholder:text-slate-500 focus:border-[#0F766E] focus:ring-4 focus:ring-[#14B8A6]/20;
+    }
+
+    .cct-button {
+        @apply inline-flex min-h-12 items-center justify-center rounded-xl bg-[#0F766E] px-6 py-3 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(15,118,110,0.26)] transition hover:bg-[#115E59] disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .cct-button-navy {
+        @apply inline-flex min-h-12 items-center justify-center rounded-xl bg-[#0B1F33] px-6 py-3 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(11,31,51,0.22)] transition hover:bg-[#102f4d];
+    }
+
+    .cct-badge {
+        @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-normal;
+    }
+
+    .cct-hero {
+        background:
+            radial-gradient(circle at 15% 20%, rgba(20, 184, 166, 0.24), transparent 26rem),
+            radial-gradient(circle at 86% 18%, rgba(201, 162, 39, 0.18), transparent 22rem),
+            linear-gradient(135deg, #0b1f33 0%, #0f3d4f 48%, #0f766e 100%);
+    }
+
+    .cct-hero-pattern {
+        background-image:
+            linear-gradient(120deg, rgba(255, 255, 255, 0.09) 0 1px, transparent 1px 18px),
+            linear-gradient(30deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 22px);
+        mask-image: linear-gradient(90deg, transparent, black 20%, black 80%, transparent);
+    }
 }

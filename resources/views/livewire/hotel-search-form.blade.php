@@ -1,7 +1,7 @@
-<form wire:submit="submit" class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+<form wire:submit="submit" class="cct-card p-5 sm:p-6 lg:p-7">
     @if ($errors->any())
-        <div class="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-800" role="alert">
-            <ul class="list-inside list-disc">
+        <div class="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-800" role="alert">
+            <ul class="list-inside list-disc space-y-1">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
@@ -11,35 +11,49 @@
 
     <div class="grid gap-4 lg:grid-cols-12">
         <div class="relative lg:col-span-4">
-            <label for="destination" class="block text-sm font-medium text-slate-800">{{ __('public.search.destination') }}</label>
-            <input id="destination" type="text" wire:model.live.debounce.350ms="destinationTerm" autocomplete="off" class="mt-1 w-full rounded border border-slate-300 px-3 py-2" placeholder="{{ __('public.search.destination_placeholder') }}">
+            <label for="destination" class="cct-label">{{ __('public.search.destination') }}</label>
+            <div class="relative">
+                <svg class="pointer-events-none absolute start-4 top-1/2 size-5 -translate-y-1/2 text-[#0F766E]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 21s7-4.8 7-11a7 7 0 1 0-14 0c0 6.2 7 11 7 11Z" stroke="currentColor" stroke-width="2" />
+                    <path d="M12 10.5h.01" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
+                </svg>
+                <input id="destination" type="text" wire:model.live.debounce.350ms="destinationTerm" autocomplete="off" class="cct-input ps-12" placeholder="{{ __('public.search.destination_placeholder') }}">
+            </div>
             <input type="hidden" wire:model="destination">
             @if ($destinationOptions)
-                <div class="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded border border-slate-200 bg-white shadow-lg">
+                <div class="absolute z-30 mt-2 max-h-72 w-full overflow-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">
                     @foreach ($destinationOptions as $option)
-                        <button type="button" wire:click="selectDestination('{{ $option['token'] }}', '{{ addslashes($option['label']) }}')" class="block w-full px-3 py-2 text-start text-sm hover:bg-teal-50">
-                            <span class="font-medium">{{ $option['label'] }}</span>
-                            <span class="text-xs uppercase text-slate-500">{{ $option['type'] }}</span>
+                        <button type="button" wire:click="selectDestination('{{ $option['token'] }}', '{{ addslashes($option['label']) }}')" class="block w-full rounded-xl px-4 py-3 text-start text-sm transition hover:bg-[#14B8A6]/10">
+                            <span class="block font-extrabold text-[#0B1F33]">{{ $option['label'] }}</span>
+                            <span class="text-xs font-bold uppercase text-slate-500">{{ $option['type'] }}</span>
                         </button>
                     @endforeach
                 </div>
             @endif
         </div>
+
         <div class="lg:col-span-2">
-            <label for="checkIn" class="block text-sm font-medium text-slate-800">{{ __('public.search.check_in') }}</label>
-            <input id="checkIn" type="date" wire:model="checkIn" min="{{ now()->toDateString() }}" class="mt-1 w-full rounded border border-slate-300 px-3 py-2">
+            <label for="checkIn" class="cct-label">{{ __('public.search.check_in') }}</label>
+            <input id="checkIn" type="date" wire:model="checkIn" min="{{ now()->toDateString() }}" class="cct-input">
         </div>
+
         <div class="lg:col-span-2">
-            <label for="checkOut" class="block text-sm font-medium text-slate-800">{{ __('public.search.check_out') }}</label>
-            <input id="checkOut" type="date" wire:model="checkOut" min="{{ now()->addDay()->toDateString() }}" class="mt-1 w-full rounded border border-slate-300 px-3 py-2">
+            <label for="checkOut" class="cct-label">{{ __('public.search.check_out') }}</label>
+            <input id="checkOut" type="date" wire:model="checkOut" min="{{ now()->addDay()->toDateString() }}" class="cct-input">
         </div>
+
         <div class="lg:col-span-2">
-            <label for="rooms" class="block text-sm font-medium text-slate-800">{{ __('public.search.rooms') }}</label>
-            <input id="rooms" type="number" wire:model="rooms" min="1" max="{{ $maxRooms }}" class="mt-1 w-full rounded border border-slate-300 px-3 py-2">
+            <label for="rooms" class="cct-label">{{ __('public.search.rooms') }}</label>
+            <select id="rooms" wire:model="rooms" class="cct-input">
+                @for ($room = 1; $room <= $maxRooms; $room++)
+                    <option value="{{ $room }}">{{ $room }}</option>
+                @endfor
+            </select>
         </div>
+
         <div class="lg:col-span-2">
-            <label for="currency" class="block text-sm font-medium text-slate-800">{{ __('public.search.currency') }}</label>
-            <select id="currency" wire:model="currency" class="mt-1 w-full rounded border border-slate-300 px-3 py-2">
+            <label for="currency" class="cct-label">{{ __('public.search.currency') }}</label>
+            <select id="currency" wire:model="currency" class="cct-input">
                 @foreach ($currencies as $currencyOption)
                     <option value="{{ $currencyOption->code }}">{{ $currencyOption->code }}</option>
                 @endforeach
@@ -47,33 +61,40 @@
         </div>
     </div>
 
-    <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <div>
-            <label for="adults" class="block text-sm font-medium text-slate-800">{{ __('public.search.adults') }}</label>
-            <input id="adults" type="number" wire:model="adults" min="1" max="{{ $maxAdults }}" class="mt-1 w-full rounded border border-slate-300 px-3 py-2">
-        </div>
-        <div>
-            <label for="children" class="block text-sm font-medium text-slate-800">{{ __('public.search.children') }}</label>
-            <input id="children" type="number" wire:model.live="children" min="0" max="{{ $maxChildren }}" class="mt-1 w-full rounded border border-slate-300 px-3 py-2">
-        </div>
-        @foreach ($childAges as $index => $age)
-            <div>
-                <label for="childAge{{ $index }}" class="block text-sm font-medium text-slate-800">{{ __('public.search.child_age', ['number' => $index + 1]) }}</label>
-                <input id="childAge{{ $index }}" type="number" wire:model="childAges.{{ $index }}" min="0" max="{{ $maxChildAge }}" class="mt-1 w-full rounded border border-slate-300 px-3 py-2">
-            </div>
-        @endforeach
-        <div>
-            <label for="locale" class="block text-sm font-medium text-slate-800">{{ __('public.search.locale') }}</label>
-            <select id="locale" wire:model="locale" class="mt-1 w-full rounded border border-slate-300 px-3 py-2">
-                <option value="ar">Arabic</option>
-                <option value="en">English</option>
+    <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-12">
+        <div class="lg:col-span-3">
+            <label for="adults" class="cct-label">{{ __('public.search.adults') }}</label>
+            <select id="adults" wire:model="adults" class="cct-input">
+                @for ($adult = 1; $adult <= $maxAdults; $adult++)
+                    <option value="{{ $adult }}">{{ $adult }}</option>
+                @endfor
             </select>
         </div>
-    </div>
 
-    <div class="mt-5 flex justify-end">
-        <button type="submit" class="rounded bg-teal-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-800">
-            {{ __('public.search.submit') }}
-        </button>
+        <div class="lg:col-span-3">
+            <label for="children" class="cct-label">{{ __('public.search.children') }}</label>
+            <select id="children" wire:model.live="children" class="cct-input">
+                @for ($child = 0; $child <= $maxChildren; $child++)
+                    <option value="{{ $child }}">{{ $child }}</option>
+                @endfor
+            </select>
+        </div>
+
+        @foreach ($childAges as $index => $age)
+            <div class="lg:col-span-2">
+                <label for="childAge{{ $index }}" class="cct-label">{{ __('public.search.child_age', ['number' => $index + 1]) }}</label>
+                <input id="childAge{{ $index }}" type="number" wire:model="childAges.{{ $index }}" min="0" max="{{ $maxChildAge }}" class="cct-input">
+            </div>
+        @endforeach
+
+        <div class="sm:col-span-2 lg:col-span-3 lg:col-start-auto">
+            <label class="cct-label invisible hidden lg:block" aria-hidden="true">{{ __('public.search.submit') }}</label>
+            <button type="submit" class="cct-button mt-0 w-full lg:mt-6">
+                <svg class="me-2 size-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="m21 21-4.3-4.3M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+                {{ __('public.search.submit') }}
+            </button>
+        </div>
     </div>
 </form>
