@@ -57,7 +57,7 @@ class HbxHotelSupplier implements HotelSupplierInterface
             'language' => $request->locale,
         ];
 
-        if (isset($request->metadata['hotel_codes']) && is_array($request->metadata['hotel_codes'])) {
+        if (isset($request->metadata['hotel_codes']) && is_array($request->metadata['hotel_codes']) && $request->metadata['hotel_codes'] !== []) {
             $payload['hotels'] = ['hotel' => array_values($request->metadata['hotel_codes'])];
         }
 

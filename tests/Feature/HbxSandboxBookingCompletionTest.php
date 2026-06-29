@@ -5,9 +5,12 @@ use App\Enums\RateCheckStatus;
 use App\Enums\SupplierStatus;
 use App\Models\Booking;
 use App\Models\City;
+use App\Models\HbxDestination;
+use App\Models\HbxHotel;
 use App\Models\RateCheck;
 use App\Models\SearchSession;
 use App\Models\Supplier;
+use App\Models\SupplierDestinationMapping;
 use App\Models\SupplierOperationLog;
 use App\Services\Booking\BookingFlowException;
 use App\Services\Booking\BookingReconciliationService;
@@ -41,6 +44,7 @@ beforeEach(function (): void {
     $this->seed();
 
     Supplier::query()->where('code', 'hbx_hotels')->update(['status' => SupplierStatus::Active, 'base_url' => null]);
+    phase13SeedHbxMapping();
 });
 
 it('keeps the sandbox booking guard disabled by default and sends no booking request', function () {
@@ -251,6 +255,26 @@ function phase13Criteria(array $overrides = []): array
 function phase13SearchSession(array $overrides = []): SearchSession
 {
     return app(HotelSearchService::class)->search(phase13Criteria($overrides), 'phase13-session-'.Str::random(6));
+}
+
+function phase13SeedHbxMapping(): void
+{
+    $city = City::query()->where('name_en', 'Cairo')->firstOrFail();
+
+    HbxDestination::query()->updateOrCreate(
+        ['supplier_code' => 'hbx_hotels', 'destination_code' => 'CAI'],
+        ['destination_name' => 'Cairo', 'country_code' => 'EG', 'is_active' => true, 'synced_at' => now()],
+    );
+
+    HbxHotel::query()->updateOrCreate(
+        ['supplier_code' => 'hbx_hotels', 'hotel_code' => '1001'],
+        ['destination_code' => 'CAI', 'hotel_name' => 'HBX Cairo Sandbox Hotel', 'category_code' => '5EST', 'star_rating' => 5, 'is_active' => true, 'synced_at' => now()],
+    );
+
+    SupplierDestinationMapping::query()->updateOrCreate(
+        ['local_entity_type' => 'city', 'local_entity_id' => $city->id, 'supplier_code' => 'hbx_hotels', 'supplier_destination_code' => 'CAI'],
+        ['status' => 'confirmed', 'confidence' => 100, 'manually_confirmed' => true, 'is_active' => true],
+    );
 }
 
 function phase13RateCheck(string $rateType = 'BOOKABLE', array $criteria = []): RateCheck

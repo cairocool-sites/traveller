@@ -6,7 +6,10 @@ use App\Enums\RateRefundability;
 use App\Enums\SupplierOperation;
 use App\Enums\SupplierStatus;
 use App\Models\City;
+use App\Models\HbxDestination;
+use App\Models\HbxHotel;
 use App\Models\Supplier;
+use App\Models\SupplierDestinationMapping;
 use App\Models\SupplierOperationLog;
 use App\Services\PublicSearch\HotelSearchService;
 use App\Services\Supplier\Contracts\HotelSupplierInterface;
@@ -50,6 +53,7 @@ beforeEach(function (): void {
     $this->seed(SupplierFoundationSeeder::class);
 
     Supplier::query()->where('code', 'hbx_hotels')->update(['status' => SupplierStatus::Active]);
+    hbxSupplierSeedMapping();
 });
 
 afterEach(function (): void {
@@ -283,6 +287,26 @@ function searchRequest(): HotelSearchRequestData
         rooms: [new RoomOccupancyData(2)],
         currency: 'EGP',
         locale: 'ar',
+    );
+}
+
+function hbxSupplierSeedMapping(): void
+{
+    $city = City::query()->where('name_en', 'Cairo')->first() ?? City::query()->where('is_active', true)->firstOrFail();
+
+    HbxDestination::query()->updateOrCreate(
+        ['supplier_code' => 'hbx_hotels', 'destination_code' => 'CAI'],
+        ['destination_name' => 'Cairo', 'country_code' => 'EG', 'is_active' => true, 'synced_at' => now()],
+    );
+
+    HbxHotel::query()->updateOrCreate(
+        ['supplier_code' => 'hbx_hotels', 'hotel_code' => '1001'],
+        ['destination_code' => 'CAI', 'hotel_name' => 'HBX Cairo Sandbox Hotel', 'category_code' => '5EST', 'star_rating' => 5, 'is_active' => true, 'synced_at' => now()],
+    );
+
+    SupplierDestinationMapping::query()->updateOrCreate(
+        ['local_entity_type' => 'city', 'local_entity_id' => $city->id, 'supplier_code' => 'hbx_hotels', 'supplier_destination_code' => 'CAI'],
+        ['status' => 'confirmed', 'confidence' => 100, 'manually_confirmed' => true, 'is_active' => true],
     );
 }
 

@@ -27,6 +27,8 @@ The command refuses to continue unless:
 
 Dry run performs search and CheckRate, displays only sanitized hotel, dates, currency, and selling total, then stops before any booking request.
 
+Before running dry-run, HBX destination and hotel content must be synchronized and the local destination must have a confirmed HBX destination mapping. The command will not fall back to Mock Supplier when HBX content mapping is missing or unavailable.
+
 ## One-Booking Procedure
 
 Run:

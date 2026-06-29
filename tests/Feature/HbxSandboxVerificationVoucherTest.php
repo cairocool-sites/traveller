@@ -5,9 +5,12 @@ use App\Enums\RateCheckStatus;
 use App\Enums\SupplierStatus;
 use App\Models\Booking;
 use App\Models\City;
+use App\Models\HbxDestination;
+use App\Models\HbxHotel;
 use App\Models\RateCheck;
 use App\Models\SearchSession;
 use App\Models\Supplier;
+use App\Models\SupplierDestinationMapping;
 use App\Models\User;
 use App\Services\Booking\BookingService;
 use App\Services\Booking\RateCheckService;
@@ -44,6 +47,8 @@ beforeEach(function (): void {
         'base_url' => null,
         'max_retries' => 2,
     ]);
+
+    phase14SeedHbxMapping();
 });
 
 it('blocks manual verification while the sandbox booking guard is disabled', function () {
@@ -76,10 +81,13 @@ it('runs dry-run through CheckRate and sends no booking request', function () {
     $this->artisan('hbx:verify-sandbox-booking --dry-run')
         ->expectsConfirmation('This command is for one controlled HBX sandbox verification only. Continue?', 'yes')
         ->expectsOutputToContain('Supplier: hbx_hotels')
-        ->expectsOutputToContain('Search source confirmed: HBX Sandbox')
-        ->expectsOutputToContain('CheckRate source confirmed: HBX Sandbox')
+        ->expectsOutputToContain('Local destination:')
+        ->expectsOutputToContain('HBX destination code: CAI')
+        ->expectsOutputToContain('Number of hotel codes searched: 1')
+        ->expectsOutputToContain('Availability result count: 1')
+        ->expectsOutputToContain('CheckRate source: HBX Sandbox')
         ->expectsOutputToContain('Selling total:')
-        ->expectsOutputToContain('Dry run complete. No booking request was sent.')
+        ->expectsOutputToContain('Dry run complete; no booking request sent.')
         ->assertSuccessful();
 
     Http::assertSent(fn ($request): bool => str_contains($request->url(), '/hotel-api/1.0/checkrates'));
@@ -99,14 +107,17 @@ it('dry-run refuses public mock fallback and still uses hbx_hotels', function ()
     $this->artisan('hbx:verify-sandbox-booking --dry-run')
         ->expectsConfirmation('This command is for one controlled HBX sandbox verification only. Continue?', 'yes')
         ->expectsOutputToContain('Supplier: hbx_hotels')
-        ->expectsOutputToContain('Hotel: HBX Phase 14 Sandbox Hotel')
-        ->expectsOutputToContain('Search source confirmed: HBX Sandbox')
-        ->expectsOutputToContain('CheckRate source confirmed: HBX Sandbox')
+        ->expectsOutputToContain('HBX destination code: CAI')
+        ->expectsOutputToContain('Number of hotel codes searched: 1')
+        ->expectsOutputToContain('CheckRate source: HBX Sandbox')
         ->doesntExpectOutputToContain('Mock Cairo Nile Hotel')
-        ->expectsOutputToContain('Dry run complete. No booking request was sent.')
+        ->expectsOutputToContain('Dry run complete; no booking request sent.')
         ->assertSuccessful();
 
-    Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/hotels');
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/hotels'
+        && data_get($request->data(), 'destination.code') === 'CAI'
+        && data_get($request->data(), 'hotels.hotel.0') === '1001'
+        && data_get($request->data(), 'destination.code') !== 'Cairo');
     Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/checkrates');
     Http::assertNotSent(fn ($request): bool => str_contains($request->url(), '/hotel-api/1.0/bookings'));
 });
@@ -262,6 +273,26 @@ function phase14Criteria(array $overrides = []): array
 function phase14SearchSession(array $overrides = []): SearchSession
 {
     return app(HotelSearchService::class)->search(phase14Criteria($overrides), 'phase14-session-'.Str::random(6));
+}
+
+function phase14SeedHbxMapping(): void
+{
+    $city = City::query()->where('name_en', 'Cairo')->firstOrFail();
+
+    HbxDestination::query()->updateOrCreate(
+        ['supplier_code' => 'hbx_hotels', 'destination_code' => 'CAI'],
+        ['destination_name' => 'Cairo', 'country_code' => 'EG', 'is_active' => true, 'synced_at' => now()],
+    );
+
+    HbxHotel::query()->updateOrCreate(
+        ['supplier_code' => 'hbx_hotels', 'hotel_code' => '1001'],
+        ['destination_code' => 'CAI', 'hotel_name' => 'HBX Phase 14 Sandbox Hotel', 'category_code' => '5EST', 'star_rating' => 5, 'is_active' => true, 'synced_at' => now()],
+    );
+
+    SupplierDestinationMapping::query()->updateOrCreate(
+        ['local_entity_type' => 'city', 'local_entity_id' => $city->id, 'supplier_code' => 'hbx_hotels', 'supplier_destination_code' => 'CAI'],
+        ['status' => 'confirmed', 'confidence' => 100, 'manually_confirmed' => true, 'is_active' => true],
+    );
 }
 
 function phase14RateCheckUsingCurrentFake(): RateCheck

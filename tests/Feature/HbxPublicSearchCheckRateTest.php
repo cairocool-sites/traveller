@@ -3,8 +3,11 @@
 use App\Enums\RateCheckStatus;
 use App\Enums\SupplierStatus;
 use App\Models\City;
+use App\Models\HbxDestination;
+use App\Models\HbxHotel;
 use App\Models\SearchSession;
 use App\Models\Supplier;
+use App\Models\SupplierDestinationMapping;
 use App\Models\SupplierOperationLog;
 use App\Services\Booking\BookingFlowException;
 use App\Services\Booking\BookingService;
@@ -35,6 +38,7 @@ beforeEach(function (): void {
     $this->seed();
 
     Supplier::query()->where('code', 'hbx_hotels')->update(['status' => SupplierStatus::Active]);
+    phase12SeedHbxMapping();
 });
 
 it('maps public search criteria to hbx availability and stores normalized safe offers', function () {
@@ -48,6 +52,8 @@ it('maps public search criteria to hbx availability and stores normalized safe o
     Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/hotels'
         && $request->method() === 'POST'
         && data_get($request->data(), 'destination.code') === 'CAI'
+        && data_get($request->data(), 'destination.code') !== 'Cairo'
+        && data_get($request->data(), 'hotels.hotel.0') === '1001'
         && data_get($request->data(), 'occupancies.0.children') === 1
         && data_get($request->data(), 'occupancies.0.paxes.0.age') === 7);
 
@@ -125,22 +131,46 @@ it('detects hbx checkrate price changes cancellation changes and unavailable rat
         ->and($unavailable->supplier_reference_snapshot['failure_reason'])->toBe('rate_expired');
 });
 
-it('falls back to mock supplier on hbx rate limits', function () {
+it('does not silently fall back to mock supplier on hbx rate limits', function () {
     Http::fake(['api.test.hotelbeds.com/*' => Http::response(['message' => 'Too many requests'], 429)]);
 
     $session = phase12SearchSession();
 
-    expect($session->results_snapshot[0]['supplier_code'])->toBe('mock_hotels')
+    expect($session->results_snapshot)->toBe([])
         ->and(implode(' ', $session->warnings))->toContain('busy');
 });
 
-it('falls back to mock supplier on hbx timeouts', function () {
+it('does not silently fall back to mock supplier on hbx timeouts', function () {
     Http::fake(fn () => throw new ConnectionException('timeout'));
 
     $session = phase12SearchSession();
 
-    expect($session->results_snapshot[0]['supplier_code'])->toBe('mock_hotels')
+    expect($session->results_snapshot)->toBe([])
         ->and(implode(' ', $session->warnings))->toContain('timed out');
+});
+
+it('fails safely when no confirmed hbx destination mapping exists', function () {
+    SupplierDestinationMapping::query()->delete();
+    Http::fake();
+
+    $session = phase12SearchSession();
+
+    expect($session->results_snapshot)->toBe([])
+        ->and(implode(' ', $session->warnings))->toContain('could not complete');
+
+    Http::assertNothingSent();
+});
+
+it('fails safely when no synchronized hbx hotel codes exist', function () {
+    HbxHotel::query()->delete();
+    Http::fake();
+
+    $session = phase12SearchSession();
+
+    expect($session->results_snapshot)->toBe([])
+        ->and(implode(' ', $session->warnings))->toContain('could not complete');
+
+    Http::assertNothingSent();
 });
 
 it('rejects invalid occupancy before sending an hbx request', function () {
@@ -229,6 +259,26 @@ function phase12Criteria(array $overrides = []): array
 function phase12SearchSession(array $overrides = []): SearchSession
 {
     return app(HotelSearchService::class)->search(phase12Criteria($overrides), 'phase12-session');
+}
+
+function phase12SeedHbxMapping(): void
+{
+    $city = City::query()->where('name_en', 'Cairo')->firstOrFail();
+
+    HbxDestination::query()->updateOrCreate(
+        ['supplier_code' => 'hbx_hotels', 'destination_code' => 'CAI'],
+        ['destination_name' => 'Cairo', 'country_code' => 'EG', 'is_active' => true, 'synced_at' => now()],
+    );
+
+    HbxHotel::query()->updateOrCreate(
+        ['supplier_code' => 'hbx_hotels', 'hotel_code' => '1001'],
+        ['destination_code' => 'CAI', 'hotel_name' => 'HBX Cairo Sandbox Hotel', 'category_code' => '5EST', 'star_rating' => 5, 'is_active' => true, 'synced_at' => now()],
+    );
+
+    SupplierDestinationMapping::query()->updateOrCreate(
+        ['local_entity_type' => 'city', 'local_entity_id' => $city->id, 'supplier_code' => 'hbx_hotels', 'supplier_destination_code' => 'CAI'],
+        ['status' => 'confirmed', 'confidence' => 100, 'manually_confirmed' => true, 'is_active' => true],
+    );
 }
 
 function phase12AvailabilityPayload(): array

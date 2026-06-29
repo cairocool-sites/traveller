@@ -62,6 +62,8 @@ return [
             'occupancy' => 'Please choose a valid room and guest count.',
             'child_ages' => 'Please provide one age for each child.',
             'child_age_range' => 'Child ages must be within the supported range.',
+            'destination_not_available' => 'This destination is not yet available for live hotel search.',
+            'no_synchronized_hotels' => 'No synchronized hotels are available for this destination yet.',
         ],
         'errors' => [
             'timeout' => 'The supplier search timed out. Please try again.',

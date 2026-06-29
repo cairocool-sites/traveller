@@ -418,6 +418,51 @@ return [
             'destination' => 'Destination',
         ],
     ],
+    'hbx_destinations' => [
+        'model_label' => 'HBX destination',
+        'plural_model_label' => 'HBX destinations',
+        'fields' => [
+            'destination_code' => 'Destination code',
+            'destination_name' => 'Destination name',
+            'country_code' => 'Country code',
+            'parent_destination_code' => 'Parent code',
+            'synced_at' => 'Synced at',
+        ],
+    ],
+    'hbx_hotels' => [
+        'model_label' => 'HBX hotel',
+        'plural_model_label' => 'HBX hotels',
+        'fields' => [
+            'hotel_code' => 'Hotel code',
+            'hotel_name' => 'Hotel name',
+            'destination_code' => 'Destination code',
+            'category_code' => 'Category',
+            'star_rating' => 'Stars',
+            'synced_at' => 'Synced at',
+        ],
+    ],
+    'supplier_mappings' => [
+        'fields' => [
+            'local_entity_type' => 'Local type',
+            'local_entity_id' => 'Local ID',
+            'status' => 'Status',
+            'confidence' => 'Confidence',
+            'manually_confirmed' => 'Manually confirmed',
+        ],
+    ],
+    'supplier_destination_mappings' => [
+        'model_label' => 'Supplier destination mapping',
+        'plural_model_label' => 'Supplier destination mappings',
+        'fields' => ['destination_code' => 'Destination code'],
+    ],
+    'supplier_hotel_mappings' => [
+        'model_label' => 'Supplier hotel mapping',
+        'plural_model_label' => 'Supplier hotel mappings',
+        'fields' => [
+            'local_hotel' => 'Local hotel',
+            'hotel_code' => 'Hotel code',
+        ],
+    ],
     'bookings' => [
         'navigation_group' => 'Reservations',
         'model_label' => 'Booking',

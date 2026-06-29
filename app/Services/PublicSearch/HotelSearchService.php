@@ -34,6 +34,7 @@ class HotelSearchService
         private readonly SupplierOperationLogger $logger,
         private readonly CancellationSummaryService $cancellations,
         private readonly OfferPricingService $pricing,
+        private readonly SupplierDestinationResolver $supplierDestinations,
     ) {}
 
     public function search(array $criteria, ?string $anonymousSessionId = null): SearchSession
@@ -47,9 +48,12 @@ class HotelSearchService
 
         foreach ($this->eligibleSuppliers() as $supplier) {
             try {
+                $supplierDestination = $supplier->code === 'hbx_hotels'
+                    ? $this->supplierDestinations->forHbx($destination)
+                    : ['destination_code' => $destination->supplierIdentifier, 'hotel_codes' => []];
                 $adapter = $this->suppliers->resolve($supplier->code, SupplierOperation::Search);
                 $response = $adapter->search(new HotelSearchRequestData(
-                    destinationIdentifier: $destination->supplierIdentifier,
+                    destinationIdentifier: $supplierDestination['destination_code'],
                     checkIn: CarbonImmutable::parse($validated['check_in']),
                     checkOut: CarbonImmutable::parse($validated['check_out']),
                     rooms: $rooms,
@@ -58,14 +62,25 @@ class HotelSearchService
                     nationality: $validated['nationality'] ?? null,
                     residencyCountry: $validated['residency_country'] ?? null,
                     correlationId: $correlationId,
-                    metadata: array_filter(['scenario' => $criteria['scenario'] ?? null]),
+                    metadata: array_filter([
+                        'scenario' => $criteria['scenario'] ?? null,
+                        'hotel_codes' => $supplierDestination['hotel_codes'],
+                    ]),
                 ));
 
                 $warnings = array_merge($warnings, $response->warnings);
                 $results = array_merge($results, $this->normalizeHotels($response->hotels, $validated['locale'], $response->supplierCode));
+
+                if ($supplier->code === 'hbx_hotels') {
+                    break;
+                }
             } catch (Throwable $exception) {
                 $warnings[] = $this->customerWarning($exception);
                 $this->logFailure($supplier, $correlationId, $criteria, $exception);
+
+                if ($supplier->code === 'hbx_hotels') {
+                    break;
+                }
             }
         }
 

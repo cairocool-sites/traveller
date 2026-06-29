@@ -10,10 +10,11 @@ use App\Models\SearchSession;
 use App\Models\Supplier;
 use App\Services\Booking\BookingService;
 use App\Services\Booking\RateCheckService;
+use App\Services\PublicSearch\DestinationLookupService;
 use App\Services\PublicSearch\HotelSearchService;
 use App\Services\PublicSearch\MoneyFormatter;
+use App\Services\PublicSearch\SupplierDestinationResolver;
 use Illuminate\Console\Command;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
@@ -33,6 +34,7 @@ class HbxVerifySandboxBookingCommand extends Command
         RateCheckService $rateChecks,
         BookingService $bookings,
         MoneyFormatter $money,
+        SupplierDestinationResolver $supplierDestinations,
     ): int {
         try {
             $supplier = $this->guardSupplier();
@@ -40,7 +42,10 @@ class HbxVerifySandboxBookingCommand extends Command
 
             $this->confirmManualIntent();
 
-            $session = $searches->search($this->criteria(), 'hbx-manual-verification');
+            $criteria = $this->criteria();
+            $localDestination = app(DestinationLookupService::class)->resolve($criteria['destination'], $criteria['locale']);
+            $hbxDestination = $supplierDestinations->forHbx($localDestination);
+            $session = $searches->search($criteria, 'hbx-manual-verification');
             [$hotel, $rate] = $this->firstAvailableRate($session);
             $rateCheck = $rateChecks->check($session, $hotel['public_token'], $rate['public_rate_token']);
             $this->assertHbxCheckRate($rateCheck);
@@ -51,10 +56,10 @@ class HbxVerifySandboxBookingCommand extends Command
                 return self::FAILURE;
             }
 
-            $this->displaySanitizedSummary($session, $rateCheck, $money, $supplier);
+            $this->displaySanitizedSummary($session, $rateCheck, $money, $supplier, $localDestination->label, $hbxDestination['destination_code'], count($hbxDestination['hotel_codes']));
 
             if ($this->option('dry-run')) {
-                $this->info('Dry run complete. No booking request was sent.');
+                $this->info('Dry run complete; no booking request sent.');
 
                 return self::SUCCESS;
             }
@@ -182,16 +187,16 @@ class HbxVerifySandboxBookingCommand extends Command
             : 'HBX sandbox availability search returned no offers.';
     }
 
-    private function displaySanitizedSummary(SearchSession $session, RateCheck $rateCheck, MoneyFormatter $money, Supplier $supplier): void
+    private function displaySanitizedSummary(SearchSession $session, RateCheck $rateCheck, MoneyFormatter $money, Supplier $supplier, string $localDestination, string $hbxDestinationCode, int $hotelCodeCount): void
     {
-        $hotelName = Arr::get($rateCheck->searchSession->results_snapshot, '0.name', 'Selected HBX sandbox hotel');
-
         $this->line('Supplier: '.$supplier->code);
-        $this->line('Search source confirmed: HBX Sandbox');
-        $this->line('CheckRate source confirmed: HBX Sandbox');
-        $this->line('Hotel: '.(string) $hotelName);
+        $this->line('Local destination: '.$localDestination);
+        $this->line('HBX destination code: '.$hbxDestinationCode);
+        $this->line('Number of hotel codes searched: '.$hotelCodeCount);
         $this->line('Dates: '.$session->check_in->toDateString().' to '.$session->check_out->toDateString());
         $this->line('Currency: '.$session->currency);
+        $this->line('Availability result count: '.count($session->results_snapshot ?? []));
+        $this->line('CheckRate source: HBX Sandbox');
         $this->line('Selling total: '.$money->formatMinor((int) ($rateCheck->checked_amount_minor ?? $rateCheck->original_amount_minor), $session->currency));
     }
 
