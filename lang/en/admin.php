@@ -426,7 +426,11 @@ return [
         'rate_check_plural_model_label' => 'Rate checks',
         'history_model_label' => 'Booking status history',
         'history_plural_model_label' => 'Booking status histories',
-        'actions' => ['reconcile' => 'Reconcile'],
+        'actions' => [
+            'reconcile' => 'Reconcile',
+            'preview_voucher' => 'Preview voucher',
+            'download_voucher' => 'Download voucher',
+        ],
         'fields' => [
             'booking_reference' => 'Booking reference',
             'supplier_booking_reference' => 'Supplier booking reference',

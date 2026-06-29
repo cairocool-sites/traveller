@@ -60,6 +60,18 @@ class BookingResource extends Resource
                 SelectFilter::make('status')->options(collect(BookingStatus::cases())->mapWithKeys(fn (BookingStatus $status): array => [$status->value => $status->label()])->all()),
             ])
             ->recordActions([
+                Action::make('preview_voucher')
+                    ->label(__('admin.bookings.actions.preview_voucher'))
+                    ->icon('heroicon-o-document-text')
+                    ->visible(fn (Booking $record): bool => Gate::allows('view', $record) && in_array($record->status, [BookingStatus::Confirmed, BookingStatus::ManualReview], true))
+                    ->url(fn (Booking $record): string => route('admin.bookings.voucher', $record))
+                    ->openUrlInNewTab(),
+                Action::make('download_voucher')
+                    ->label(__('admin.bookings.actions.download_voucher'))
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->visible(fn (Booking $record): bool => Gate::allows('view', $record) && in_array($record->status, [BookingStatus::Confirmed, BookingStatus::ManualReview], true))
+                    ->url(fn (Booking $record): string => route('admin.bookings.voucher', ['booking' => $record, 'download' => true]))
+                    ->openUrlInNewTab(),
                 Action::make('reconcile')
                     ->label(__('admin.bookings.actions.reconcile'))
                     ->visible(fn (Booking $record): bool => Gate::allows('reconcile', $record))
