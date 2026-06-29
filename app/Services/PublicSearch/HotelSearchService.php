@@ -5,6 +5,7 @@ namespace App\Services\PublicSearch;
 use App\Enums\SupplierErrorType;
 use App\Enums\SupplierOperation;
 use App\Models\Currency;
+use App\Models\HbxHotel;
 use App\Models\SearchSession;
 use App\Models\Supplier;
 use App\Services\Supplier\CorrelationIdFactory;
@@ -235,6 +236,9 @@ class HotelSearchService
     private function normalizeHotels(array $hotels, string $locale, string $supplierCode): array
     {
         return collect($hotels)->map(function (SupplierHotelData $hotel) use ($locale, $supplierCode): array {
+            $localHbx = $supplierCode === 'hbx_hotels'
+                ? HbxHotel::query()->with(['images', 'facilities'])->where('supplier_code', 'hbx_hotels')->where('hotel_code', $hotel->supplierHotelId)->first()
+                : null;
             $rates = collect($hotel->rooms)->map(function ($rate) use ($locale): array {
                 $sellingTotal = $this->pricing->sellingPrice($rate->totalAmount);
 
@@ -267,11 +271,12 @@ class HotelSearchService
                 'supplier_hotel_id' => $hotel->supplierHotelId,
                 'supplier_code' => $supplierCode,
                 'canonical_hotel_id' => $hotel->canonicalHotelId,
-                'name' => $hotel->name,
+                'name' => $localHbx ? $this->localizedHbxHotelName($localHbx, $locale) : $hotel->name,
                 'star_rating' => $hotel->starRating,
-                'location' => $hotel->location,
+                'location' => $localHbx?->address ?: $hotel->location,
                 'coordinates' => $hotel->coordinates,
-                'facilities' => $hotel->facilities,
+                'facilities' => $localHbx ? $localHbx->facilities->take(6)->pluck('description')->filter()->values()->all() : $hotel->facilities,
+                'primary_image' => $localHbx?->images->firstWhere('is_primary', true)?->path ?? $localHbx?->images->first()?->path,
                 'rates' => $rates,
                 'minimum_price' => $minimumRate['total'] ?? $hotel->minimumTotalPrice?->jsonSerialize(),
                 'minimum_price_minor' => $minimumRate['total']['minor_amount'] ?? $hotel->minimumTotalPrice?->minorAmount ?? 0,
@@ -279,6 +284,13 @@ class HotelSearchService
                 'taxes_known' => $hotel->taxesAndFees !== [],
             ];
         })->all();
+    }
+
+    private function localizedHbxHotelName(HbxHotel $hotel, string $locale): string
+    {
+        return $locale === 'ar'
+            ? ($hotel->name_ar ?: $hotel->hotel_name)
+            : ($hotel->name_en ?: $hotel->hotel_name);
     }
 
     private function customerWarning(Throwable $exception): string

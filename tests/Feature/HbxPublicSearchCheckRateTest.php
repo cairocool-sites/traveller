@@ -12,6 +12,7 @@ use App\Models\SupplierOperationLog;
 use App\Services\Booking\BookingFlowException;
 use App\Services\Booking\BookingService;
 use App\Services\Booking\RateCheckService;
+use App\Services\PublicSearch\DestinationLookupService;
 use App\Services\PublicSearch\HotelSearchService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
@@ -70,6 +71,68 @@ it('maps public search criteria to hbx availability and stores normalized safe o
         ->and($recheck['requires_check_rate'])->toBeTrue()
         ->and($recheck['rate_type'])->toBe('RECHECK')
         ->and($bookable)->toHaveKeys(['payment_type', 'availability_timestamp', 'rate_expires_at']);
+});
+
+it('serves public autocomplete from local hbx catalogue without supplier calls', function () {
+    Http::preventStrayRequests();
+
+    HbxDestination::query()->where('destination_code', 'CAI')->update([
+        'public_enabled' => true,
+        'supplier_active' => true,
+        'name_en' => 'Cairo',
+        'name_ar' => 'القاهرة',
+        'slug' => 'cairo-cai',
+    ]);
+    HbxHotel::query()->where('hotel_code', '1001')->update([
+        'public_enabled' => true,
+        'supplier_active' => true,
+        'name_en' => 'HBX Cairo Sandbox Hotel',
+        'name_ar' => 'فندق القاهرة التجريبي',
+        'slug' => 'hbx-cairo-sandbox-hotel-1001',
+    ]);
+
+    $english = app(DestinationLookupService::class)->search('Cairo', 'en');
+    $arabic = app(DestinationLookupService::class)->search('القاهره', 'ar');
+
+    expect($english->pluck('type')->all())->toContain('hbx_destination', 'hbx_hotel')
+        ->and($arabic->first()?->label)->not->toBeNull();
+});
+
+it('searches hbx by local public destination using destination code without mapping dependency', function () {
+    SupplierDestinationMapping::query()->delete();
+    HbxDestination::query()->where('destination_code', 'CAI')->update([
+        'public_enabled' => true,
+        'supplier_active' => true,
+        'name_en' => 'Cairo',
+        'slug' => 'cairo-cai',
+    ]);
+    Http::fake(['api.test.hotelbeds.com/*' => Http::response(phase12AvailabilityPayload(), 200)]);
+    $destination = HbxDestination::query()->where('destination_code', 'CAI')->firstOrFail();
+
+    $session = phase12SearchSession(['destination' => "hbx_destination:{$destination->id}"]);
+
+    expect($session->results_snapshot)->not->toBeEmpty();
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/hotels'
+        && data_get($request->data(), 'destination.code') === 'CAI'
+        && data_get($request->data(), 'hotels.hotel') === null);
+});
+
+it('searches hbx by local public hotel using protected hotel code list', function () {
+    HbxHotel::query()->where('hotel_code', '1001')->update([
+        'public_enabled' => true,
+        'supplier_active' => true,
+        'name_en' => 'HBX Cairo Sandbox Hotel',
+        'slug' => 'hbx-cairo-sandbox-hotel-1001',
+    ]);
+    Http::fake(['api.test.hotelbeds.com/*' => Http::response(phase12AvailabilityPayload(), 200)]);
+    $hotel = HbxHotel::query()->where('hotel_code', '1001')->firstOrFail();
+
+    $session = phase12SearchSession(['destination' => "hbx_hotel:{$hotel->id}"]);
+
+    expect($session->results_snapshot[0]['name'])->toBe('HBX Cairo Sandbox Hotel');
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/hotels'
+        && data_get($request->data(), 'destination.code') === null
+        && data_get($request->data(), 'hotels.hotel') === ['1001']);
 });
 
 it('applies configured customer selling markup without mutating supplier totals', function () {

@@ -5,6 +5,10 @@ use App\Models\City;
 use App\Models\HbxContentResource;
 use App\Models\HbxDestination;
 use App\Models\HbxHotel;
+use App\Models\HbxHotelFacility;
+use App\Models\HbxHotelImage;
+use App\Models\HbxHotelRoom;
+use App\Models\HbxHotelTranslation;
 use App\Models\Supplier;
 use App\Models\SupplierDestinationMapping;
 use App\Models\SupplierOperationLog;
@@ -82,6 +86,12 @@ it('syncs hotels for a bounded destination and prevents duplicates', function ()
         'categoryCode' => '5EST',
         'coordinates' => ['latitude' => '30.0444', 'longitude' => '31.2357'],
         'address' => ['content' => 'Tahrir Square'],
+        'postalCode' => '11511',
+        'accommodationTypeCode' => 'HOTEL',
+        'chainCode' => 'CCT',
+        'images' => [['path' => 'https://photos.hotelbeds.com/giata/00/001001/001001a_hb_a_001.jpg', 'imageTypeCode' => 'GEN']],
+        'facilities' => [['facilityCode' => 10, 'facilityGroupCode' => 20, 'description' => ['content' => 'Wi-Fi']]],
+        'rooms' => [['roomCode' => 'STD', 'description' => ['content' => 'Standard Room'], 'characteristicCode' => 'ST']],
     ]]]], 200)]);
 
     $supplier = Supplier::query()->where('code', 'hbx_hotels')->firstOrFail();
@@ -90,7 +100,12 @@ it('syncs hotels for a bounded destination and prevents duplicates', function ()
 
     expect(HbxHotel::query()->where('hotel_code', '1001')->count())->toBe(1)
         ->and(HbxHotel::query()->where('hotel_code', '1001')->value('star_rating'))->toBe(5)
-        ->and(HbxHotel::query()->where('hotel_code', '1001')->value('address'))->toBe('Tahrir Square');
+        ->and(HbxHotel::query()->where('hotel_code', '1001')->value('address'))->toBe('Tahrir Square')
+        ->and(HbxHotel::query()->where('hotel_code', '1001')->value('postal_code'))->toBe('11511')
+        ->and(HbxHotelTranslation::query()->where('language', 'ENG')->exists())->toBeTrue()
+        ->and(HbxHotelImage::query()->where('path', 'https://photos.hotelbeds.com/giata/00/001001/001001a_hb_a_001.jpg')->exists())->toBeTrue()
+        ->and(HbxHotelFacility::query()->where('facility_code', '10')->exists())->toBeTrue()
+        ->and(HbxHotelRoom::query()->where('room_code', 'STD')->exists())->toBeTrue();
 
     Http::assertSent(fn ($request): bool => str_starts_with($request->url(), 'https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels')
         && $request->method() === 'GET');

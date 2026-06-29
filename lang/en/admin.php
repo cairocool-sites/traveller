@@ -426,7 +426,13 @@ return [
             'destination_name' => 'Destination name',
             'country_code' => 'Country code',
             'parent_destination_code' => 'Parent code',
+            'supplier_active' => 'Supplier active',
+            'public_enabled' => 'Public enabled',
             'synced_at' => 'Synced at',
+        ],
+        'actions' => [
+            'enable_public' => 'Enable publicly',
+            'disable_public' => 'Disable publicly',
         ],
     ],
     'hbx_hotels' => [
@@ -438,7 +444,13 @@ return [
             'destination_code' => 'Destination code',
             'category_code' => 'Category',
             'star_rating' => 'Stars',
+            'supplier_active' => 'Supplier active',
+            'public_enabled' => 'Public enabled',
             'synced_at' => 'Synced at',
+        ],
+        'actions' => [
+            'enable_public' => 'Enable publicly',
+            'disable_public' => 'Disable publicly',
         ],
     ],
     'hbx_capabilities' => [

@@ -6,6 +6,7 @@ use App\Http\Controllers\HealthController;
 use App\Http\Controllers\Public\BookingController;
 use App\Http\Controllers\Public\CancellationController;
 use App\Http\Controllers\Public\DocumentController;
+use App\Http\Controllers\Public\HbxCatalogueController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\HotelSearchController;
 use App\Http\Controllers\Public\PaymentController;
@@ -19,6 +20,9 @@ Route::get('/health/live', [HealthController::class, 'live'])->middleware('throt
 Route::get('/health/ready', [HealthController::class, 'ready'])->middleware('throttle:health')->name('health.ready');
 Route::get('/hotels', [HotelSearchController::class, 'index'])->name('hotels.index');
 Route::get('/hotels/search', [HotelSearchController::class, 'search'])->middleware('throttle:public-search')->name('hotels.search');
+Route::get('/destinations/{destination}', [HbxCatalogueController::class, 'destination'])->name('catalogue.destinations.show');
+Route::get('/hotels/{destination}/{hotel}', [HbxCatalogueController::class, 'hotel'])->name('catalogue.hotels.show');
+Route::get('/sitemap.xml', [HbxCatalogueController::class, 'sitemap'])->name('catalogue.sitemap');
 Route::post('/rate-checks', [RateCheckController::class, 'store'])->middleware('throttle:booking-submission')->name('rate-checks.store');
 Route::get('/rate-checks/{rateCheck}', [RateCheckController::class, 'show'])->name('rate-checks.show');
 Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');

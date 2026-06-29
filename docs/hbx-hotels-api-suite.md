@@ -76,14 +76,35 @@ Tracked but not yet implemented/enabled:
 
 ## Ordered Phase 14 Sub-Plan
 
-1. Capability registry, status command, and admin read-only matrix.
-2. Full Content API resource catalogue, generic resource storage, sync checkpoints, and differential sync.
-3. Booking API operation coverage for list/detail/change/cancel simulation/cancel/reconfirmation.
-4. Payment-data and 3DS schema support behind explicit security feature flags.
-5. Cache API adapter, safe ZIP extraction, file validation, import status, and rollback.
-6. CDS adapter, checkpoints, deduplication, and prioritized refresh workflow.
-7. Egypt-first public exposure using local content only for static data and Booking API only for availability.
-8. Certification-readiness checklist with evidence fields.
+1. Capability registry, status command, and admin read-only matrix. Completed in commit `c735144`.
+2. Typed HBX destination/hotel catalogue, local autocomplete, and HBX search resolution without mandatory city mapping. In progress.
+3. Full Content API resource catalogue, generic resource storage, sync checkpoints, and differential sync.
+4. Booking API operation coverage for list/detail/change/cancel simulation/cancel/reconfirmation.
+5. Payment-data and 3DS schema support behind explicit security feature flags.
+6. Cache API adapter, safe ZIP extraction, file validation, import status, and rollback.
+7. CDS adapter, checkpoints, deduplication, and prioritized refresh workflow.
+8. Egypt-first public exposure using local content only for static data and Booking API only for availability.
+9. Certification-readiness checklist with evidence fields.
+
+## Hybrid Public Search Architecture
+
+The selected architecture is:
+
+```text
+HBX Content API
+-> scheduled local content synchronization
+-> local fast search catalogue
+-> live HBX Booking API Availability only after the user submits a search
+```
+
+Public autocomplete and static destination/hotel pages must use local database records only. The Content API must not be called while rendering public pages or autocomplete responses.
+
+The public search form submits local opaque tokens:
+
+- `hbx_destination:{id}` for destination searches.
+- `hbx_hotel:{id}` for hotel-code searches.
+
+The server resolves those records to official HBX identifiers internally. Raw HBX destination codes, hotel codes, and rate keys must not be trusted from browser input.
 
 ## Safety Gates
 

@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\HbxHotelResource\Pages\ListHbxHotels;
 use App\Models\HbxHotel;
 use App\Models\Supplier;
+use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -41,10 +42,27 @@ class HbxHotelResource extends Resource
                 TextColumn::make('destination_code')->label(__('admin.hbx_hotels.fields.destination_code'))->searchable()->sortable(),
                 TextColumn::make('category_code')->label(__('admin.hbx_hotels.fields.category_code'))->toggleable(),
                 TextColumn::make('star_rating')->label(__('admin.hbx_hotels.fields.star_rating'))->sortable(),
+                IconColumn::make('supplier_active')->label(__('admin.hbx_hotels.fields.supplier_active'))->boolean()->sortable(),
+                IconColumn::make('public_enabled')->label(__('admin.hbx_hotels.fields.public_enabled'))->boolean()->sortable(),
                 IconColumn::make('is_active')->label(__('admin.common_fields.is_active'))->boolean()->sortable(),
                 TextColumn::make('synced_at')->label(__('admin.hbx_hotels.fields.synced_at'))->dateTime()->sortable(),
             ])
-            ->filters([TernaryFilter::make('is_active')->label(__('admin.common_fields.is_active'))])
+            ->filters([
+                TernaryFilter::make('is_active')->label(__('admin.common_fields.is_active')),
+                TernaryFilter::make('public_enabled')->label(__('admin.hbx_hotels.fields.public_enabled')),
+            ])
+            ->recordActions([
+                Action::make('enable_public')
+                    ->label(__('admin.hbx_hotels.actions.enable_public'))
+                    ->visible(fn (HbxHotel $record): bool => ! $record->public_enabled && (bool) auth()->user()?->can('manage_suppliers'))
+                    ->requiresConfirmation()
+                    ->action(fn (HbxHotel $record): bool => tap($record)->forceFill(['public_enabled' => true])->save()),
+                Action::make('disable_public')
+                    ->label(__('admin.hbx_hotels.actions.disable_public'))
+                    ->visible(fn (HbxHotel $record): bool => $record->public_enabled && (bool) auth()->user()?->can('manage_suppliers'))
+                    ->requiresConfirmation()
+                    ->action(fn (HbxHotel $record): bool => tap($record)->forceFill(['public_enabled' => false])->save()),
+            ])
             ->defaultSort('hotel_name');
     }
 

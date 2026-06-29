@@ -27,9 +27,13 @@ Credentials, signatures, headers, and raw sensitive payloads are never printed. 
 
 ## Stored Reference Data
 
-`hbx_destinations` stores supplier code, HBX destination code, destination name, country code, parent destination code, active state, and sync timestamp.
+`hbx_destinations` stores supplier code, HBX destination code, destination name, country code, parent destination code, content language, destination type, coordinates where supplied, supplier/public active flags, Arabic/English display names, slug, SEO fields, display order, supplier update time, sync time, and payload checksum.
 
-`hbx_hotels` stores supplier code, HBX hotel code, destination code, hotel name, category/star signal, coordinates, address, active state, and sync timestamp.
+`hbx_destination_zones` stores typed destination zones where HBX supplies them.
+
+`hbx_hotels` stores supplier code, HBX hotel code, destination code, zone/country codes, hotel name, category/star signal, accommodation type, chain, coordinates, address, postal code, contact hints where supplied, supplier/public active flags, Arabic/English display names, slug, SEO fields, display order, supplier update time, sync time, and payload checksum.
+
+`hbx_hotel_translations`, `hbx_hotel_images`, `hbx_hotel_facilities`, and `hbx_hotel_rooms` preserve typed hotel content used for rendering and filtering. Generic content-resource storage remains available for lower-use master resources but does not replace typed destination and hotel records.
 
 `hbx_content_resources` stores generic official Content API master/descriptive resources such as boards, rooms, accommodations, categories, category groups, chains, facilities, facility groups, issues, languages, promotions, segments, image types, currencies, terminals, rate comments, and zones. The table preserves supplier codes, language, relationship hints, payload hash, sanitized JSON payload, last update time, active state, and sync timestamp.
 
@@ -37,7 +41,7 @@ Upserts are idempotent. Records missing from later bounded syncs are deactivated
 
 ## Mapping Workflow
 
-`supplier_destination_mappings` links local cities or areas to confirmed HBX destination codes. Public search requires an active, manually confirmed mapping before HBX availability is called.
+`supplier_destination_mappings` remains available for future multi-supplier aggregation and legacy local city/area flows. Public HBX search no longer requires a mapping when the user selects a synchronized public HBX destination or hotel.
 
 `supplier_hotel_mappings` links canonical local hotels to HBX hotel codes when content teams are ready to confirm hotel-level matching. Similar names are not enough to merge or overwrite canonical hotel content.
 
@@ -73,14 +77,18 @@ Full authorized portfolio mode is blocked unless both `--full-authorized-portfol
 
 ## Public Search Flow
 
-The browser submits a local destination token such as `city:{id}`. The server resolves:
+The browser autocomplete reads only from local synchronized content. It does not call HBX.
+
+For HBX destinations, the browser submits an opaque local token such as `hbx_destination:{id}`. The server resolves:
 
 1. Local destination token
-2. Confirmed HBX destination mapping
-3. Active synchronized HBX hotel codes
-4. HBX availability payload using `hotels.hotel`
+2. Active public HBX destination row
+3. Original HBX destination code
+4. HBX availability payload using `destination.code`
 
-The free-text name `Cairo` is never sent as the HBX availability identifier. Once hotel codes are available, the Booking API availability payload does not mix `destination.code` with `hotels.hotel`; the hotel-code list is the bounded search input. If no mapping or no hotel codes exist, the search fails safely with a customer-safe message. Real HBX searches do not silently fall back to Mock.
+For HBX hotels, the browser submits `hbx_hotel:{id}`. The server resolves the protected HBX hotel code internally and sends `hotels.hotel`.
+
+The free-text name `Cairo` is never sent as the HBX availability identifier. Local IDs are never sent as supplier codes. Content API is never called during public autocomplete or search-page rendering. Real HBX searches do not silently fall back to Mock.
 
 ## Quota and Pagination
 

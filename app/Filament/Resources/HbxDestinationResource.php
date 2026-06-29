@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\HbxDestinationResource\Pages\ListHbxDestinations;
 use App\Models\HbxDestination;
 use App\Models\Supplier;
+use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -40,10 +41,27 @@ class HbxDestinationResource extends Resource
                 TextColumn::make('destination_name')->label(__('admin.hbx_destinations.fields.destination_name'))->searchable()->sortable(),
                 TextColumn::make('country_code')->label(__('admin.hbx_destinations.fields.country_code'))->searchable()->sortable(),
                 TextColumn::make('parent_destination_code')->label(__('admin.hbx_destinations.fields.parent_destination_code'))->toggleable(),
+                IconColumn::make('supplier_active')->label(__('admin.hbx_destinations.fields.supplier_active'))->boolean()->sortable(),
+                IconColumn::make('public_enabled')->label(__('admin.hbx_destinations.fields.public_enabled'))->boolean()->sortable(),
                 IconColumn::make('is_active')->label(__('admin.common_fields.is_active'))->boolean()->sortable(),
                 TextColumn::make('synced_at')->label(__('admin.hbx_destinations.fields.synced_at'))->dateTime()->sortable(),
             ])
-            ->filters([TernaryFilter::make('is_active')->label(__('admin.common_fields.is_active'))])
+            ->filters([
+                TernaryFilter::make('is_active')->label(__('admin.common_fields.is_active')),
+                TernaryFilter::make('public_enabled')->label(__('admin.hbx_destinations.fields.public_enabled')),
+            ])
+            ->recordActions([
+                Action::make('enable_public')
+                    ->label(__('admin.hbx_destinations.actions.enable_public'))
+                    ->visible(fn (HbxDestination $record): bool => ! $record->public_enabled && (bool) auth()->user()?->can('manage_suppliers'))
+                    ->requiresConfirmation()
+                    ->action(fn (HbxDestination $record): bool => tap($record)->forceFill(['public_enabled' => true])->save()),
+                Action::make('disable_public')
+                    ->label(__('admin.hbx_destinations.actions.disable_public'))
+                    ->visible(fn (HbxDestination $record): bool => $record->public_enabled && (bool) auth()->user()?->can('manage_suppliers'))
+                    ->requiresConfirmation()
+                    ->action(fn (HbxDestination $record): bool => tap($record)->forceFill(['public_enabled' => false])->save()),
+            ])
             ->defaultSort('destination_name');
     }
 
