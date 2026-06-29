@@ -69,6 +69,7 @@ Phase 5 supplier permissions:
 - `run_supplier_health_checks`
 - `view_supplier_logs`
 - `view_sensitive_supplier_logs`
+- `view_search_sessions`
 
 Allocation:
 
@@ -76,7 +77,7 @@ Allocation:
 - `general_manager`: all permissions.
 - `api_manager`: all supplier permissions.
 - `operations_admin`: view suppliers and non-sensitive supplier logs.
-- `auditor`: view suppliers and non-sensitive supplier logs only.
+- `auditor`: view suppliers, non-sensitive supplier logs, and search sessions only.
 - Other roles receive no supplier permissions unless already covered by all-permission roles.
 
 ## First Super Admin

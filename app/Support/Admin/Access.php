@@ -52,6 +52,7 @@ final class Access
         'run_supplier_health_checks',
         'view_supplier_logs',
         'view_sensitive_supplier_logs',
+        'view_search_sessions',
     ];
 
     public const ROLE_PERMISSIONS = [
@@ -113,6 +114,7 @@ final class Access
             'run_supplier_health_checks',
             'view_supplier_logs',
             'view_sensitive_supplier_logs',
+            'view_search_sessions',
         ],
         'auditor' => [
             'access_admin',
@@ -128,6 +130,7 @@ final class Access
             'view_hotels',
             'view_suppliers',
             'view_supplier_logs',
+            'view_search_sessions',
         ],
     ];
 

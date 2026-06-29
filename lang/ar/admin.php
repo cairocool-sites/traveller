@@ -363,4 +363,12 @@ return [
             'booking_reference' => 'Booking reference',
         ],
     ],
+    'search_sessions' => [
+        'model_label' => 'Search session',
+        'plural_model_label' => 'Search sessions',
+        'fields' => [
+            'public_uuid' => 'Public UUID',
+            'destination' => 'Destination',
+        ],
+    ],
 ];
