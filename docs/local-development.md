@@ -84,6 +84,8 @@ Phase 7 booking flow is available from a hotel details page by choosing Check ra
 
 Phase 8 manual payment flow is available from confirmed booking pages. Evidence is stored privately on the local disk. Seeded payment methods use safe placeholder account details only.
 
+Phase 9 cancellation flow is available from confirmed booking pages. Refunds are manual tracking records only and do not call banks, cards, gateways, or real suppliers.
+
 Reference data can be seeded with:
 
 ```bash

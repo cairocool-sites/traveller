@@ -41,5 +41,6 @@ Auditors remain read-only. Reservation agents cannot approve payments.
 
 - No gateway integration.
 - No refunds.
+- Phase 9 adds manual refund tracking only; no gateway refund is connected.
 - No official e-invoicing or tax authority integration.
 - No SMS or WhatsApp provider.

@@ -7,6 +7,8 @@ enum PaymentStatus: string
     case NotRequired = 'not_required';
     case Pending = 'pending';
     case Paid = 'paid';
+    case PartiallyRefunded = 'partially_refunded';
+    case Refunded = 'refunded';
 
     public function label(): string
     {

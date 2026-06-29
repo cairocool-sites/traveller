@@ -37,6 +37,11 @@ class Payment extends Model
         return $this->hasOne(Receipt::class);
     }
 
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(Refund::class);
+    }
+
     public function statusHistories(): HasMany
     {
         return $this->hasMany(PaymentStatusHistory::class);

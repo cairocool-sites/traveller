@@ -24,6 +24,8 @@ Issued documents store JSON snapshots. Reopening a document later uses the issue
 
 Vouchers hide supplier identity, supplier internal references, net prices, credentials, and technical metadata.
 
+Phase 9 may revoke a voucher after a successful cancellation. Historical invoice and receipt snapshots remain issued records.
+
 Invoices are commercial invoices only. They do not claim official Egyptian e-invoice compliance. Unknown tax is stored as zero rather than invented.
 
 Receipts are generated only after approved/paid manual payments.
