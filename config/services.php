@@ -43,6 +43,7 @@ return [
         'timeout' => (int) env('HBX_TIMEOUT', 45),
         'connect_timeout' => (int) env('HBX_CONNECT_TIMEOUT', 15),
         'integration_tests' => (bool) env('HBX_INTEGRATION_TESTS', false),
+        'sandbox_booking_enabled' => (bool) env('HBX_SANDBOX_BOOKING_ENABLED', false),
         'destination_codes' => [
             'cairo' => env('HBX_DESTINATION_CAIRO', 'CAI'),
             'giza' => env('HBX_DESTINATION_GIZA', 'CAI'),

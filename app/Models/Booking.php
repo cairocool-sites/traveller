@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['public_uuid', 'booking_reference', 'user_id', 'search_session_id', 'rate_check_id', 'supplier_id', 'hotel_id', 'currency_id', 'status', 'payment_status', 'locale', 'check_in', 'check_out', 'rooms_count', 'adults_count', 'children_count', 'supplier_booking_reference', 'supplier_confirmation_reference', 'supplier_status', 'total_amount_minor', 'net_amount_minor', 'taxes_amount_minor', 'fees_amount_minor', 'cancellation_policy_snapshot', 'hotel_snapshot', 'room_snapshot', 'occupancy_snapshot', 'supplier_response_snapshot', 'correlation_id', 'idempotency_key', 'idempotency_payload_hash', 'contact_email', 'contact_phone', 'special_requests', 'confirmed_at', 'failed_at', 'expires_at'])]
+#[Fillable(['public_uuid', 'booking_reference', 'user_id', 'search_session_id', 'rate_check_id', 'supplier_id', 'hotel_id', 'currency_id', 'status', 'payment_status', 'locale', 'check_in', 'check_out', 'rooms_count', 'adults_count', 'children_count', 'supplier_booking_reference', 'supplier_confirmation_reference', 'supplier_status', 'total_amount_minor', 'net_amount_minor', 'taxes_amount_minor', 'fees_amount_minor', 'cancellation_policy_snapshot', 'hotel_snapshot', 'room_snapshot', 'occupancy_snapshot', 'supplier_response_snapshot', 'correlation_id', 'idempotency_key', 'idempotency_payload_hash', 'contact_email', 'contact_phone', 'customer_nationality', 'special_requests', 'confirmed_at', 'failed_at', 'expires_at'])]
 class Booking extends Model
 {
     public function searchSession(): BelongsTo

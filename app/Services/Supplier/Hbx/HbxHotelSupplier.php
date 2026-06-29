@@ -136,7 +136,7 @@ class HbxHotelSupplier implements HotelSupplierInterface
                 'remark' => $request->specialRequests,
             ], $correlationId);
         } catch (SupplierTimeoutException) {
-            $result = new SupplierBookingResultData(false, BookingSupplierStatus::Uncertain, null, null, $request->supplierHotelId, $request->rooms, $request->guests, null, $request->expectedTotal->currency, [], ['HBX booking outcome is uncertain after timeout; lookup is required.'], 'hbx_booking_timeout', 'HBX booking timed out after submission.', true, [], $correlationId);
+            $result = new SupplierBookingResultData(false, BookingSupplierStatus::Uncertain, $request->idempotencyKey, null, $request->supplierHotelId, $request->rooms, $request->guests, null, $request->expectedTotal->currency, [], ['HBX booking outcome is uncertain after timeout; lookup is required.'], 'hbx_booking_timeout', 'HBX booking timed out after submission.', true, ['client_reference' => $request->idempotencyKey], $correlationId);
             $this->idempotency->complete($this->supplier, SupplierOperation::Book, $request->idempotencyKey, $result->jsonSerialize());
 
             return $result;
@@ -268,11 +268,26 @@ class HbxHotelSupplier implements HotelSupplierInterface
     {
         return array_map(fn ($guest): array => [
             'roomId' => 1,
-            'type' => $guest->type->value === 'child' ? 'CH' : 'AD',
-            'name' => $guest->firstName,
-            'surname' => $guest->lastName,
-            'age' => $guest->age,
+            'type' => $this->guestValue($guest, 'type') === 'child' ? 'CH' : 'AD',
+            'name' => $this->guestValue($guest, 'first_name') ?? '',
+            'surname' => $this->guestValue($guest, 'last_name') ?? '',
+            'age' => $this->guestValue($guest, 'age'),
         ], $request->guests);
+    }
+
+    private function guestValue(mixed $guest, string $key): mixed
+    {
+        if (is_array($guest)) {
+            return $guest[$key] ?? null;
+        }
+
+        return match ($key) {
+            'first_name' => $guest->firstName ?? null,
+            'last_name' => $guest->lastName ?? null,
+            'type' => $guest->type->value ?? null,
+            'age' => $guest->age ?? null,
+            default => null,
+        };
     }
 
     private function bookingFromSnapshot(array $snapshot, string $correlationId): SupplierBookingResultData

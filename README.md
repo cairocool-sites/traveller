@@ -2,7 +2,7 @@
 
 Cairo Cool Travel is a Laravel hotel booking platform planned for Egypt first, with future expansion to Saudi Arabia and the UAE.
 
-This repository is currently in Phase 12: Public HBX Search and CheckRate Integration only.
+This repository is currently in Phase 13: HBX Sandbox Booking Completion only.
 
 ## Current Scope
 
@@ -36,7 +36,7 @@ This repository is currently in Phase 12: Public HBX Search and CheckRate Integr
 - Customer cancellation requests, cancellation-policy evaluation, Mock Supplier cancellation, cancellation status history, manual refund tracking, refund histories, and customer-safe cancellation/refund status pages.
 - Production-readiness checks, safe health endpoints, scheduler heartbeat, named rate limiters, security headers, operational cleanup, DirectAdmin/Nginx deployment documentation, backup/restore documentation, and CI workflow.
 - HBX Hotels Sandbox adapter foundation behind the supplier contract, with authentication/signature generation, safe sandbox health checks, availability, CheckRate, booking, lookup, cancellation normalization, and fake-HTTP automated tests.
-- Public HBX Availability and CheckRate flow using short-lived server-side offer snapshots, public rate tokens, sanitized logging, and an explicit guard that prevents HBX booking submission.
+- Public HBX Availability, CheckRate, and sandbox booking flow using short-lived server-side offer snapshots, public rate tokens, sanitized logging, and explicit guards that block production HBX booking submission.
 
 ## Out of Scope
 
@@ -45,7 +45,7 @@ The following are intentionally not implemented yet:
 - Production supplier adapters or integrations
 - Supplier hotel mappings
 - Room types, room inventory, or rate plans
-- Real supplier booking integrations
+- Production supplier booking integrations
 - Real online payment gateways
 - Payment webhooks
 - Real payment-gateway refunds
@@ -81,6 +81,8 @@ See [docs/deployment-directadmin-nginx.md](docs/deployment-directadmin-nginx.md)
 See [docs/hbx-sandbox-integration.md](docs/hbx-sandbox-integration.md) for the Phase 11 HBX Hotels Sandbox supplier integration.
 
 See [docs/hbx-public-search-checkrate.md](docs/hbx-public-search-checkrate.md) for the Phase 12 public HBX search and CheckRate integration.
+
+See [docs/hbx-sandbox-booking.md](docs/hbx-sandbox-booking.md) for the Phase 13 HBX Sandbox booking completion.
 
 ## Local Documentation
 

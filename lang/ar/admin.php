@@ -411,9 +411,13 @@ return [
         'actions' => ['reconcile' => 'Reconcile'],
         'fields' => [
             'booking_reference' => 'Booking reference',
+            'supplier_booking_reference' => 'Supplier booking reference',
+            'client_reference' => 'Client reference',
             'status' => 'Status',
             'payment_status' => 'Payment status',
             'supplier' => 'Supplier',
+            'check_in' => 'Check-in',
+            'check_out' => 'Check-out',
             'currency' => 'Currency',
             'total' => 'Total',
             'contact_email' => 'Contact email',

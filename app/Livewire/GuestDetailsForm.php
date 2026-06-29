@@ -3,12 +3,14 @@
 namespace App\Livewire;
 
 use App\Enums\GuestType;
+use App\Models\Country;
 use App\Models\RateCheck;
 use App\Services\Booking\BookingFlowException;
 use App\Services\Booking\BookingService;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use InvalidArgumentException;
 use Livewire\Component;
 
 class GuestDetailsForm extends Component
@@ -19,11 +21,15 @@ class GuestDetailsForm extends Component
 
     public string $contact_phone = '';
 
+    public string $customer_nationality = 'EG';
+
     public string $special_requests = '';
 
     public string $idempotency_key = '';
 
     public bool $accept_price_change = false;
+
+    public bool $confirmation_accepted = false;
 
     public array $guests = [];
 
@@ -62,11 +68,13 @@ class GuestDetailsForm extends Component
     {
         $this->validate([
             'contact_email' => ['required', 'email', 'max:255'],
-            'contact_phone' => ['nullable', 'string', 'max:50'],
+            'contact_phone' => ['required', 'string', 'max:50', 'regex:/^[0-9+\-\s().]{7,50}$/'],
+            'customer_nationality' => ['required', 'string', 'size:2', 'exists:countries,iso2'],
             'special_requests' => ['nullable', 'string', 'max:1000'],
+            'confirmation_accepted' => ['accepted'],
             'guests' => ['required', 'array', 'min:1'],
-            'guests.*.first_name' => ['required', 'string', 'max:80'],
-            'guests.*.last_name' => ['required', 'string', 'max:80'],
+            'guests.*.first_name' => ['required', 'string', 'max:80', "regex:/^[\pL\pM .'-]+$/u"],
+            'guests.*.last_name' => ['required', 'string', 'max:80', "regex:/^[\pL\pM .'-]+$/u"],
             'guests.*.type' => ['required', 'in:adult,child'],
             'guests.*.age' => ['nullable', 'integer', 'min:0', 'max:17'],
             'guests.*.is_lead_guest' => ['boolean'],
@@ -82,12 +90,13 @@ class GuestDetailsForm extends Component
             $booking = $bookings->createAndSubmit($rateCheck, [
                 'contact_email' => $this->contact_email,
                 'contact_phone' => $this->contact_phone,
+                'customer_nationality' => $this->customer_nationality,
                 'special_requests' => $this->special_requests,
                 'idempotency_key' => $this->idempotency_key,
                 'accept_price_change' => $this->accept_price_change,
                 'guests' => $this->guests,
             ]);
-        } catch (BookingFlowException $exception) {
+        } catch (BookingFlowException|InvalidArgumentException $exception) {
             throw ValidationException::withMessages(['rate' => $exception->getMessage()]);
         }
 
@@ -96,6 +105,9 @@ class GuestDetailsForm extends Component
 
     public function render(): View
     {
-        return view('livewire.guest-details-form');
+        return view('livewire.guest-details-form', [
+            'countries' => Country::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name_en')->get(),
+            'rateCheck' => RateCheck::query()->where('public_uuid', $this->rateCheckUuid)->firstOrFail(),
+        ]);
     }
 }
