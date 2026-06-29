@@ -2,6 +2,7 @@
 
 use App\Enums\RateCheckStatus;
 use App\Enums\SupplierStatus;
+use App\Livewire\HotelSearchForm;
 use App\Models\City;
 use App\Models\HbxDestination;
 use App\Models\HbxHotel;
@@ -19,6 +20,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Livewire\Livewire;
 use Spatie\Permission\PermissionRegistrar;
 
 uses(RefreshDatabase::class);
@@ -97,6 +99,27 @@ it('serves public autocomplete from local hbx catalogue without supplier calls',
 
     expect($english->pluck('type')->all())->toContain('hbx_destination', 'hbx_hotel')
         ->and($arabic->first()?->label)->not->toBeNull();
+});
+
+it('labels hotel and destination autocomplete suggestions for customers', function () {
+    Http::preventStrayRequests();
+
+    HbxDestination::query()->where('destination_code', 'CAI')->update([
+        'supplier_active' => true,
+        'public_enabled' => true,
+        'name_en' => 'Cairo',
+    ]);
+    HbxHotel::query()->where('hotel_code', '1001')->update([
+        'supplier_active' => true,
+        'public_enabled' => true,
+        'name_en' => 'HBX Cairo Sandbox Hotel',
+    ]);
+
+    Livewire::test(HotelSearchForm::class, ['locale' => 'en'])
+        ->set('destinationTerm', 'Cairo')
+        ->assertSee('Destination')
+        ->assertSee('Hotel')
+        ->assertSee('Search live availability for this hotel');
 });
 
 it('searches hbx by local public destination using destination code without mapping dependency', function () {

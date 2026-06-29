@@ -52,6 +52,20 @@ return [
         'currency' => 'Currency',
         'locale' => 'Language',
         'submit' => 'Search hotels',
+        'option_types' => [
+            'hbx_destination' => 'Destination',
+            'hbx_hotel' => 'Hotel',
+            'city' => 'City',
+            'area' => 'Area',
+            'country' => 'Country',
+        ],
+        'option_help' => [
+            'hbx_destination' => 'Search live availability for this destination',
+            'hbx_hotel' => 'Search live availability for this hotel',
+            'city' => 'Search live availability for this city',
+            'area' => 'Search live availability around this area',
+            'country' => 'Search live availability in this country',
+        ],
         'validation' => [
             'destination' => 'Please choose a valid active destination.',
             'locale' => 'Please choose Arabic or English.',

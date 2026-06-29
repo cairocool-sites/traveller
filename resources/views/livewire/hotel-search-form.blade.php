@@ -23,9 +23,14 @@
             @if ($destinationOptions)
                 <div class="absolute z-30 mt-2 max-h-72 w-full overflow-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">
                     @foreach ($destinationOptions as $option)
-                        <button type="button" wire:click="selectDestination('{{ $option['token'] }}', '{{ addslashes($option['label']) }}')" class="block w-full rounded-xl px-4 py-3 text-start text-sm transition hover:bg-[#14B8A6]/10">
-                            <span class="block font-extrabold text-[#0B1F33]">{{ $option['label'] }}</span>
-                            <span class="text-xs font-bold uppercase text-slate-500">{{ $option['type'] }}</span>
+                        <button type="button" wire:click="selectDestination('{{ $option['token'] }}', '{{ addslashes($option['label']) }}')" class="flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-start text-sm transition hover:bg-[#14B8A6]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F766E]">
+                            <span class="min-w-0">
+                                <span class="block truncate font-extrabold text-[#0B1F33]">{{ $option['label'] }}</span>
+                                <span class="mt-1 block text-xs font-bold text-slate-500">{{ __('public.search.option_help.'.$option['type']) }}</span>
+                            </span>
+                            <span class="shrink-0 rounded-full border border-[#0F766E]/15 bg-[#0F766E]/10 px-3 py-1 text-xs font-black text-[#0F766E]">
+                                {{ __('public.search.option_types.'.$option['type']) }}
+                            </span>
                         </button>
                     @endforeach
                 </div>
