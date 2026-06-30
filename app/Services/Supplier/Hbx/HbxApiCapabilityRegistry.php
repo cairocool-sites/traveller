@@ -51,13 +51,13 @@ class HbxApiCapabilityRegistry
             $this->capability('content_countries', 'Hotel Content API', 'Countries', 'GET', '/hotel-content-api/1.0/locations/countries', true, true, false),
             $this->capability('content_destinations', 'Hotel Content API', 'Destinations', 'GET', '/hotel-content-api/1.0/locations/destinations', true, true, false),
             $this->capability('content_hotels', 'Hotel Content API', 'Hotels', 'GET', '/hotel-content-api/1.0/hotels', true, true, false),
-            $this->capability('content_hotel_details', 'Hotel Content API', 'Hotel details', 'GET', '/hotel-content-api/1.0/hotels/{code}/details', true, true, false),
+            $this->capability('content_hotel_details', 'Hotel Content API', 'Hotel details', 'GET', '/hotel-content-api/1.0/hotels/{hotelCodes}/details', true, true, false),
             $this->capability('content_master_data', 'Hotel Content API', 'Master/descriptive resources', 'GET', '/hotel-content-api/1.0/*', false, false, false, 'Rooms, boards, accommodations, categories, chains, facilities, issues, languages, promotions, terminals, currencies, images, and rate comments are tracked for the full content slice.'),
             $this->capability('cache_full', 'Hotel Cache API', 'FULL file import', null, null, false, false, false, 'Capability-gated; authorization must be detected without faking success.'),
             $this->capability('cache_incremental', 'Hotel Cache API', 'Incremental/update import', null, null, false, false, false, 'Capability-gated; cache data cannot replace live Booking API validation.'),
             $this->capability('cds_change_discovery', 'Change Discovery Service', 'Change Discovery Service', null, null, false, false, false, 'Capability-gated; Content API differential sync remains fallback.'),
             $this->capability('production_access', 'Production access', 'Production endpoint access', null, null, false, false, false, 'Production endpoint and booking remain blocked until explicit activation.'),
-            $this->capability('certification_readiness', 'Certification', 'Certification readiness', null, null, false, true, false, 'Checklist foundation exists in documentation; certification is not claimed complete.'),
+            $this->capability('certification_readiness', 'Certification', 'Certification readiness', null, null, true, true, false, 'Readiness command and documentation exist; certification is not claimed complete.'),
         ];
     }
 

@@ -8,6 +8,7 @@ use App\Models\SupplierOperationLog;
 use App\Services\Supplier\Hbx\HbxApiCapabilityRegistry;
 use Database\Seeders\SupplierFoundationSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
@@ -26,7 +27,8 @@ it('seeds the hbx api suite capability matrix without secrets', function () {
     expect(HbxApiCapability::query()->count())->toBeGreaterThanOrEqual(20)
         ->and(HbxApiCapability::query()->where('capability_code', 'booking_availability')->value('implemented'))->toBeTrue()
         ->and(HbxApiCapability::query()->where('capability_code', 'payment_data_support')->value('public_enabled'))->toBeFalse()
-        ->and(HbxApiCapability::query()->where('capability_code', 'cache_full')->value('implemented'))->toBeFalse();
+        ->and(HbxApiCapability::query()->where('capability_code', 'cache_full')->value('implemented'))->toBeFalse()
+        ->and(HbxApiCapability::query()->where('capability_code', 'certification_readiness')->value('implemented'))->toBeTrue();
 
     $encoded = HbxApiCapability::query()->get()->toJson();
 
@@ -34,6 +36,35 @@ it('seeds the hbx api suite capability matrix without secrets', function () {
         ->and($encoded)->not->toContain('suite-api-secret')
         ->and($encoded)->not->toContain('X-Signature')
         ->and($encoded)->not->toContain('rateKey');
+});
+
+it('prints hbx certification readiness without making supplier requests', function () {
+    Http::preventStrayRequests();
+
+    config([
+        'services.hbx.enabled' => true,
+        'services.hbx.api_key' => 'cert-api-key',
+        'services.hbx.api_secret' => 'cert-api-secret',
+        'services.hbx.base_url' => 'https://api.test.hotelbeds.com',
+    ]);
+
+    $this->seed(SupplierFoundationSeeder::class);
+
+    $this->artisan('hbx:certification:readiness')
+        ->expectsOutputToContain('HBX certification readiness checklist')
+        ->expectsOutputToContain('No supplier request was sent by this command.')
+        ->expectsOutputToContain('No booking, modification, cancellation, or production request was sent.')
+        ->expectsOutputToContain('Technical')
+        ->expectsOutputToContain('Workflow')
+        ->expectsOutputToContain('Voucher')
+        ->expectsOutputToContain('Live environment')
+        ->assertSuccessful();
+
+    $output = Artisan::output();
+
+    expect($output)->not->toContain('cert-api-key')
+        ->and($output)->not->toContain('cert-api-secret')
+        ->and($output)->not->toContain('X-Signature:');
 });
 
 it('prints hbx capability status without making supplier requests', function () {

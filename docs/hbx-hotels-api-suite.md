@@ -20,7 +20,7 @@ The implementation is based on the attached official HBX Group Hotels OpenAPI sp
 - `GET /hotel-content-api/1.0/locations/countries`
 - `GET /hotel-content-api/1.0/locations/destinations`
 - `GET /hotel-content-api/1.0/hotels`
-- `GET /hotel-content-api/1.0/hotels/{code}/details`
+- `GET /hotel-content-api/1.0/hotels/{hotelCodes}/details`
 
 Cache API and Change Discovery Service endpoints are capability-gated until official account authorization and endpoint details are confirmed.
 
@@ -42,9 +42,10 @@ Refresh/display locally:
 
 ```bash
 php artisan hbx:api-suite:status
+php artisan hbx:certification:readiness
 ```
 
-This command does not call HBX.
+These commands do not call HBX.
 
 ## Current Implementation Matrix
 
@@ -84,7 +85,7 @@ Tracked but not yet implemented/enabled:
 6. Cache API adapter, safe ZIP extraction, file validation, import status, and rollback.
 7. CDS adapter, checkpoints, deduplication, and prioritized refresh workflow.
 8. Egypt-first public exposure using local content only for static data and Booking API only for availability.
-9. Certification-readiness checklist with evidence fields.
+9. Certification-readiness checklist and safe local status command.
 
 ## Hybrid Public Search Architecture
 
