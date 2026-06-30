@@ -39,7 +39,7 @@ return [
         'max_child_age' => (int) env('TRAVEL_SEARCH_MAX_CHILD_AGE', 17),
         'max_stay_nights' => (int) env('TRAVEL_SEARCH_MAX_STAY_NIGHTS', 30),
         'session_lifetime_minutes' => (int) env('TRAVEL_SEARCH_SESSION_LIFETIME_MINUTES', 30),
-        'suppliers' => ['hbx_hotels', 'mock_hotels'],
+        'suppliers' => array_values(array_filter(array_map('trim', explode(',', env('TRAVEL_PUBLIC_SEARCH_SUPPLIERS', 'hbx_hotels,mock_hotels'))))),
         'results_limit' => (int) env('TRAVEL_SEARCH_RESULTS_LIMIT', 30),
         'markup_basis_points' => (int) env('TRAVEL_PUBLIC_SEARCH_MARKUP_BASIS_POINTS', 0),
     ],
@@ -47,6 +47,7 @@ return [
     'booking' => [
         'rate_check_lifetime_minutes' => (int) env('TRAVEL_RATE_CHECK_LIFETIME_MINUTES', 20),
         'draft_lifetime_minutes' => (int) env('TRAVEL_BOOKING_DRAFT_LIFETIME_MINUTES', 30),
+        'submission_mode' => env('TRAVEL_BOOKING_SUBMISSION_MODE', 'supplier'),
     ],
 
     'payments' => [

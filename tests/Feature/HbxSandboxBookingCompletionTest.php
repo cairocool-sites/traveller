@@ -67,6 +67,24 @@ it('blocks production hbx booking endpoints before supplier submission', functio
     Http::assertNotSent(fn ($request): bool => str_contains($request->url(), '/hotel-api/1.0/bookings'));
 });
 
+it('captures launch bookings for manual review without sending a supplier booking request', function () {
+    config([
+        'services.hbx.sandbox_booking_enabled' => false,
+        'travel.booking.submission_mode' => 'manual_review',
+    ]);
+
+    $rateCheck = phase13RateCheck();
+
+    $booking = app(BookingService::class)->createAndSubmit($rateCheck, phase13BookingPayload());
+
+    expect($booking->status)->toBe(BookingStatus::ManualReview)
+        ->and($booking->supplier_booking_reference)->toBeNull()
+        ->and($booking->supplier_confirmation_reference)->toBeNull()
+        ->and($booking->supplier_response_snapshot['manual_review'])->toBeTrue();
+
+    Http::assertNotSent(fn ($request): bool => str_contains($request->url(), '/hotel-api/1.0/bookings'));
+});
+
 it('creates a confirmed hbx sandbox booking from trusted server-side rate data', function () {
     $booking = phase13ConfirmedBooking(['total_amount_minor' => 1, 'currency' => 'USD']);
 

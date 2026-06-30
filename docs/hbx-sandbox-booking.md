@@ -40,6 +40,14 @@ Validation enforces:
 
 `BookingService` is the booking orchestration boundary. It validates the rate, applies the HBX sandbox guard, locks the idempotency key, creates a pending local booking, submits exactly one supplier booking request, stores the sanitized normalized supplier response, then transitions to confirmed, manual review, or supplier failed.
 
+For staging or soft launch, set:
+
+```env
+TRAVEL_BOOKING_SUBMISSION_MODE=manual_review
+```
+
+In this mode, the same CheckRate and guest validation still run, but `BookingService` stops before supplier booking submission, stores a local booking under manual review, and sends no HBX booking request. Use this mode while certification blockers remain open or while manual operations need to review each request.
+
 ## Idempotency
 
 A server-generated idempotency key is stored on the local booking and sent to HBX as the client reference. Duplicate submissions with the same payload return the existing booking and do not call HBX again. Reusing the key with different guest/contact data fails.

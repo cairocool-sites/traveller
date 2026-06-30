@@ -259,6 +259,7 @@ return [
         'stay_dates' => 'Stay dates',
         'occupancy' => 'Occupancy',
         'sandbox_notice' => 'Sandbox test booking: no real payment is collected and this is not a production supplier request.',
+        'manual_review_submission_notice' => 'Your request will be captured for manual review. No supplier booking request or online payment is sent from this step.',
         'confirm_booking_checkbox' => 'I confirm these guest details, stay details, price, and cancellation conditions.',
         'submit' => 'Create booking',
         'confirmation_title' => 'Booking confirmation',

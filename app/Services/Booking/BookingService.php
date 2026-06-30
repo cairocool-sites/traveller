@@ -34,7 +34,15 @@ class BookingService
     public function createAndSubmit(RateCheck $rateCheck, array $payload): Booking
     {
         $this->validateRate($rateCheck, (bool) ($payload['accept_price_change'] ?? false));
-        $this->hbxGuard->assertAllowed($rateCheck->supplier);
+        $submissionMode = config('travel.booking.submission_mode', 'supplier');
+
+        if (! in_array($submissionMode, ['supplier', 'manual_review'], true)) {
+            throw new BookingFlowException('Unsupported booking submission mode.');
+        }
+
+        if ($submissionMode === 'supplier') {
+            $this->hbxGuard->assertAllowed($rateCheck->supplier);
+        }
 
         $idempotencyKey = (string) ($payload['idempotency_key'] ?? '');
         if ($idempotencyKey === '') {
@@ -146,6 +154,23 @@ class BookingService
             }
 
             $this->states->transition($booking, BookingStatus::GuestDetailsCompleted, 'Guest details captured.');
+
+            if (config('travel.booking.submission_mode', 'supplier') === 'manual_review') {
+                $this->states->transition($booking, BookingStatus::ManualReview, 'Booking captured for manual confirmation without supplier submission.');
+                $booking->forceFill([
+                    'supplier_status' => BookingSupplierStatus::Uncertain->value,
+                    'supplier_response_snapshot' => [
+                        'manual_review' => true,
+                        'reason' => 'Supplier booking submission disabled by launch mode.',
+                    ],
+                    'payment_status' => PaymentStatus::NotRequired,
+                ])->save();
+
+                $this->notifySafely($booking);
+
+                return $booking->refresh();
+            }
+
             $this->states->transition($booking, BookingStatus::PendingSupplierConfirmation, 'Submitting to supplier.');
 
             $adapter = $this->suppliers->resolve($rateCheck->supplier->code, SupplierOperation::Book);

@@ -87,6 +87,8 @@ See [docs/hbx-sandbox-booking.md](docs/hbx-sandbox-booking.md) for the Phase 13 
 
 See [docs/hbx-sandbox-verification-voucher.md](docs/hbx-sandbox-verification-voucher.md), [docs/hbx-certification/external-blockers.md](docs/hbx-certification/external-blockers.md), and [docs/public-site-readiness.md](docs/public-site-readiness.md) for Phase 14 verification, external blocker, voucher, and public readiness notes.
 
+See [docs/soft-launch-travel-cairocool.md](docs/soft-launch-travel-cairocool.md) for the recommended staging/soft-launch configuration for `travel.cairocool.com`.
+
 ## Local Documentation
 
 See [docs/local-development.md](docs/local-development.md) for local setup notes.

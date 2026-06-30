@@ -73,7 +73,9 @@
                 <dd class="mt-1 text-[#0B1F33]">{{ collect($rateCheck->occupancy_snapshot)->sum('adults') }} {{ __('public.search.adults') }} / {{ collect($rateCheck->occupancy_snapshot)->sum('children') }} {{ __('public.search.children') }}</dd>
             </div>
         </dl>
-        <p class="mt-4 rounded-xl bg-blue-50 p-3 text-sm font-semibold text-blue-900">{{ __('public.booking.sandbox_notice') }}</p>
+        <p class="mt-4 rounded-xl bg-blue-50 p-3 text-sm font-semibold text-blue-900">
+            {{ config('travel.booking.submission_mode') === 'manual_review' ? __('public.booking.manual_review_submission_notice') : __('public.booking.sandbox_notice') }}
+        </p>
     </div>
 
     @if ($rateCheck->price_changed)

@@ -78,9 +78,9 @@ Hotel catalog management is available under `/admin/hotels` for users with hotel
 
 Supplier management is available under `/admin/suppliers` for users with supplier permissions. Supplier operation logs are available under the Supplier Management navigation group.
 
-Public hotel search is available at `/` and `/hotels`. Search results prefer the active `hbx_hotels` sandbox supplier when configured, then fall back to `mock_hotels`; normalized offers are stored in short-lived `search_sessions`.
+Public hotel search is available at `/` and `/hotels`. Search suppliers are controlled by `TRAVEL_PUBLIC_SEARCH_SUPPLIERS`. For staging and soft launch, use `TRAVEL_PUBLIC_SEARCH_SUPPLIERS=hbx_hotels` so no Mock Supplier fallback can appear in customer-facing results. For local supplier-contract testing only, you may set `TRAVEL_PUBLIC_SEARCH_SUPPLIERS=hbx_hotels,mock_hotels`.
 
-Phase 7 booking flow is available from a hotel details page by choosing Check rate, entering guest details, and submitting the deterministic Mock Supplier booking. Phase 13 allows HBX Sandbox booking only when `HBX_SANDBOX_BOOKING_ENABLED=true`, the supplier is active, credentials are configured locally, and the base URL is exactly `https://api.test.hotelbeds.com`. HBX production booking and cancellation submission remain blocked. No online payment gateway, customer account, quotation, or B2B feature is connected.
+Phase 7 booking flow is available from a hotel details page by choosing Check rate and entering guest details. For soft launch, use `TRAVEL_BOOKING_SUBMISSION_MODE=manual_review`; this captures the customer request locally after CheckRate and puts the booking under manual review without sending an HBX booking request. Supplier submission mode is `TRAVEL_BOOKING_SUBMISSION_MODE=supplier`; Phase 13 allows HBX Sandbox booking only when `HBX_SANDBOX_BOOKING_ENABLED=true`, the supplier is active, credentials are configured locally, and the base URL is exactly `https://api.test.hotelbeds.com`. HBX production booking and cancellation submission remain blocked. No online payment gateway, customer account, quotation, or B2B feature is connected.
 
 Phase 8 manual payment flow is available from confirmed booking pages. Evidence is stored privately on the local disk. Seeded payment methods use safe placeholder account details only.
 

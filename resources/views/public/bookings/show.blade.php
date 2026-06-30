@@ -6,7 +6,9 @@
                 {{ $identityUnresolved ? __('public.booking.under_review_heading') : ($booking->supplier_status === 'confirmed' ? __('public.booking.confirmed_heading') : __('public.booking.confirmation_title')) }}
             </p>
             <h1 class="mt-4 text-3xl font-black text-[#0B1F33]">{{ $booking->booking_reference }}</h1>
-            <p class="mt-3 rounded-2xl bg-blue-50 p-4 text-sm font-semibold text-blue-900">{{ __('public.booking.sandbox_notice') }}</p>
+            <p class="mt-3 rounded-2xl bg-blue-50 p-4 text-sm font-semibold text-blue-900">
+                {{ config('travel.booking.submission_mode') === 'manual_review' ? __('public.booking.manual_review_submission_notice') : __('public.booking.sandbox_notice') }}
+            </p>
 
             @if ($identityUnresolved)
                 <div class="mt-6 rounded-2xl border border-amber-300 bg-amber-50 p-5 text-sm font-semibold text-amber-950">

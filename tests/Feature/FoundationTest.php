@@ -36,3 +36,9 @@ it('configures all supported travel currencies', function () {
         'GBP',
     ]);
 });
+
+it('can configure public hotel search to hbx only for soft launch', function () {
+    config(['travel.public_search.suppliers' => ['hbx_hotels']]);
+
+    expect(config('travel.public_search.suppliers'))->toBe(['hbx_hotels']);
+});
