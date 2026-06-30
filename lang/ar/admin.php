@@ -365,6 +365,7 @@ return [
             'hotel_details' => 'Hotel details',
             'check_rate' => 'Check rate',
             'book' => 'Book',
+            'booking_list' => 'Booking list',
             'get_booking' => 'Get booking',
             'cancel' => 'Cancel',
             'health_check' => 'Health check',
@@ -400,6 +401,51 @@ return [
             'destination' => 'Destination',
         ],
     ],
+    'hbx_destinations' => [
+        'model_label' => 'HBX destination',
+        'plural_model_label' => 'HBX destinations',
+        'fields' => [
+            'destination_code' => 'Destination code',
+            'destination_name' => 'Destination name',
+            'country_code' => 'Country code',
+            'parent_destination_code' => 'Parent code',
+            'synced_at' => 'Synced at',
+        ],
+    ],
+    'hbx_hotels' => [
+        'model_label' => 'HBX hotel',
+        'plural_model_label' => 'HBX hotels',
+        'fields' => [
+            'hotel_code' => 'Hotel code',
+            'hotel_name' => 'Hotel name',
+            'destination_code' => 'Destination code',
+            'category_code' => 'Category',
+            'star_rating' => 'Stars',
+            'synced_at' => 'Synced at',
+        ],
+    ],
+    'supplier_mappings' => [
+        'fields' => [
+            'local_entity_type' => 'Local type',
+            'local_entity_id' => 'Local ID',
+            'status' => 'Status',
+            'confidence' => 'Confidence',
+            'manually_confirmed' => 'Manually confirmed',
+        ],
+    ],
+    'supplier_destination_mappings' => [
+        'model_label' => 'Supplier destination mapping',
+        'plural_model_label' => 'Supplier destination mappings',
+        'fields' => ['destination_code' => 'Destination code'],
+    ],
+    'supplier_hotel_mappings' => [
+        'model_label' => 'Supplier hotel mapping',
+        'plural_model_label' => 'Supplier hotel mappings',
+        'fields' => [
+            'local_hotel' => 'Local hotel',
+            'hotel_code' => 'Hotel code',
+        ],
+    ],
     'bookings' => [
         'navigation_group' => 'Reservations',
         'model_label' => 'Booking',
@@ -408,7 +454,12 @@ return [
         'rate_check_plural_model_label' => 'Rate checks',
         'history_model_label' => 'Booking status history',
         'history_plural_model_label' => 'Booking status histories',
-        'actions' => ['reconcile' => 'Reconcile'],
+        'actions' => [
+            'reconcile' => 'Reconcile',
+            'view_reconciliation' => 'عرض المطابقة',
+            'preview_voucher' => 'Preview voucher',
+            'download_voucher' => 'Download voucher',
+        ],
         'fields' => [
             'booking_reference' => 'Booking reference',
             'supplier_booking_reference' => 'Supplier booking reference',

@@ -60,10 +60,28 @@ class BookingResource extends Resource
                 SelectFilter::make('status')->options(collect(BookingStatus::cases())->mapWithKeys(fn (BookingStatus $status): array => [$status->value => $status->label()])->all()),
             ])
             ->recordActions([
+                Action::make('preview_voucher')
+                    ->label(__('admin.bookings.actions.preview_voucher'))
+                    ->icon('heroicon-o-document-text')
+                    ->visible(fn (Booking $record): bool => Gate::allows('view', $record) && ! $record->hasUnresolvedSupplierIdentity() && in_array($record->status, [BookingStatus::Confirmed, BookingStatus::ManualReview], true))
+                    ->url(fn (Booking $record): string => route('admin.bookings.voucher', $record))
+                    ->openUrlInNewTab(),
+                Action::make('download_voucher')
+                    ->label(__('admin.bookings.actions.download_voucher'))
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->visible(fn (Booking $record): bool => Gate::allows('view', $record) && ! $record->hasUnresolvedSupplierIdentity() && in_array($record->status, [BookingStatus::Confirmed, BookingStatus::ManualReview], true))
+                    ->url(fn (Booking $record): string => route('admin.bookings.voucher', ['booking' => $record, 'download' => true]))
+                    ->openUrlInNewTab(),
                 Action::make('reconcile')
                     ->label(__('admin.bookings.actions.reconcile'))
                     ->visible(fn (Booking $record): bool => Gate::allows('reconcile', $record))
                     ->action(fn (Booking $record) => app(BookingReconciliationService::class)->reconcile($record)),
+                Action::make('view_reconciliation')
+                    ->label(__('admin.bookings.actions.view_reconciliation'))
+                    ->icon('heroicon-o-scale')
+                    ->visible(fn (Booking $record): bool => Gate::allows('reconcile', $record))
+                    ->url(fn (Booking $record): string => route('admin.bookings.reconciliation', $record))
+                    ->openUrlInNewTab(),
             ])
             ->defaultSort('created_at', 'desc');
     }

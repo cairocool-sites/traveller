@@ -72,8 +72,12 @@
                 @php($firstRate = $hotel['rates'][0] ?? null)
                 <article class="cct-card overflow-hidden p-4 sm:p-5">
                     <div class="grid gap-5 lg:grid-cols-[220px_1fr_240px]">
-                        <div class="flex min-h-44 items-end rounded-2xl bg-[linear-gradient(135deg,#0B1F33,#0F766E)] p-5 text-white">
-                            <div>
+                        <div class="relative flex min-h-44 items-end overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#0B1F33,#0F766E)] p-5 text-white">
+                            @if (! empty($hotel['primary_image']))
+                                <img src="{{ $hotel['primary_image'] }}" alt="{{ $hotel['name'] }}" loading="lazy" class="absolute inset-0 size-full object-cover">
+                                <div class="absolute inset-0 bg-[#0B1F33]/45" aria-hidden="true"></div>
+                            @endif
+                            <div class="relative">
                                 <div class="mb-3 flex gap-1 text-[#C9A227]" aria-label="{{ $hotel['star_rating'] ?? 0 }} stars">
                                     @for ($i = 0; $i < (int) ($hotel['star_rating'] ?? 0); $i++)
                                         <span>★</span>

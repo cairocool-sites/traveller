@@ -1,12 +1,16 @@
 <?php
 
+use App\Http\Controllers\Admin\BookingReconciliationController;
+use App\Http\Controllers\Admin\BookingVoucherController;
 use App\Http\Controllers\Admin\PaymentEvidenceController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\Public\BookingController;
 use App\Http\Controllers\Public\CancellationController;
 use App\Http\Controllers\Public\DocumentController;
+use App\Http\Controllers\Public\HbxCatalogueController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\HotelSearchController;
+use App\Http\Controllers\Public\PageController;
 use App\Http\Controllers\Public\PaymentController;
 use App\Http\Controllers\Public\RateCheckController;
 use App\Http\Controllers\Public\RefundController;
@@ -17,7 +21,17 @@ Route::get('/', HomeController::class)->name('home');
 Route::get('/health/live', [HealthController::class, 'live'])->middleware('throttle:health')->name('health.live');
 Route::get('/health/ready', [HealthController::class, 'ready'])->middleware('throttle:health')->name('health.ready');
 Route::get('/hotels', [HotelSearchController::class, 'index'])->name('hotels.index');
+Route::get('/about', [PageController::class, 'show'])->defaults('page', 'about')->name('pages.about');
+Route::get('/contact', [PageController::class, 'show'])->defaults('page', 'contact')->name('pages.contact');
+Route::get('/terms', [PageController::class, 'show'])->defaults('page', 'terms')->name('pages.terms');
+Route::get('/privacy', [PageController::class, 'show'])->defaults('page', 'privacy')->name('pages.privacy');
+Route::get('/payment-policy', [PageController::class, 'show'])->defaults('page', 'payment-policy')->name('pages.payment-policy');
+Route::get('/cancellation-policy', [PageController::class, 'show'])->defaults('page', 'cancellation-policy')->name('pages.cancellation-policy');
+Route::get('/support', [PageController::class, 'show'])->defaults('page', 'support')->name('pages.support');
 Route::get('/hotels/search', [HotelSearchController::class, 'search'])->middleware('throttle:public-search')->name('hotels.search');
+Route::get('/destinations/{destination}', [HbxCatalogueController::class, 'destination'])->name('catalogue.destinations.show');
+Route::get('/hotels/{destination}/{hotel}', [HbxCatalogueController::class, 'hotel'])->name('catalogue.hotels.show');
+Route::get('/sitemap.xml', [HbxCatalogueController::class, 'sitemap'])->name('catalogue.sitemap');
 Route::post('/rate-checks', [RateCheckController::class, 'store'])->middleware('throttle:booking-submission')->name('rate-checks.store');
 Route::get('/rate-checks/{rateCheck}', [RateCheckController::class, 'show'])->name('rate-checks.show');
 Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
@@ -33,5 +47,8 @@ Route::get('/documents/receipts/{number}', [DocumentController::class, 'receipt'
 Route::get('/verify/voucher/{token}', [VerificationController::class, 'voucher'])->middleware('throttle:document-verification')->name('verify.voucher');
 Route::get('/verify/invoice/{token}', [VerificationController::class, 'invoice'])->middleware('throttle:document-verification')->name('verify.invoice');
 Route::get('/verify/receipt/{token}', [VerificationController::class, 'receipt'])->middleware('throttle:document-verification')->name('verify.receipt');
+Route::get('/admin/bookings/{booking}/voucher', BookingVoucherController::class)->middleware('auth')->name('admin.bookings.voucher');
+Route::get('/admin/bookings/{booking}/reconciliation', BookingReconciliationController::class)->middleware('auth')->name('admin.bookings.reconciliation');
+Route::post('/admin/bookings/{booking}/reconciliation/resolve', [BookingReconciliationController::class, 'resolve'])->middleware('auth')->name('admin.bookings.reconciliation.resolve');
 Route::get('/admin/payment-evidence/{evidence}', [PaymentEvidenceController::class, 'show'])->middleware(['signed', 'throttle:evidence-downloads'])->name('admin.payment-evidence.show');
 Route::get('/hotels/{hotel}', [HotelSearchController::class, 'show'])->name('hotels.show');

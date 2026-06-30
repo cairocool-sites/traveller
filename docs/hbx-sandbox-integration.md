@@ -55,14 +55,14 @@ The adapter implements:
 - CheckRate: `POST /hotel-api/1.0/checkrates`
 - Booking: `POST /hotel-api/1.0/bookings`
 - Booking lookup: `GET /hotel-api/1.0/bookings/{reference}`
-- Cancellation: `DELETE /hotel-api/1.0/bookings/{reference}`
+- Cancellation: `DELETE /hotel-api/1.0/bookings/{reference}?cancellationFlag=CANCELLATION`
 - Health/status: `GET /hotel-api/1.0/status`
 
 Automated tests use Laravel HTTP fakes and never call live HBX.
 
 ## Availability Mapping
 
-HBX destination, dates, occupancy, nationality, currency, hotel code, hotel name, category/star signal, coordinates, room codes, board basis, prices, cancellation policies, rate type, allotment, and rate keys are normalized into the existing DTOs.
+HBX destination, dates, occupancy, nationality, currency, hotel code, hotel name, category/star signal, coordinates, room codes, board basis, prices, cancellation policies, rate type, allotment, and rate keys are normalized into the existing DTOs. When the content-mapping layer supplies explicit HBX hotel codes, availability requests send `hotels.hotel` and do not also send a destination filter.
 
 Public pages use public hotel/rate tokens. HBX hotel codes and rate keys are retained only in server-side snapshots needed for CheckRate and booking.
 
@@ -78,7 +78,7 @@ Booking uses existing supplier idempotency records. The adapter never retries bo
 
 ## Cancellation
 
-Cancellation uses existing supplier idempotency records. The adapter never retries cancellation blindly. Penalties are normalized when HBX returns them. Timeout or unknown cancellation results require manual review.
+Cancellation uses existing supplier idempotency records. The adapter never retries cancellation blindly. The live cancellation call uses the official `cancellationFlag=CANCELLATION` query parameter; `SIMULATION` remains available only through explicit internal metadata and is not used by automated customer flows. Penalties are normalized when HBX returns them. Timeout or unknown cancellation results require manual review.
 
 ## Logging and Redaction
 
@@ -162,3 +162,15 @@ Before production certification, HBX documentation and account-specific requirem
 - Hotel content mapping to canonical hotels remains a future supplier-mapping phase.
 - Public search includes HBX only if `travel.public_search.suppliers` is configured to include `hbx_hotels`.
 - The adapter provides Phase 11 normalization foundations and must be expanded during certification.
+
+## Hotels API Suite Capability Registry
+
+Phase 14 adds a persisted HBX capability matrix in `hbx_api_capabilities`. It separates implementation status from HBX account authorization, admin enablement, public enablement, sandbox testing, and production activation.
+
+Refresh/display the matrix without making HBX calls:
+
+```bash
+php artisan hbx:api-suite:status
+```
+
+The admin resource `HBX API capabilities` is read-only for standard users and never displays credentials, signatures, raw payloads, rate keys, or card data.

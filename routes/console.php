@@ -29,3 +29,9 @@ Artisan::command('bookings:expire-drafts', function (): int {
 
 Schedule::command('ops:scheduler-heartbeat')->everyMinute();
 Schedule::command('ops:cleanup')->dailyAt('02:15')->withoutOverlapping();
+Schedule::command('hbx:content:sync --resource=hotels --country='.config('travel.hbx.public_country', 'EG').' --last-update-time=yesterday --page-limit=5')
+    ->dailyAt('03:30')
+    ->withoutOverlapping();
+Schedule::command('hbx:content:sync --resource=destinations --country='.config('travel.hbx.public_country', 'EG').' --page-limit=5')
+    ->weeklyOn(1, '04:00')
+    ->withoutOverlapping();

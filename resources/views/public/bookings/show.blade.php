@@ -1,14 +1,29 @@
 <x-layouts.public :meta-title="$metaTitle" :meta-description="$metaDescription">
     <section class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
         <div class="cct-card p-6 sm:p-8">
-            <p class="cct-badge bg-[#14B8A6]/15 text-[#0F766E]">{{ __('public.booking.confirmation_title') }}</p>
+            @php($identityUnresolved = $booking->hasUnresolvedSupplierIdentity())
+            <p class="cct-badge bg-[#14B8A6]/15 text-[#0F766E]">
+                {{ $identityUnresolved ? __('public.booking.under_review_heading') : ($booking->supplier_status === 'confirmed' ? __('public.booking.confirmed_heading') : __('public.booking.confirmation_title')) }}
+            </p>
             <h1 class="mt-4 text-3xl font-black text-[#0B1F33]">{{ $booking->booking_reference }}</h1>
             <p class="mt-3 rounded-2xl bg-blue-50 p-4 text-sm font-semibold text-blue-900">{{ __('public.booking.sandbox_notice') }}</p>
 
+            @if ($identityUnresolved)
+                <div class="mt-6 rounded-2xl border border-amber-300 bg-amber-50 p-5 text-sm font-semibold text-amber-950">
+                    <p>{{ __('public.booking.identity_review_notice') }}</p>
+                    <p class="mt-2">{{ __('public.payments.booking_reference') }}: {{ $booking->booking_reference }}</p>
+                    <p class="mt-2">{{ __('public.booking.support_notice') }}</p>
+                </div>
+            @else
+
             <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <div class="rounded-2xl border border-slate-200 bg-[#F6F8FB] p-4">
-                    <p class="text-sm font-bold text-slate-500">{{ __('public.booking.status') }}</p>
-                    <p class="mt-1 text-lg font-black text-[#0B1F33]">{{ $booking->status->value }}</p>
+                    <p class="text-sm font-bold text-slate-500">{{ __('public.booking.supplier_status') }}</p>
+                    <p class="mt-1 text-lg font-black text-[#0B1F33]">{{ __('public.booking.supplier_statuses.'.($booking->supplier_status ?: 'pending')) }}</p>
+                </div>
+                <div class="rounded-2xl border border-slate-200 bg-[#F6F8FB] p-4">
+                    <p class="text-sm font-bold text-slate-500">{{ __('public.booking.payment_status') }}</p>
+                    <p class="mt-1 text-lg font-black text-[#0B1F33]">{{ __('public.booking.payment_statuses.'.$booking->payment_status->value) }}</p>
                 </div>
                 <div class="rounded-2xl border border-slate-200 bg-[#F6F8FB] p-4">
                     <p class="text-sm font-bold text-slate-500">{{ __('public.booking.total') }}</p>
@@ -23,7 +38,8 @@
             <div class="mt-6 rounded-2xl border border-slate-200 p-5">
                 <h2 class="text-xl font-black text-[#0B1F33]">{{ $booking->hotel_snapshot['name'] ?? __('public.nav.hotels') }}</h2>
                 <dl class="mt-4 grid gap-3 text-sm font-semibold text-slate-600 sm:grid-cols-2">
-                    <div><dt class="text-slate-500">{{ __('public.booking.stay_dates') }}</dt><dd class="mt-1 text-[#0B1F33]">{{ $booking->check_in->toDateString() }} - {{ $booking->check_out->toDateString() }}</dd></div>
+                    <div><dt class="text-slate-500">{{ __('public.booking.check_in') }}</dt><dd class="mt-1 text-[#0B1F33]" dir="ltr">{{ $booking->check_in->toDateString() }}</dd></div>
+                    <div><dt class="text-slate-500">{{ __('public.booking.check_out') }}</dt><dd class="mt-1 text-[#0B1F33]" dir="ltr">{{ $booking->check_out->toDateString() }}</dd></div>
                     <div><dt class="text-slate-500">{{ __('public.details.rooms') }}</dt><dd class="mt-1 text-[#0B1F33]">{{ $booking->room_snapshot['room_name'] ?? '-' }}</dd></div>
                     <div><dt class="text-slate-500">{{ __('public.details.board') }}</dt><dd class="mt-1 text-[#0B1F33]">{{ $booking->room_snapshot['board_basis'] ?? '-' }}</dd></div>
                     <div><dt class="text-slate-500">{{ __('public.booking.occupancy') }}</dt><dd class="mt-1 text-[#0B1F33]">{{ $booking->adults_count }} {{ __('public.search.adults') }} / {{ $booking->children_count }} {{ __('public.search.children') }}</dd></div>
@@ -44,6 +60,7 @@
             @endif
             @if ($booking->status === \App\Enums\BookingStatus::Confirmed)
                 <a href="{{ route('cancellations.create', ['booking' => $booking->public_uuid, 'locale' => app()->getLocale()]) }}" class="mt-4 inline-flex rounded border border-slate-300 px-5 py-2 text-sm font-semibold text-slate-800">{{ __('public.cancellations.title') }}</a>
+            @endif
             @endif
             <p class="mt-6 text-sm font-semibold text-slate-500">{{ __('public.booking.confirmation_note') }}</p>
         </div>

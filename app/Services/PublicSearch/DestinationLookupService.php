@@ -5,8 +5,11 @@ namespace App\Services\PublicSearch;
 use App\Models\Area;
 use App\Models\City;
 use App\Models\Country;
+use App\Models\HbxDestination;
+use App\Models\HbxHotel;
 use App\Services\PublicSearch\Data\DestinationOption;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
@@ -14,7 +17,7 @@ class DestinationLookupService
 {
     public function search(string $term, string $locale = 'ar', int $limit = 8): Collection
     {
-        if (! Schema::hasTable('cities')) {
+        if (! Schema::hasTable('cities') && ! Schema::hasTable('hbx_destinations')) {
             return collect();
         }
 
@@ -24,12 +27,32 @@ class DestinationLookupService
             return collect();
         }
 
-        return collect()
+        $cacheKey = "hbx-autocomplete:{$locale}:".mb_strtolower($term).":{$limit}";
+        $items = Cache::remember($cacheKey, now()->addMinutes(10), fn (): array => collect()
+            ->merge($this->hbxDestinations($term, $locale, $limit))
+            ->merge($this->hbxHotels($term, $locale, $limit))
             ->merge($this->cities($term, $locale, $limit))
             ->merge($this->areas($term, $locale, $limit))
             ->merge($this->countries($term, $locale, $limit))
             ->take($limit)
-            ->values();
+            ->values()
+            ->map(fn (DestinationOption $option): array => $option->jsonSerialize())
+            ->all());
+
+        if (! is_array($items)) {
+            Cache::forget($cacheKey);
+
+            return $this->search($term, $locale, $limit);
+        }
+
+        return collect($items)
+            ->map(fn (array $item): DestinationOption => new DestinationOption(
+                $item['token'],
+                $item['type'],
+                (int) $item['id'],
+                $item['label'],
+                $item['supplier_identifier'],
+            ));
     }
 
     public function resolve(string $token, string $locale = 'ar'): DestinationOption
@@ -37,6 +60,8 @@ class DestinationLookupService
         [$type, $id] = array_pad(explode(':', $token, 2), 2, null);
 
         $option = match ($type) {
+            'hbx_destination' => $this->hbxDestination((int) $id, $locale),
+            'hbx_hotel' => $this->hbxHotel((int) $id, $locale),
             'city' => $this->city((int) $id, $locale),
             'area' => $this->area((int) $id, $locale),
             'country' => $this->country((int) $id, $locale),
@@ -54,6 +79,18 @@ class DestinationLookupService
 
     public function featured(string $locale = 'ar', int $limit = 6): Collection
     {
+        if (Schema::hasTable('hbx_destinations') && HbxDestination::query()->where('public_enabled', true)->where('supplier_active', true)->exists()) {
+            return HbxDestination::query()
+                ->where('supplier_active', true)
+                ->where('public_enabled', true)
+                ->where('country_code', config('travel.hbx.public_country', 'EG'))
+                ->orderBy('display_order')
+                ->orderBy('destination_name')
+                ->limit($limit)
+                ->get()
+                ->map(fn (HbxDestination $destination): DestinationOption => $this->hbxDestinationOption($destination, $locale));
+        }
+
         if (! Schema::hasTable('cities')) {
             return collect();
         }
@@ -105,6 +142,84 @@ class DestinationLookupService
             ->map(fn (Country $country): DestinationOption => $this->countryOption($country, $locale));
     }
 
+    private function hbxDestinations(string $term, string $locale, int $limit): Collection
+    {
+        if (! Schema::hasTable('hbx_destinations')) {
+            return collect();
+        }
+
+        $normalized = $this->normalizeArabic($term);
+        $variants = $this->searchVariants($term);
+
+        return HbxDestination::query()
+            ->where('supplier_active', true)
+            ->where('public_enabled', true)
+            ->where(function ($query) use ($variants, $normalized): void {
+                foreach ($variants as $variant) {
+                    $query->orWhere('destination_name', 'like', "%{$variant}%")
+                        ->orWhere('name_en', 'like', "%{$variant}%")
+                        ->orWhere('name_ar', 'like', "%{$variant}%");
+                }
+
+                $query->orWhere('slug', 'like', "%{$normalized}%");
+            })
+            ->orderBy('display_order')
+            ->orderBy('destination_name')
+            ->limit($limit)
+            ->get()
+            ->map(fn (HbxDestination $destination): DestinationOption => $this->hbxDestinationOption($destination, $locale));
+    }
+
+    private function hbxHotels(string $term, string $locale, int $limit): Collection
+    {
+        if (! Schema::hasTable('hbx_hotels')) {
+            return collect();
+        }
+
+        $normalized = $this->normalizeArabic($term);
+        $variants = $this->searchVariants($term);
+
+        return HbxHotel::query()
+            ->where('supplier_active', true)
+            ->where('public_enabled', true)
+            ->where(function ($query) use ($variants, $normalized): void {
+                foreach ($variants as $variant) {
+                    $query->orWhere('hotel_name', 'like', "%{$variant}%")
+                        ->orWhere('name_en', 'like', "%{$variant}%")
+                        ->orWhere('name_ar', 'like', "%{$variant}%");
+                }
+
+                $query->orWhere('slug', 'like', "%{$normalized}%");
+            })
+            ->orderBy('display_order')
+            ->orderBy('hotel_name')
+            ->limit($limit)
+            ->get()
+            ->map(fn (HbxHotel $hotel): DestinationOption => $this->hbxHotelOption($hotel, $locale));
+    }
+
+    private function hbxDestination(int $id, string $locale): ?DestinationOption
+    {
+        $destination = HbxDestination::query()
+            ->whereKey($id)
+            ->where('supplier_active', true)
+            ->where('public_enabled', true)
+            ->first();
+
+        return $destination ? $this->hbxDestinationOption($destination, $locale) : null;
+    }
+
+    private function hbxHotel(int $id, string $locale): ?DestinationOption
+    {
+        $hotel = HbxHotel::query()
+            ->whereKey($id)
+            ->where('supplier_active', true)
+            ->where('public_enabled', true)
+            ->first();
+
+        return $hotel ? $this->hbxHotelOption($hotel, $locale) : null;
+    }
+
     private function city(int $id, string $locale): ?DestinationOption
     {
         $city = City::query()->with('country')->whereKey($id)->where('is_active', true)->whereHas('country', fn ($query) => $query->where('is_active', true))->first();
@@ -147,5 +262,41 @@ class DestinationLookupService
         $name = $locale === 'ar' ? $country->name_ar : $country->name_en;
 
         return new DestinationOption("country:{$country->id}", 'country', $country->id, $name, $country->name_en);
+    }
+
+    private function hbxDestinationOption(HbxDestination $destination, string $locale): DestinationOption
+    {
+        $name = $locale === 'ar'
+            ? ($destination->name_ar ?: $destination->destination_name)
+            : ($destination->name_en ?: $destination->destination_name);
+
+        return new DestinationOption("hbx_destination:{$destination->id}", 'hbx_destination', $destination->id, $name, $destination->destination_code);
+    }
+
+    private function hbxHotelOption(HbxHotel $hotel, string $locale): DestinationOption
+    {
+        $name = $locale === 'ar'
+            ? ($hotel->name_ar ?: $hotel->hotel_name)
+            : ($hotel->name_en ?: $hotel->hotel_name);
+
+        return new DestinationOption("hbx_hotel:{$hotel->id}", 'hbx_hotel', $hotel->id, $name, $hotel->hotel_code);
+    }
+
+    private function normalizeArabic(string $value): string
+    {
+        return str_replace(['أ', 'إ', 'آ', 'ة', 'ى'], ['ا', 'ا', 'ا', 'ه', 'ي'], mb_strtolower($value));
+    }
+
+    private function searchVariants(string $term): array
+    {
+        $normalized = $this->normalizeArabic($term);
+
+        return array_values(array_unique(array_filter([
+            $term,
+            $normalized,
+            preg_replace('/ه$/u', 'ة', $normalized),
+            str_replace('ا', 'أ', $normalized),
+            str_replace('ا', 'إ', $normalized),
+        ])));
     }
 }

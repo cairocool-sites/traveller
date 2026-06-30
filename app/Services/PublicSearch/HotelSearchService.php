@@ -5,6 +5,7 @@ namespace App\Services\PublicSearch;
 use App\Enums\SupplierErrorType;
 use App\Enums\SupplierOperation;
 use App\Models\Currency;
+use App\Models\HbxHotel;
 use App\Models\SearchSession;
 use App\Models\Supplier;
 use App\Services\Supplier\CorrelationIdFactory;
@@ -34,6 +35,7 @@ class HotelSearchService
         private readonly SupplierOperationLogger $logger,
         private readonly CancellationSummaryService $cancellations,
         private readonly OfferPricingService $pricing,
+        private readonly SupplierDestinationResolver $supplierDestinations,
     ) {}
 
     public function search(array $criteria, ?string $anonymousSessionId = null): SearchSession
@@ -47,9 +49,12 @@ class HotelSearchService
 
         foreach ($this->eligibleSuppliers() as $supplier) {
             try {
+                $supplierDestination = $supplier->code === 'hbx_hotels'
+                    ? $this->supplierDestinations->forHbx($destination)
+                    : ['destination_code' => $destination->supplierIdentifier, 'hotel_codes' => []];
                 $adapter = $this->suppliers->resolve($supplier->code, SupplierOperation::Search);
                 $response = $adapter->search(new HotelSearchRequestData(
-                    destinationIdentifier: $destination->supplierIdentifier,
+                    destinationIdentifier: $supplierDestination['destination_code'],
                     checkIn: CarbonImmutable::parse($validated['check_in']),
                     checkOut: CarbonImmutable::parse($validated['check_out']),
                     rooms: $rooms,
@@ -58,14 +63,25 @@ class HotelSearchService
                     nationality: $validated['nationality'] ?? null,
                     residencyCountry: $validated['residency_country'] ?? null,
                     correlationId: $correlationId,
-                    metadata: array_filter(['scenario' => $criteria['scenario'] ?? null]),
+                    metadata: array_filter([
+                        'scenario' => $criteria['scenario'] ?? null,
+                        'hotel_codes' => $supplierDestination['hotel_codes'],
+                    ]),
                 ));
 
                 $warnings = array_merge($warnings, $response->warnings);
                 $results = array_merge($results, $this->normalizeHotels($response->hotels, $validated['locale'], $response->supplierCode));
+
+                if ($supplier->code === 'hbx_hotels') {
+                    break;
+                }
             } catch (Throwable $exception) {
                 $warnings[] = $this->customerWarning($exception);
                 $this->logFailure($supplier, $correlationId, $criteria, $exception);
+
+                if ($supplier->code === 'hbx_hotels') {
+                    break;
+                }
             }
         }
 
@@ -220,6 +236,9 @@ class HotelSearchService
     private function normalizeHotels(array $hotels, string $locale, string $supplierCode): array
     {
         return collect($hotels)->map(function (SupplierHotelData $hotel) use ($locale, $supplierCode): array {
+            $localHbx = $supplierCode === 'hbx_hotels'
+                ? HbxHotel::query()->with(['images', 'facilities'])->where('supplier_code', 'hbx_hotels')->where('hotel_code', $hotel->supplierHotelId)->first()
+                : null;
             $rates = collect($hotel->rooms)->map(function ($rate) use ($locale): array {
                 $sellingTotal = $this->pricing->sellingPrice($rate->totalAmount);
 
@@ -252,11 +271,12 @@ class HotelSearchService
                 'supplier_hotel_id' => $hotel->supplierHotelId,
                 'supplier_code' => $supplierCode,
                 'canonical_hotel_id' => $hotel->canonicalHotelId,
-                'name' => $hotel->name,
+                'name' => $localHbx ? $this->localizedHbxHotelName($localHbx, $locale) : $hotel->name,
                 'star_rating' => $hotel->starRating,
-                'location' => $hotel->location,
+                'location' => $localHbx?->address ?: $hotel->location,
                 'coordinates' => $hotel->coordinates,
-                'facilities' => $hotel->facilities,
+                'facilities' => $localHbx ? $localHbx->facilities->take(6)->pluck('description')->filter()->values()->all() : $hotel->facilities,
+                'primary_image' => $localHbx?->images->firstWhere('is_primary', true)?->path ?? $localHbx?->images->first()?->path,
                 'rates' => $rates,
                 'minimum_price' => $minimumRate['total'] ?? $hotel->minimumTotalPrice?->jsonSerialize(),
                 'minimum_price_minor' => $minimumRate['total']['minor_amount'] ?? $hotel->minimumTotalPrice?->minorAmount ?? 0,
@@ -264,6 +284,13 @@ class HotelSearchService
                 'taxes_known' => $hotel->taxesAndFees !== [],
             ];
         })->all();
+    }
+
+    private function localizedHbxHotelName(HbxHotel $hotel, string $locale): string
+    {
+        return $locale === 'ar'
+            ? ($hotel->name_ar ?: $hotel->hotel_name)
+            : ($hotel->name_en ?: $hotel->hotel_name);
     }
 
     private function customerWarning(Throwable $exception): string

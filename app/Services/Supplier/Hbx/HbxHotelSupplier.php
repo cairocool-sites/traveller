@@ -43,22 +43,19 @@ class HbxHotelSupplier implements HotelSupplierInterface
     public function search(HotelSearchRequestData $request): HotelSearchResultData
     {
         $correlationId = $this->correlationIds->make($request->correlationId);
+        $hotelCodes = $this->hotelCodes($request->metadata['hotel_codes'] ?? []);
         $payload = [
             'stay' => ['checkIn' => $request->checkIn->toDateString(), 'checkOut' => $request->checkOut->toDateString()],
-            'occupancies' => array_map(fn ($room): array => [
-                'rooms' => 1,
-                'adults' => $room->adults,
-                'children' => $room->children,
-                'paxes' => array_map(fn (int $age): array => ['type' => 'CH', 'age' => $age], $room->childAges),
-            ], $request->rooms),
-            'destination' => ['code' => $this->destinationCode($request->destinationIdentifier)],
+            'occupancies' => array_map(fn ($room): array => $this->occupancy($room), $request->rooms),
             'nationality' => $request->nationality,
             'currency' => $request->currency,
-            'language' => $request->locale,
+            'language' => $this->language($request->locale),
         ];
 
-        if (isset($request->metadata['hotel_codes']) && is_array($request->metadata['hotel_codes'])) {
-            $payload['hotels'] = ['hotel' => array_values($request->metadata['hotel_codes'])];
+        if ($hotelCodes !== []) {
+            $payload['hotels'] = ['hotel' => $hotelCodes];
+        } else {
+            $payload['destination'] = ['code' => $this->destinationCode($request->destinationIdentifier)];
         }
 
         $response = $this->client->request($this->supplier, SupplierOperation::Search, 'POST', '/hotel-api/1.0/hotels', array_filter($payload), $correlationId);
@@ -78,7 +75,7 @@ class HbxHotelSupplier implements HotelSupplierInterface
     public function getHotelDetails(HotelDetailsRequestData $request): HotelDetailsResultData
     {
         $correlationId = $this->correlationIds->make($request->correlationId);
-        $payload = ['hotels' => ['hotel' => [$request->supplierHotelId]], 'language' => $request->locale];
+        $payload = ['hotels' => ['hotel' => [$request->supplierHotelId]], 'language' => $this->language($request->locale)];
         $response = $this->client->request($this->supplier, SupplierOperation::HotelDetails, 'POST', '/hotel-api/1.0/hotels', $payload, $correlationId);
         $hotel = $this->normalizer->hotels($response['body'], $request->currency, [])[0] ?? null;
 
@@ -97,7 +94,7 @@ class HbxHotelSupplier implements HotelSupplierInterface
             ? new Money((int) $previousTotalSnapshot['minor_amount'], $request->currency)
             : null;
         $response = $this->client->request($this->supplier, SupplierOperation::CheckRate, 'POST', '/hotel-api/1.0/checkrates', [
-            'rooms' => [['rateKey' => $request->supplierRateKey]],
+            'rooms' => $this->rateKeyRooms($request->selectedRooms, $request->supplierRateKey),
         ], $correlationId);
         $rate = $this->normalizer->firstRate($response['body'], $request->currency, $request->occupancy);
 
@@ -131,8 +128,8 @@ class HbxHotelSupplier implements HotelSupplierInterface
         try {
             $response = $this->client->request($this->supplier, SupplierOperation::Book, 'POST', '/hotel-api/1.0/bookings', [
                 'holder' => ['name' => $request->leadGuest->firstName, 'surname' => $request->leadGuest->lastName],
-                'rooms' => [['rateKey' => $request->supplierRateKey, 'paxes' => $this->paxes($request)]],
-                'clientReference' => $request->idempotencyKey,
+                'rooms' => $this->bookingRooms($request),
+                'clientReference' => $this->clientReference($request->idempotencyKey),
                 'remark' => $request->specialRequests,
             ], $correlationId);
         } catch (SupplierTimeoutException) {
@@ -205,7 +202,13 @@ class HbxHotelSupplier implements HotelSupplierInterface
         }
 
         try {
-            $response = $this->client->request($this->supplier, SupplierOperation::Cancel, 'DELETE', '/hotel-api/1.0/bookings/'.$request->supplierBookingReference, [], $correlationId);
+            $flag = $request->metadata['cancellation_flag'] ?? null;
+            if (! in_array($flag, ['SIMULATION', 'CANCELLATION'], true)) {
+                throw new InvalidSupplierResponseException('HBX cancellation requires an explicit cancellation flag.', $correlationId);
+            }
+
+            $path = '/hotel-api/1.0/bookings/'.$request->supplierBookingReference.'?cancellationFlag='.$flag;
+            $response = $this->client->request($this->supplier, SupplierOperation::Cancel, 'DELETE', $path, [], $correlationId);
         } catch (SupplierTimeoutException) {
             $result = new SupplierCancellationResultData(false, CancellationSupplierStatus::Pending, null, null, null, config('travel.currency.default'), warnings: ['HBX cancellation outcome is uncertain after timeout; manual review is required.'], failureCode: 'hbx_cancellation_timeout', failureMessage: 'HBX cancellation timed out after submission.', requiresManualReview: true, correlationId: $correlationId);
             $this->idempotency->complete($this->supplier, SupplierOperation::Cancel, $request->idempotencyKey, $result->jsonSerialize());
@@ -264,15 +267,117 @@ class HbxHotelSupplier implements HotelSupplierInterface
         return (string) (config("services.hbx.destination_codes.{$normalized}") ?: $destinationIdentifier);
     }
 
+    private function occupancy(mixed $room): array
+    {
+        $childAges = array_values(array_map('intval', $room->childAges));
+        $payload = [
+            'rooms' => 1,
+            'adults' => $room->adults,
+            'children' => $room->children,
+        ];
+
+        if ($childAges !== []) {
+            $payload['paxes'] = array_map(fn (int $age): array => ['type' => 'CH', 'age' => $age], $childAges);
+        }
+
+        return $payload;
+    }
+
+    private function hotelCodes(mixed $codes): array
+    {
+        if (! is_array($codes)) {
+            return [];
+        }
+
+        return collect($codes)
+            ->map(fn (mixed $code): int => (int) trim((string) $code))
+            ->filter(fn (int $code): bool => $code > 0)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function language(string $locale): string
+    {
+        return match (strtolower($locale)) {
+            'ar', 'ara' => 'ARA',
+            default => 'ENG',
+        };
+    }
+
+    private function rateKeyRooms(array $selectedRooms, string $fallbackRateKey): array
+    {
+        $rooms = collect($selectedRooms)
+            ->map(fn (mixed $room): ?array => $this->rateKeyRoom($room, $fallbackRateKey))
+            ->filter()
+            ->values()
+            ->all();
+
+        return $rooms === [] ? [['rateKey' => $fallbackRateKey]] : $rooms;
+    }
+
+    private function rateKeyRoom(mixed $room, string $fallbackRateKey): ?array
+    {
+        $rateKey = is_array($room)
+            ? ($room['supplier_rate_key'] ?? $room['supplierRateKey'] ?? $room['rateKey'] ?? $fallbackRateKey)
+            : $fallbackRateKey;
+
+        $rateKey = trim((string) $rateKey);
+
+        return $rateKey === '' ? null : ['rateKey' => $rateKey];
+    }
+
+    private function bookingRooms(SupplierBookingRequestData $request): array
+    {
+        $paxes = $this->paxes($request);
+        $rooms = collect($request->rooms)
+            ->map(fn (): array => ['rateKey' => $request->supplierRateKey])
+            ->values()
+            ->all();
+
+        if ($rooms === []) {
+            $rooms = [['rateKey' => $request->supplierRateKey]];
+        }
+
+        return array_map(function (array $room, int $index) use ($paxes): array {
+            $roomId = $index + 1;
+            $room['paxes'] = array_values(array_filter(
+                $paxes,
+                fn (array $guest): bool => (int) $guest['roomId'] === $roomId
+            ));
+
+            if ($room['paxes'] === []) {
+                $room['paxes'] = $roomId === 1 ? $paxes : [];
+            }
+
+            return $room;
+        }, $rooms, array_keys($rooms));
+    }
+
+    private function clientReference(string $idempotencyKey): string
+    {
+        $reference = Str::of($idempotencyKey)->replaceMatches('/[^A-Za-z0-9_-]/', '')->limit(20, '')->toString();
+
+        return $reference !== '' ? $reference : strtoupper(substr(hash('sha1', $idempotencyKey), 0, 20));
+    }
+
     private function paxes(SupplierBookingRequestData $request): array
     {
-        return array_map(fn ($guest): array => [
-            'roomId' => 1,
-            'type' => $this->guestValue($guest, 'type') === 'child' ? 'CH' : 'AD',
-            'name' => $this->guestValue($guest, 'first_name') ?? '',
-            'surname' => $this->guestValue($guest, 'last_name') ?? '',
-            'age' => $this->guestValue($guest, 'age'),
-        ], $request->guests);
+        return array_map(function ($guest): array {
+            $payload = [
+                'roomId' => (int) ($this->guestValue($guest, 'room_id') ?? 1),
+                'type' => $this->guestValue($guest, 'type') === 'child' ? 'CH' : 'AD',
+                'name' => $this->guestValue($guest, 'first_name') ?? '',
+                'surname' => $this->guestValue($guest, 'last_name') ?? '',
+            ];
+
+            $age = $this->guestValue($guest, 'age');
+            if ($age !== null) {
+                $payload['age'] = (int) $age;
+            }
+
+            return $payload;
+        }, $request->guests);
     }
 
     private function guestValue(mixed $guest, string $key): mixed
@@ -286,6 +391,7 @@ class HbxHotelSupplier implements HotelSupplierInterface
             'last_name' => $guest->lastName ?? null,
             'type' => $guest->type->value ?? null,
             'age' => $guest->age ?? null,
+            'room_id' => $guest->roomId ?? null,
             default => null,
         };
     }

@@ -110,4 +110,9 @@ return [
         'soap_enabled' => (bool) env('TRAVEL_SUPPLIER_SOAP_ENABLED', false),
     ],
 
+    'hbx' => [
+        'public_country' => env('TRAVEL_HBX_PUBLIC_COUNTRY', 'EG'),
+        'autocomplete_limit' => (int) env('TRAVEL_HBX_AUTOCOMPLETE_LIMIT', 8),
+    ],
+
 ];

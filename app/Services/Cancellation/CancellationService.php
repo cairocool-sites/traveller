@@ -90,7 +90,7 @@ class CancellationService
                     idempotencyKey: $cancellation->idempotency_key,
                     cancellationReason: $cancellation->customer_reason,
                     correlationId: $cancellation->correlation_id,
-                    metadata: ['scenario' => $payload['scenario'] ?? null],
+                    metadata: ['scenario' => $payload['scenario'] ?? null, 'cancellation_flag' => 'CANCELLATION'],
                 ));
         } catch (SupplierException) {
             return $this->statuses->transition($cancellation, CancellationStatus::ManualReview, 'Supplier cancellation outcome is uncertain.');

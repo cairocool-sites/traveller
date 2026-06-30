@@ -6,7 +6,10 @@ use App\Enums\RateRefundability;
 use App\Enums\SupplierOperation;
 use App\Enums\SupplierStatus;
 use App\Models\City;
+use App\Models\HbxDestination;
+use App\Models\HbxHotel;
 use App\Models\Supplier;
+use App\Models\SupplierDestinationMapping;
 use App\Models\SupplierOperationLog;
 use App\Services\PublicSearch\HotelSearchService;
 use App\Services\Supplier\Contracts\HotelSupplierInterface;
@@ -50,6 +53,7 @@ beforeEach(function (): void {
     $this->seed(SupplierFoundationSeeder::class);
 
     Supplier::query()->where('code', 'hbx_hotels')->update(['status' => SupplierStatus::Active]);
+    hbxSupplierSeedMapping();
 });
 
 afterEach(function (): void {
@@ -148,7 +152,30 @@ it('normalizes hbx availability with bookable and recheck rates', function () {
 
     Http::assertSent(fn ($request): bool => $request->hasHeader('Api-key')
         && $request->hasHeader('X-Signature')
-        && $request->hasHeader('Accept', 'application/json'));
+        && $request->hasHeader('Accept', 'application/json')
+        && data_get($request->data(), 'destination.code') === 'CAI'
+        && data_get($request->data(), 'occupancies.0.paxes') === null);
+});
+
+it('uses hbx hotel-code availability without mixing destination filters', function () {
+    Http::fake(['*' => Http::response(availabilityPayload(), 200)]);
+
+    hbx()->search(new HotelSearchRequestData(
+        destinationIdentifier: 'CAI',
+        checkIn: now()->toImmutable()->addDay(),
+        checkOut: now()->toImmutable()->addDays(2),
+        rooms: [new RoomOccupancyData(1, 1, [8])],
+        currency: 'EGP',
+        locale: 'ar',
+        metadata: ['hotel_codes' => ['1001', '1001', '']],
+    ));
+
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/hotels'
+        && $request->method() === 'POST'
+        && data_get($request->data(), 'destination.code') === null
+        && data_get($request->data(), 'hotels.hotel') === [1001]
+        && data_get($request->data(), 'occupancies.0.paxes.0.type') === 'CH'
+        && data_get($request->data(), 'occupancies.0.paxes.0.age') === 8);
 });
 
 it('normalizes hbx check rate and detects price changes', function () {
@@ -166,6 +193,10 @@ it('normalizes hbx check rate and detects price changes', function () {
         ->and($result->priceChanged)->toBeTrue()
         ->and($result->confirmedTotal?->minorAmount)->toBe(13000)
         ->and($result->confirmedRateKey)->toBe('hbx-rate-checked');
+
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/checkrates'
+        && $request->method() === 'POST'
+        && data_get($request->data(), 'rooms') === [['rateKey' => 'hbx-rate-bookable']]);
 });
 
 it('normalizes booking confirmation', function () {
@@ -176,6 +207,15 @@ it('normalizes booking confirmation', function () {
     expect($confirmed->successful)->toBeTrue()
         ->and($confirmed->status)->toBe(BookingSupplierStatus::Confirmed)
         ->and($confirmed->supplierBookingReference)->toBe('HBX-1');
+
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/bookings'
+        && $request->method() === 'POST'
+        && data_get($request->data(), 'holder.name') === 'Ali'
+        && data_get($request->data(), 'clientReference') === 'idem-confirmed'
+        && data_get($request->data(), 'rooms.0.rateKey') === 'hbx-rate-checked'
+        && data_get($request->data(), 'rooms.0.paxes.0.roomId') === 1
+        && data_get($request->data(), 'rooms.0.paxes.0.type') === 'AD'
+        && data_get($request->data(), 'rooms.0.paxes.0.age') === null);
 });
 
 it('normalizes booking rejection', function () {
@@ -209,15 +249,18 @@ it('normalizes booking lookup reconciliation', function () {
 it('normalizes cancellation success, penalty, and unknown timeout', function () {
     Http::fake(['*' => Http::response(['booking' => ['reference' => 'HBX-1', 'status' => 'CANCELLED', 'currency' => 'EGP', 'cancellationAmount' => '30.00']], 200)]);
 
-    $cancelled = hbx()->cancel(new SupplierCancellationRequestData('HBX-1', 'cancel-1'));
+    $cancelled = hbx()->cancel(new SupplierCancellationRequestData('HBX-1', 'cancel-1', metadata: ['cancellation_flag' => 'CANCELLATION']));
 
     expect($cancelled->successful)->toBeTrue()
         ->and($cancelled->status)->toBe(CancellationSupplierStatus::Cancelled)
         ->and($cancelled->penaltyAmount?->minorAmount)->toBe(3000);
 
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/bookings/HBX-1?cancellationFlag=CANCELLATION'
+        && $request->method() === 'DELETE');
+
     Http::fake(fn () => throw new ConnectionException('timeout'));
 
-    $unknown = hbx()->cancel(new SupplierCancellationRequestData('HBX-2', 'cancel-2'));
+    $unknown = hbx()->cancel(new SupplierCancellationRequestData('HBX-2', 'cancel-2', metadata: ['cancellation_flag' => 'CANCELLATION']));
 
     expect($unknown->requiresManualReview)->toBeTrue()
         ->and($unknown->status)->toBe(CancellationSupplierStatus::Pending);
@@ -283,6 +326,26 @@ function searchRequest(): HotelSearchRequestData
         rooms: [new RoomOccupancyData(2)],
         currency: 'EGP',
         locale: 'ar',
+    );
+}
+
+function hbxSupplierSeedMapping(): void
+{
+    $city = City::query()->where('name_en', 'Cairo')->first() ?? City::query()->where('is_active', true)->firstOrFail();
+
+    HbxDestination::query()->updateOrCreate(
+        ['supplier_code' => 'hbx_hotels', 'destination_code' => 'CAI'],
+        ['destination_name' => 'Cairo', 'country_code' => 'EG', 'is_active' => true, 'synced_at' => now()],
+    );
+
+    HbxHotel::query()->updateOrCreate(
+        ['supplier_code' => 'hbx_hotels', 'hotel_code' => '1001'],
+        ['destination_code' => 'CAI', 'hotel_name' => 'HBX Cairo Sandbox Hotel', 'category_code' => '5EST', 'star_rating' => 5, 'is_active' => true, 'synced_at' => now()],
+    );
+
+    SupplierDestinationMapping::query()->updateOrCreate(
+        ['local_entity_type' => 'city', 'local_entity_id' => $city->id, 'supplier_code' => 'hbx_hotels', 'supplier_destination_code' => 'CAI'],
+        ['status' => 'confirmed', 'confidence' => 100, 'manually_confirmed' => true, 'is_active' => true],
     );
 }
 
