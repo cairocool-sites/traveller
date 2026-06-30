@@ -19,6 +19,10 @@ HBX reviews these areas before approving go-live:
 
 Before requesting certification, the project owner must also prepare the workflow explanation, commercial decisions, certification URL and access details, payment notes if needed, an HBX-only testing guide if other suppliers are present, and any known deviations.
 
+Working package template:
+
+[docs/hbx-certification/certification-request-package.md](hbx-certification/certification-request-package.md)
+
 ## Local Readiness Command
 
 Run:
@@ -38,6 +42,8 @@ It reports:
 - Content API readiness and known live Sandbox limitations.
 - Live-environment status.
 - Manual certification evidence still required.
+- Certification request package items.
+- Open blocker and review items.
 
 ## Current Status
 
@@ -71,6 +77,13 @@ Live:
 - Live booking and live cancellation are blocked.
 - The official live test must wait for HBX live keys and explicit owner approval.
 - Do not select NRF or penalty-bearing rates for any future live test unless HBX and the project owner explicitly approve the risk.
+
+Staging:
+
+- Planned staging URL: `https://travel.cairocool.com`.
+- Staging should run with `APP_DEBUG=false`.
+- Keep `HBX_SANDBOX_BOOKING_ENABLED=false` until a single controlled Sandbox booking is explicitly approved.
+- Do not use the production HBX endpoint.
 
 ## Not Certification Complete
 

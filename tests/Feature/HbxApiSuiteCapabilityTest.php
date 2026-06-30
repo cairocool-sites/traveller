@@ -58,6 +58,10 @@ it('prints hbx certification readiness without making supplier requests', functi
         ->expectsOutputToContain('Workflow')
         ->expectsOutputToContain('Voucher')
         ->expectsOutputToContain('Live environment')
+        ->expectsOutputToContain('Certification package item')
+        ->expectsOutputToContain('https://travel.cairocool.com')
+        ->expectsOutputToContain('Open blocker or review item')
+        ->expectsOutputToContain('HBX Content API')
         ->assertSuccessful();
 
     $output = Artisan::output();

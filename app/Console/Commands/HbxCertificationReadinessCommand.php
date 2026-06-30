@@ -26,6 +26,8 @@ class HbxCertificationReadinessCommand extends Command
         $this->line('No booking, modification, cancellation, or production request was sent.');
 
         $this->table(['Area', 'Requirement', 'Status', 'Evidence'], $items);
+        $this->table(['Certification package item', 'Current owner action'], $this->packageItems());
+        $this->table(['Open blocker or review item', 'Resolution needed'], $this->openItems());
 
         $blocked = collect($items)->contains(fn (array $item): bool => $item[2] === 'blocked');
         $this->line('Overall: '.($blocked ? 'not ready for certification request' : 'ready for manual evidence review'));
@@ -56,6 +58,32 @@ class HbxCertificationReadinessCommand extends Command
             ['Content', 'Content API supplier errors tracked', $this->partial($this->latestHotelsLog() !== null), $this->latestHotelsLogEvidence($contentHotels?->last_sanitized_failure)],
             ['Live environment', 'Live booking and cancellation', 'blocked', 'Out of scope until HBX grants live keys and owner approves a real non-NRF live test.'],
             ['Certification request', 'Information package ready', 'manual', 'Prepare workflow, commercial decisions, certification URL/access, payment notes, HBX-only testing guide, and known deviations.'],
+        ];
+    }
+
+    private function packageItems(): array
+    {
+        return [
+            ['Workflow explanation', 'Prepare a short tester guide covering search, hotel details, CheckRate, booking, voucher, and support/review states.'],
+            ['Commercial decisions', 'Confirm whether commissions, markups, taxes, fees, and customer selling prices are final for staging review.'],
+            ['Certification URL', 'Use the staging subdomain only after deployment: https://travel.cairocool.com.'],
+            ['Access details', 'Provide a test admin/customer path only if the deployed staging flow requires authentication.'],
+            ['Payment notes', 'State that online payment is out of scope; manual payment review is the current supported flow.'],
+            ['HBX-only guide', 'Explain how reviewers can test HBX results without Mock fallback or other suppliers.'],
+            ['Known deviations', 'Disclose Content API HTTP 500/SYSTEM_ERROR and the disputed Sandbox booking identity as open support items.'],
+        ];
+    }
+
+    private function openItems(): array
+    {
+        return [
+            ['HBX Content API', 'Wait for HBX support response before using bulk hotel/detail content failures as certification evidence.'],
+            ['Disputed Sandbox booking', 'Keep under manual review and exclude from certification evidence.'],
+            ['Clean Sandbox booking evidence', 'Create exactly one new controlled Sandbox booking only after HBX blockers are resolved and owner approves.'],
+            ['Voucher evidence', 'Generate from a clean confirmed booking and manually verify fields against HBX certification expectations.'],
+            ['Legal and support copy', 'Review placeholder terms, privacy, payment, cancellation, and support pages before public launch.'],
+            ['Staging deployment', 'Deploy to the subdomain with APP_DEBUG=false and HBX_SANDBOX_BOOKING_ENABLED=false until explicit booking verification.'],
+            ['Live environment', 'Do not request live go-live or perform live tests until HBX grants live credentials and owner approves a non-NRF test.'],
         ];
     }
 
