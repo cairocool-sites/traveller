@@ -54,9 +54,12 @@ Implemented now:
 - Availability
 - CheckRate
 - Booking confirmation behind sandbox guard
+- Booking list with official pagination and filters
 - Booking detail/reconciliation
+- Booking modification simulation/update adapter support
 - Cancellation simulation endpoint support through explicit internal metadata
 - Cancellation endpoint support through protected cancellation service
+- Reconfirmation retrieval with official filters
 - Internal voucher support for confirmed sandbox bookings
 - Content countries endpoint validation
 - Content destinations sync
@@ -65,9 +68,6 @@ Implemented now:
 
 Tracked but not yet implemented/enabled:
 
-- Booking list
-- Booking modification/update
-- Reconfirmation retrieval
 - Payment-data and 3DS orchestration
 - Full Content API master/descriptive resource catalogue
 - Hotel Cache API FULL/update import
@@ -124,7 +124,8 @@ Content synchronization records safe batches in `hbx_content_sync_batches`. Admi
 - Public card collection remains disabled.
 - `paymentDataRequired=true` rates must not be discarded permanently; they must be routed to a disabled payment-data capability until the account and PCI design are approved.
 - No automatic retry is allowed for booking, modification, or cancellation after an ambiguous timeout.
-- Cancellation and modification require explicit admin authorization and confirmation.
+- Cancellation first runs `cancellationFlag=SIMULATION` for HBX bookings and sends `cancellationFlag=CANCELLATION` only after a safe simulation result.
+- Booking modification support is low-level adapter-only and requires explicit admin/ops workflow approval before customer use.
 
 ## Known Account-Authorization Unknowns
 

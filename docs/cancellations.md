@@ -34,7 +34,7 @@ Every transition writes `cancellation_status_histories`.
 
 ## Supplier Outcomes
 
-The existing Mock Supplier `cancel` operation is used. A successful supplier cancellation marks the booking as `cancelled`, records penalty/refundable amounts, and revokes vouchers. Supplier rejection leaves the booking confirmed. Uncertain supplier exceptions move cancellation to manual review and do not trigger a blind second cancellation.
+The existing Mock Supplier `cancel` operation is used for mock bookings. HBX bookings first run the official cancellation simulation endpoint. Only a safe simulation result allows the real cancellation request to be sent. A successful supplier cancellation marks the booking as `cancelled`, records penalty/refundable amounts, and revokes vouchers. Supplier rejection leaves the booking confirmed. Uncertain supplier exceptions move cancellation to manual review and do not trigger a blind second cancellation.
 
 ## Idempotency
 

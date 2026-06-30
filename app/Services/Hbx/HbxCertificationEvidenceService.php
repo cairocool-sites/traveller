@@ -83,8 +83,8 @@ class HbxCertificationEvidenceService
     private function simulateCancellation(Booking $booking): array
     {
         $result = $this->suppliers
-            ->resolve('hbx_hotels', SupplierOperation::Cancel)
-            ->cancel(new SupplierCancellationRequestData(
+            ->resolve('hbx_hotels', SupplierOperation::CancellationSimulation)
+            ->simulateCancellation(new SupplierCancellationRequestData(
                 supplierBookingReference: (string) $booking->supplier_booking_reference,
                 idempotencyKey: 'cert-simulation-'.$booking->booking_reference,
                 cancellationReason: 'HBX sandbox certification simulation only.',

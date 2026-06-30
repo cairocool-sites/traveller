@@ -273,7 +273,7 @@ it('retrieves hbx booking detail and stores reconciliation evidence without sile
         ->and($booking->refresh()->hotel_snapshot['name'])->toBe($originalHotelName);
 
     Http::assertSent(fn ($request): bool => $request->method() === 'GET'
-        && $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/bookings/HBX-PHASE14-BOOKING');
+        && $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/bookings/HBX-PHASE14-BOOKING?language=ENG');
 });
 
 it('classifies reconciliation mismatches without overwriting local booking fields', function () {
