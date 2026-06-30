@@ -3,6 +3,7 @@
 use App\Enums\BookingStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\RateCheckStatus;
+use App\Enums\SupplierOperation;
 use App\Enums\SupplierStatus;
 use App\Models\Booking;
 use App\Models\BookingCertificationEvidence;
@@ -15,6 +16,7 @@ use App\Models\RateCheck;
 use App\Models\SearchSession;
 use App\Models\Supplier;
 use App\Models\SupplierDestinationMapping;
+use App\Models\SupplierOperationLog;
 use App\Models\User;
 use App\Services\Booking\BookingReconciliationService;
 use App\Services\Booking\BookingService;
@@ -291,6 +293,24 @@ it('classifies reconciliation mismatches without overwriting local booking field
         ->and($booking->refresh()->check_in->toDateString())->toBe($localCheckIn);
 });
 
+it('does not block booking detail reconciliation only because supplier pricing currency differs from customer currency', function () {
+    $booking = phase14LocalConfirmedBooking();
+    $usd = Currency::query()->where('code', 'USD')->firstOrFail();
+    $booking->forceFill(['currency_id' => $usd->id, 'total_amount_minor' => 24948])->save();
+    $payload = phase14BookingDetailPayload($booking);
+    $payload['booking']['currency'] = 'EUR';
+    $payload['booking']['totalNet'] = '230.00';
+
+    Http::fake(fn () => Http::response($payload, 200));
+
+    $evidence = app(BookingReconciliationService::class)->audit($booking->refresh());
+
+    expect($evidence->summary_status)->toBe('matched')
+        ->and($evidence->field_results['customer_currency']['classification'])->toBe('customer_pricing')
+        ->and($evidence->field_results['supplier_currency']['classification'])->toBe('supplier_pricing')
+        ->and($evidence->field_results['supplier_total_amount']['classification'])->toBe('supplier_pricing');
+});
+
 it('runs certification evidence without cancellation simulation during identity investigation', function () {
     $booking = phase14LocalConfirmedBooking();
     Http::fakeSequence()->push(phase14BookingDetailPayload($booking));
@@ -334,6 +354,48 @@ it('runs read-only hbx booking identity audit with bounded booking list candidat
         && str_contains($request->url(), 'from=1')
         && str_contains($request->url(), 'to=25'));
     Http::assertNotSent(fn ($request): bool => in_array($request->method(), ['POST', 'PUT', 'DELETE'], true));
+});
+
+it('accepts original booking client reference evidence when hbx list omits client reference and supplier currency differs', function () {
+    $booking = phase14LocalConfirmedBooking();
+    $usd = Currency::query()->where('code', 'USD')->firstOrFail();
+    $clientReference = app(HbxBookingIdentityService::class)->clientReference($booking);
+
+    $booking->forceFill([
+        'currency_id' => $usd->id,
+        'total_amount_minor' => 24948,
+    ])->save();
+
+    SupplierOperationLog::query()->create([
+        'supplier_id' => $booking->supplier_id,
+        'correlation_id' => $booking->correlation_id,
+        'operation' => SupplierOperation::Book,
+        'request_method' => 'POST',
+        'request_url' => '/hotel-api/1.0/bookings',
+        'request_payload' => ['clientReference' => $clientReference],
+        'response_status' => 200,
+        'response_payload' => phase14BookingDetailPayload($booking),
+        'attempt_number' => 1,
+        'successful' => true,
+        'booking_reference' => $booking->supplier_booking_reference,
+        'created_at' => now(),
+    ]);
+
+    $detail = phase14BookingDetailPayload($booking);
+    $detail['booking']['currency'] = 'EUR';
+    $list = phase14BookingListPayload($booking, reference: 'HBX-PHASE14-BOOKING');
+    unset($list['bookings']['bookings'][0]['clientReference']);
+    $list['bookings']['bookings'][0]['currency'] = 'EUR';
+
+    Http::fakeSequence()
+        ->push($detail)
+        ->push($list);
+
+    $audit = app(HbxBookingIdentityService::class)->audit($booking->refresh());
+
+    expect($audit['classification'])->toBe('exact_match')
+        ->and($audit['original']['client_reference'])->toBe($clientReference)
+        ->and($audit['candidates'][0]['client_reference_match'])->toBeFalse();
 });
 
 it('classifies hbx detail hotel mismatch as supplier reference unexpected', function () {

@@ -206,11 +206,10 @@ class HbxContentSyncService
 
     public function syncGenericResource(Supplier $supplier, string $resource, array $options = []): array
     {
+        $resource = HbxContentApiClient::RESOURCE_ALIASES[$resource] ?? $resource;
         $ranges = $this->ranges($options);
         $dryRun = (bool) ($options['dry_run'] ?? false);
         $language = (string) ($options['language'] ?? 'ENG');
-        $countryCode = $options['country_code'] ?? null;
-        $destinationCode = $options['destination_code'] ?? null;
         $lastUpdateTime = $options['last_update_time'] ?? null;
         $seen = [];
         $total = 0;
@@ -219,9 +218,6 @@ class HbxContentSyncService
             $response = $this->client->resource($supplier, $resource, [
                 'fields' => 'all',
                 'language' => $language,
-                'countryCode' => $countryCode,
-                'countryCodes' => $countryCode,
-                'destinationCode' => $destinationCode,
                 'lastUpdateTime' => $lastUpdateTime,
                 'from' => $range['from'],
                 'to' => $range['to'],
@@ -253,8 +249,8 @@ class HbxContentSyncService
                         ],
                         [
                             'name' => $this->localizedName($item, 'description') ?: $this->localizedName($item, 'name') ?: $code,
-                            'country_code' => $item['countryCode'] ?? $item['country'] ?? $countryCode,
-                            'destination_code' => $item['destinationCode'] ?? $destinationCode,
+                            'country_code' => $item['countryCode'] ?? $item['country'] ?? null,
+                            'destination_code' => $item['destinationCode'] ?? null,
                             'parent_code' => $item['parentCode'] ?? $item['groupCode'] ?? $item['categoryGroupCode'] ?? null,
                             'payload' => $item,
                             'payload_hash' => hash('sha256', json_encode($item, JSON_THROW_ON_ERROR)),
@@ -272,8 +268,6 @@ class HbxContentSyncService
                 ->where('supplier_code', $supplier->code)
                 ->where('resource_type', $resource)
                 ->where('language', $language)
-                ->when($countryCode, fn ($query) => $query->where('country_code', $countryCode))
-                ->when($destinationCode, fn ($query) => $query->where('destination_code', $destinationCode))
                 ->whereNotIn('resource_code', array_unique($seen))
                 ->update(['is_active' => false]);
         }
@@ -323,6 +317,7 @@ class HbxContentSyncService
     {
         $keys = array_unique([
             $key,
+            ...$this->resourceEnvelopeKeys($key),
             Str::camel($key),
             str_replace('_', '', $key),
         ]);
@@ -337,6 +332,19 @@ class HbxContentSyncService
         }
 
         return is_array($items) ? array_values($items) : [];
+    }
+
+    private function resourceEnvelopeKeys(string $key): array
+    {
+        return [
+            'boardgroups' => ['boardGroups'],
+            'facilitygroups' => ['facilityGroups'],
+            'facilitytypologies' => ['facilityTypologies'],
+            'groupcategories' => ['groupCategories'],
+            'imagetypes' => ['imageTypes'],
+            'rate_comments' => ['rateComments'],
+            'ratecomments' => ['rateComments'],
+        ][$key] ?? [];
     }
 
     private function detailItems(array $body): array

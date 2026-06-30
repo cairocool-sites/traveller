@@ -246,8 +246,10 @@ it('syncs generic hbx content resources with idempotent payload storage', functi
 
     Http::assertSent(fn ($request): bool => str_starts_with($request->url(), 'https://api.test.hotelbeds.com/hotel-content-api/1.0/types/boards')
         && $request->method() === 'GET'
-        && data_get($request->data(), 'countryCode') === 'EG'
-        && data_get($request->data(), 'lastUpdateTime') === '2026-06-01');
+        && data_get($request->data(), 'lastUpdateTime') === '2026-06-01'
+        && data_get($request->data(), 'countryCode') === null
+        && data_get($request->data(), 'countryCodes') === null
+        && data_get($request->data(), 'destinationCode') === null);
 });
 
 it('suggests and allows confirmation of cairo destination mappings', function () {
@@ -286,8 +288,33 @@ it('new content sync command supports official resource names and blocks unconfi
 
     expect(HbxContentResource::query()->where('resource_code', 'RO')->exists())->toBeFalse();
 
+    Http::assertSent(fn ($request): bool => str_starts_with($request->url(), 'https://api.test.hotelbeds.com/hotel-content-api/1.0/types/boards')
+        && str_contains($request->url(), 'language=ENG')
+        && ! str_contains($request->url(), 'countryCode=')
+        && ! str_contains($request->url(), 'countryCodes=')
+        && ! str_contains($request->url(), 'destinationCode='));
+
     $this->artisan('hbx:content:sync --resource=all --full-authorized-portfolio')
         ->expectsOutputToContain('Full authorized portfolio sync requires --confirm.')
+        ->assertFailed();
+});
+
+it('maps legacy content resource aliases to official OpenAPI paths and blocks standalone zones', function () {
+    Http::fake(['api.test.hotelbeds.com/*' => Http::response(['groupCategories' => ['groupCategories' => [['code' => 'GRUPO1', 'description' => ['content' => 'Hotel category group']]]]], 200)]);
+
+    $this->artisan('hbx:content:sync --resource=category_groups --page-limit=1')
+        ->expectsOutputToContain('groupcategories: processed 1; stored 1.')
+        ->assertSuccessful();
+
+    expect(HbxContentResource::query()
+        ->where('resource_type', 'groupcategories')
+        ->where('resource_code', 'GRUPO1')
+        ->exists())->toBeTrue();
+
+    Http::assertSent(fn ($request): bool => str_starts_with($request->url(), 'https://api.test.hotelbeds.com/hotel-content-api/1.0/types/groupcategories'));
+
+    $this->artisan('hbx:content:sync --resource=zones --page-limit=1')
+        ->expectsOutputToContain('HBX Content API has no standalone zones endpoint')
         ->assertFailed();
 });
 

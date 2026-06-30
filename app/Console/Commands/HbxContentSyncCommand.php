@@ -48,6 +48,8 @@ class HbxContentSyncCommand extends Command
                 throw new RuntimeException('Use --resource={countries|destinations|hotels|all|master-resource}.');
             }
 
+            $resource = $this->canonicalResource($resource);
+
             if ($this->option('full-authorized-portfolio') && ! $this->option('confirm')) {
                 throw new RuntimeException('Full authorized portfolio sync requires --confirm.');
             }
@@ -165,11 +167,24 @@ class HbxContentSyncCommand extends Command
             return array_merge(['countries', 'destinations', 'hotels'], array_keys(HbxContentApiClient::RESOURCE_PATHS));
         }
 
+        $resource = $this->canonicalResource($resource);
+
         if (in_array($resource, ['countries', 'destinations', 'hotels'], true) || isset(HbxContentApiClient::RESOURCE_PATHS[$resource])) {
             return [$resource];
         }
 
         throw new RuntimeException("Unsupported HBX Content API resource [{$resource}].");
+    }
+
+    private function canonicalResource(string $resource): string
+    {
+        $resource = strtolower(trim($resource));
+
+        if ($resource === 'zones') {
+            throw new RuntimeException('HBX Content API has no standalone zones endpoint in the official OpenAPI file. Zones are synced inside destinations.');
+        }
+
+        return HbxContentApiClient::RESOURCE_ALIASES[$resource] ?? $resource;
     }
 
     private function supplier(): Supplier
