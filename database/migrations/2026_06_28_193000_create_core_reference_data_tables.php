@@ -85,8 +85,14 @@ return new class extends Migration
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
 
-            $table->unique(['base_currency_id', 'quote_currency_id', 'effective_at', 'is_active']);
-            $table->index(['base_currency_id', 'quote_currency_id', 'is_active', 'effective_at']);
+            $table->unique(
+                ['base_currency_id', 'quote_currency_id', 'effective_at', 'is_active'],
+                'exchange_rates_pair_effective_active_unique'
+            );
+            $table->index(
+                ['base_currency_id', 'quote_currency_id', 'is_active', 'effective_at'],
+                'exchange_rates_pair_active_effective_index'
+            );
         });
 
         Schema::create('facilities', function (Blueprint $table): void {

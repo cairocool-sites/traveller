@@ -85,7 +85,10 @@ return new class extends Migration
             $table->timestamp('expires_at')->nullable()->index();
             $table->timestamps();
 
-            $table->unique(['supplier_id', 'operation', 'idempotency_key']);
+            $table->unique(
+                ['supplier_id', 'operation', 'idempotency_key'],
+                'supplier_idempotency_op_key_unique'
+            );
         });
     }
 

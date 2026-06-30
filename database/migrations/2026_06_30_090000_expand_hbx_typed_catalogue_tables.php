@@ -135,7 +135,7 @@ return new class extends Migration
             $table->json('payload')->nullable();
             $table->timestamps();
 
-            $table->unique(['hbx_hotel_id', 'room_code', 'characteristic_code']);
+            $table->unique(['hbx_hotel_id', 'room_code', 'characteristic_code'], 'hbx_hotel_rooms_code_char_unique');
         });
     }
 

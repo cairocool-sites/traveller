@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('requested_by_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->text('customer_reason')->nullable();
             $table->text('internal_reason')->nullable();
-            $table->timestamp('requested_at');
+            $table->timestamp('requested_at')->nullable();
             $table->timestamp('reviewed_at')->nullable();
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->string('supplier_cancellation_reference')->nullable();
@@ -50,7 +50,7 @@ return new class extends Migration
             $table->string('external_reference')->nullable();
             $table->text('customer_notes')->nullable();
             $table->text('internal_notes')->nullable();
-            $table->timestamp('requested_at');
+            $table->timestamp('requested_at')->nullable();
             $table->timestamp('approved_at')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamp('rejected_at')->nullable();

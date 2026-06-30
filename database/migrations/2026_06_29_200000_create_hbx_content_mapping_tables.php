@@ -72,8 +72,8 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
-            $table->unique(['hotel_id', 'supplier_code', 'supplier_hotel_code']);
-            $table->index(['supplier_code', 'supplier_hotel_code', 'is_active']);
+            $table->unique(['hotel_id', 'supplier_code', 'supplier_hotel_code'], 'supplier_hotel_mapping_unique');
+            $table->index(['supplier_code', 'supplier_hotel_code', 'is_active'], 'supplier_hotel_mapping_supplier_lookup');
             $table->index(['hotel_id', 'supplier_code', 'is_active']);
         });
     }

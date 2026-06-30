@@ -55,7 +55,7 @@ return new class extends Migration
             $table->string('mime_type', 120);
             $table->unsignedBigInteger('file_size');
             $table->string('checksum', 64);
-            $table->timestamp('uploaded_at');
+            $table->timestamp('uploaded_at')->nullable();
             $table->timestamps();
         });
 
@@ -77,7 +77,7 @@ return new class extends Migration
             $table->string('status', 30)->default('issued');
             $table->json('snapshot');
             $table->string('verification_token', 80)->unique();
-            $table->timestamp('issued_at');
+            $table->timestamp('issued_at')->useCurrent();
             $table->timestamp('revoked_at')->nullable();
             $table->timestamps();
         });
@@ -95,7 +95,7 @@ return new class extends Migration
             $table->unsignedBigInteger('fees_minor')->default(0);
             $table->unsignedBigInteger('discount_minor')->default(0);
             $table->unsignedBigInteger('total_minor');
-            $table->timestamp('issued_at');
+            $table->timestamp('issued_at')->useCurrent();
             $table->string('status', 30)->default('issued');
             $table->json('snapshot');
             $table->string('verification_token', 80)->unique();
@@ -110,8 +110,8 @@ return new class extends Migration
             $table->unsignedBigInteger('amount_minor');
             $table->foreignId('currency_id')->constrained()->restrictOnDelete();
             $table->json('payment_method_snapshot');
-            $table->timestamp('approved_at');
-            $table->timestamp('issued_at');
+            $table->timestamp('approved_at')->nullable();
+            $table->timestamp('issued_at')->useCurrent();
             $table->string('status', 30)->default('issued');
             $table->json('snapshot');
             $table->string('verification_token', 80)->unique();
