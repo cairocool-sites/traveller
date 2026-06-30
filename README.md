@@ -2,7 +2,11 @@
 
 Cairo Cool Travel is a Laravel hotel booking platform planned for Egypt first, with future expansion to Saudi Arabia and the UAE.
 
-This repository is currently in Phase 14: HBX Sandbox Verification, voucher readiness, and supplier-independent public-site hardening.
+This repository is currently in Phase 14: HBX Sandbox Verification, voucher readiness, supplier-independent public-site hardening, and production deployment compatibility hardening.
+
+## Runtime Requirement
+
+This project requires PHP 8.4.1 or newer because the locked Symfony 8.1 dependencies require PHP `>=8.4.1`. PHP 8.5 is recommended for deployment. Do not use Composer `--ignore-platform-reqs`.
 
 ## Current Scope
 
@@ -78,6 +82,8 @@ See [docs/manual-payments.md](docs/manual-payments.md) and [docs/documents.md](d
 See [docs/cancellations.md](docs/cancellations.md) and [docs/refunds.md](docs/refunds.md) for the Phase 9 cancellation and manual refund foundation.
 
 See [docs/deployment-directadmin-nginx.md](docs/deployment-directadmin-nginx.md), [docs/operations-runbook.md](docs/operations-runbook.md), [docs/backup-restore.md](docs/backup-restore.md), [docs/security-hardening.md](docs/security-hardening.md), and [docs/data-retention.md](docs/data-retention.md) for Phase 10 operations readiness.
+
+See [docs/deployment/directadmin-staging.md](docs/deployment/directadmin-staging.md) and [docs/deployment/mysql-verification.md](docs/deployment/mysql-verification.md) for DirectAdmin, PHP 8.5, MySQL, and staging deployment verification.
 
 See [docs/hbx-sandbox-integration.md](docs/hbx-sandbox-integration.md) for the Phase 11 HBX Hotels Sandbox supplier integration.
 

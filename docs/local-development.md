@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- PHP 8.3 or newer
+- PHP 8.4.1 or newer. PHP 8.5 is recommended.
 - Composer 2
 - Node.js and npm
 - MySQL 8
