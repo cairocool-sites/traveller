@@ -82,11 +82,16 @@ class CancellationService
     public function submitSupplier(BookingCancellation $cancellation, array $payload = []): BookingCancellation
     {
         $cancellation = $this->statuses->transition($cancellation, CancellationStatus::PendingSupplier, 'Submitting cancellation to supplier.');
+        $supplierCode = $cancellation->booking->supplier->code;
+        $supplierReference = $payload['supplier_booking_reference'] ?? $cancellation->booking->supplier_booking_reference;
+        $supplierReference = is_string($supplierReference) ? $supplierReference : '';
 
         try {
-            $response = $this->suppliers->resolve($cancellation->booking->supplier->code, SupplierOperation::Cancel)
+            $this->simulateHbxCancellation($cancellation, $payload, $supplierCode, $supplierReference);
+
+            $response = $this->suppliers->resolve($supplierCode, SupplierOperation::Cancel)
                 ->cancel(new SupplierCancellationRequestData(
-                    supplierBookingReference: $payload['supplier_booking_reference'] ?? $cancellation->booking->supplier_booking_reference,
+                    supplierBookingReference: $supplierReference,
                     idempotencyKey: $cancellation->idempotency_key,
                     cancellationReason: $cancellation->customer_reason,
                     correlationId: $cancellation->correlation_id,
@@ -101,7 +106,10 @@ class CancellationService
             'supplier_status' => $response->status->value,
             'penalty_amount_minor' => $response->penaltyAmount?->minorAmount ?? $cancellation->penalty_amount_minor,
             'refundable_amount_minor' => $response->refundableAmount?->minorAmount ?? $cancellation->refundable_amount_minor,
-            'supplier_response_snapshot' => $response->jsonSerialize(),
+            'supplier_response_snapshot' => array_filter([
+                'simulation' => data_get($cancellation->supplier_response_snapshot, 'simulation'),
+                'cancellation' => $response->jsonSerialize(),
+            ]),
             'completed_at' => $response->successful ? now() : null,
         ])->save();
 
@@ -118,6 +126,38 @@ class CancellationService
         $this->notifySafely($cancellation, 'Cancellation rejected');
 
         return $cancellation->refresh();
+    }
+
+    private function simulateHbxCancellation(BookingCancellation $cancellation, array $payload, string $supplierCode, ?string $supplierReference): void
+    {
+        if ($supplierCode !== 'hbx_hotels') {
+            return;
+        }
+
+        $adapter = $this->suppliers->resolve($supplierCode, SupplierOperation::CancellationSimulation);
+
+        if (! method_exists($adapter, 'simulateCancellation')) {
+            throw new SupplierException('HBX supplier does not support cancellation simulation.');
+        }
+
+        $simulation = $adapter->simulateCancellation(new SupplierCancellationRequestData(
+            supplierBookingReference: $supplierReference,
+            idempotencyKey: $cancellation->idempotency_key.'-simulation',
+            cancellationReason: $cancellation->customer_reason,
+            correlationId: $cancellation->correlation_id,
+            metadata: ['scenario' => $payload['scenario'] ?? null, 'cancellation_flag' => 'SIMULATION'],
+        ));
+
+        $cancellation->forceFill([
+            'supplier_status' => $simulation->status->value,
+            'penalty_amount_minor' => $simulation->penaltyAmount?->minorAmount ?? $cancellation->penalty_amount_minor,
+            'refundable_amount_minor' => $simulation->refundableAmount?->minorAmount ?? $cancellation->refundable_amount_minor,
+            'supplier_response_snapshot' => ['simulation' => $simulation->jsonSerialize()],
+        ])->save();
+
+        if (! $simulation->successful || $simulation->requiresManualReview) {
+            throw new SupplierException('HBX cancellation simulation did not return a safe positive result.');
+        }
     }
 
     private function notifySafely(BookingCancellation $cancellation, string $subject): void

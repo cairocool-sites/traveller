@@ -9,7 +9,10 @@ enum SupplierOperation: string
     case CheckRate = 'check_rate';
     case Book = 'book';
     case BookingList = 'booking_list';
+    case BookingChange = 'booking_change';
+    case BookingReconfirmation = 'booking_reconfirmation';
     case GetBooking = 'get_booking';
+    case CancellationSimulation = 'cancellation_simulation';
     case Cancel = 'cancel';
     case HealthCheck = 'health_check';
 
@@ -20,15 +23,15 @@ enum SupplierOperation: string
             self::HotelDetails => 'details_enabled',
             self::CheckRate => 'check_rate_enabled',
             self::Book => 'booking_enabled',
-            self::BookingList, self::GetBooking => 'booking_lookup_enabled',
-            self::Cancel => 'cancellation_enabled',
+            self::BookingList, self::BookingChange, self::BookingReconfirmation, self::GetBooking => 'booking_lookup_enabled',
+            self::CancellationSimulation, self::Cancel => 'cancellation_enabled',
             self::HealthCheck => 'health_check_enabled',
         };
     }
 
     public function isAutomaticallyRetryable(): bool
     {
-        return in_array($this, [self::Search, self::HotelDetails, self::BookingList, self::GetBooking, self::HealthCheck], true);
+        return in_array($this, [self::Search, self::HotelDetails, self::BookingList, self::BookingReconfirmation, self::GetBooking, self::HealthCheck], true);
     }
 
     public static function options(): array

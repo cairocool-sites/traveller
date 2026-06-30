@@ -55,6 +55,7 @@ class HbxHttpClient
             'Api-key' => $credentials->apiKey,
             'X-Signature' => $this->signatures->signature($credentials->apiKey, $credentials->apiSecret),
             'Accept' => 'application/json',
+            'Accept-Encoding' => 'gzip',
             'Content-Type' => 'application/json',
             'X-Correlation-ID' => $correlationId,
         ];

@@ -15,6 +15,9 @@ use App\Services\PublicSearch\HotelSearchService;
 use App\Services\Supplier\Contracts\HotelSupplierInterface;
 use App\Services\Supplier\Data\CheckRateRequestData;
 use App\Services\Supplier\Data\GuestData;
+use App\Services\Supplier\Data\HbxBookingChangeRequestData;
+use App\Services\Supplier\Data\HbxBookingListRequestData;
+use App\Services\Supplier\Data\HbxBookingReconfirmationRequestData;
 use App\Services\Supplier\Data\HotelSearchRequestData;
 use App\Services\Supplier\Data\RoomOccupancyData;
 use App\Services\Supplier\Data\SupplierBookingLookupRequestData;
@@ -178,6 +181,48 @@ it('uses hbx hotel-code availability without mixing destination filters', functi
         && data_get($request->data(), 'occupancies.0.paxes.0.age') === 8);
 });
 
+it('maps official hbx availability metadata filters without trusting browser hotel codes', function () {
+    Http::fake(['*' => Http::response(availabilityPayload(), 200)]);
+
+    hbx()->search(new HotelSearchRequestData(
+        destinationIdentifier: 'CAI',
+        checkIn: now()->toImmutable()->addDay(),
+        checkOut: now()->toImmutable()->addDays(2),
+        rooms: [new RoomOccupancyData(2)],
+        currency: config('travel.currency.default'),
+        locale: 'en',
+        metadata: [
+            'keywords' => ['hotel' => ['cairo']],
+            'boards' => ['board' => ['BB']],
+            'filter' => ['maxHotels' => 25],
+            'stay' => ['shiftDays' => 1],
+        ],
+    ));
+
+    Http::assertSent(fn ($request): bool => data_get($request->data(), 'keywords.hotel') === ['cairo']
+        && data_get($request->data(), 'boards.board') === ['BB']
+        && data_get($request->data(), 'filter.maxHotels') === 25
+        && data_get($request->data(), 'stay.shiftDays') === 1);
+});
+
+it('supports official hbx geolocation availability payloads', function () {
+    Http::fake(['*' => Http::response(availabilityPayload(), 200)]);
+
+    hbx()->search(new HotelSearchRequestData(
+        destinationIdentifier: 'CAI',
+        checkIn: now()->toImmutable()->addDay(),
+        checkOut: now()->toImmutable()->addDays(2),
+        rooms: [new RoomOccupancyData(2)],
+        currency: config('travel.currency.default'),
+        locale: 'en',
+        metadata: ['geolocation' => ['latitude' => 30.0444, 'longitude' => 31.2357, 'radius' => 20, 'unit' => 'km']],
+    ));
+
+    Http::assertSent(fn ($request): bool => data_get($request->data(), 'geolocation.radius') === 20
+        && data_get($request->data(), 'destination.code') === null
+        && data_get($request->data(), 'hotels.hotel') === null);
+});
+
 it('normalizes hbx check rate and detects price changes', function () {
     Http::fake(['*' => Http::response(checkRatePayload('130.00'), 200)]);
 
@@ -246,6 +291,78 @@ it('normalizes booking lookup reconciliation', function () {
         ->and($result->totals['total']->minorAmount)->toBe(12000);
 });
 
+it('retrieves hbx booking lists with official pagination and filters', function () {
+    Http::fake(['*' => Http::response([
+        'auditData' => ['processTime' => '10'],
+        'bookings' => ['bookings' => [['reference' => 'HBX-1', 'status' => 'CONFIRMED']]],
+    ], 200)]);
+
+    $result = hbx()->bookingList(new HbxBookingListRequestData(
+        from: 1,
+        to: 10,
+        start: now()->toImmutable()->subDay(),
+        end: now()->toImmutable(),
+        filterType: 'CREATION',
+        status: 'CONFIRMED',
+        clientReference: 'CCT-1',
+        countries: ['EG'],
+        destinations: ['CAI'],
+        hotels: [1001],
+    ));
+
+    expect($result->bookings)->toHaveCount(1)
+        ->and($result->bookings[0]['reference'])->toBe('HBX-1');
+
+    Http::assertSent(fn ($request): bool => $request->method() === 'GET'
+        && str_contains($request->url(), '/hotel-api/1.0/bookings?')
+        && str_contains($request->url(), 'filterType=CREATION')
+        && str_contains($request->url(), 'status=CONFIRMED')
+        && str_contains($request->url(), 'clientReference=CCT-1')
+        && str_contains($request->url(), 'country=EG')
+        && str_contains($request->url(), 'destination=CAI')
+        && str_contains($request->url(), 'hotel=1001'));
+});
+
+it('supports hbx booking change simulation without automatic retries', function () {
+    Supplier::query()->where('code', 'hbx_hotels')->update(['max_retries' => 3]);
+    Http::fake(['*' => Http::response(['booking' => ['reference' => 'HBX-1', 'status' => 'CONFIRMED']], 200)]);
+
+    $result = hbx()->changeBooking(new HbxBookingChangeRequestData(
+        supplierBookingReference: 'HBX-1',
+        mode: 'SIMULATION',
+        booking: ['reference' => 'HBX-1', 'remark' => 'Updated remark'],
+    ));
+
+    expect($result->successful)->toBeTrue()
+        ->and($result->status)->toBe(BookingSupplierStatus::Confirmed);
+
+    Http::assertSentCount(1);
+    Http::assertSent(fn ($request): bool => $request->method() === 'PUT'
+        && $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/bookings/HBX-1'
+        && data_get($request->data(), 'mode') === 'SIMULATION'
+        && data_get($request->data(), 'booking.reference') === 'HBX-1');
+});
+
+it('retrieves hbx booking reconfirmations with safe filters', function () {
+    Http::fake(['*' => Http::response([
+        'auditData' => ['processTime' => '11'],
+        'reconfirmations' => ['reconfirmations' => [['bookingReference' => 'HBX-1', 'supplierConfirmationCode' => 'SUP-1']]],
+    ], 200)]);
+
+    $result = hbx()->bookingReconfirmations(new HbxBookingReconfirmationRequestData(
+        from: 1,
+        to: 10,
+        clientReferences: ['CCT-1'],
+    ));
+
+    expect($result->reconfirmations)->toHaveCount(1)
+        ->and($result->reconfirmations[0]['supplierConfirmationCode'])->toBe('SUP-1');
+
+    Http::assertSent(fn ($request): bool => $request->method() === 'GET'
+        && str_contains($request->url(), '/hotel-api/1.0/bookings/reconfirmations?')
+        && str_contains($request->url(), 'clientReferences=CCT-1'));
+});
+
 it('normalizes cancellation success, penalty, and unknown timeout', function () {
     Http::fake(['*' => Http::response(['booking' => ['reference' => 'HBX-1', 'status' => 'CANCELLED', 'currency' => 'EGP', 'cancellationAmount' => '30.00']], 200)]);
 
@@ -264,6 +381,23 @@ it('normalizes cancellation success, penalty, and unknown timeout', function () 
 
     expect($unknown->requiresManualReview)->toBeTrue()
         ->and($unknown->status)->toBe(CancellationSupplierStatus::Pending);
+});
+
+it('runs hbx cancellation simulation separately from actual cancellation idempotency', function () {
+    Http::fakeSequence()
+        ->push(['booking' => ['reference' => 'HBX-1', 'status' => 'CONFIRMED', 'currency' => 'USD', 'cancellationAmount' => '12.00']], 200)
+        ->push(['booking' => ['reference' => 'HBX-1', 'status' => 'CANCELLED', 'currency' => 'USD', 'cancellationAmount' => '12.00']], 200);
+
+    $simulation = hbx()->simulateCancellation(new SupplierCancellationRequestData('HBX-1', 'cancel-shared'));
+    $actual = hbx()->cancel(new SupplierCancellationRequestData('HBX-1', 'cancel-shared', metadata: ['cancellation_flag' => 'CANCELLATION']));
+
+    expect($simulation->penaltyAmount?->minorAmount)->toBe(1200)
+        ->and($simulation->successful)->toBeTrue()
+        ->and($simulation->status)->toBe(CancellationSupplierStatus::Pending)
+        ->and($actual->successful)->toBeTrue();
+
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/bookings/HBX-1?cancellationFlag=SIMULATION');
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/bookings/HBX-1?cancellationFlag=CANCELLATION');
 });
 
 it('redacts hbx credentials and signatures from operation logs', function () {

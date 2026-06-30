@@ -11,6 +11,12 @@ use App\Services\Supplier\Contracts\HotelSupplierInterface;
 use App\Services\Supplier\CorrelationIdFactory;
 use App\Services\Supplier\Data\CheckRateRequestData;
 use App\Services\Supplier\Data\CheckRateResultData;
+use App\Services\Supplier\Data\HbxBookingChangeRequestData;
+use App\Services\Supplier\Data\HbxBookingChangeResultData;
+use App\Services\Supplier\Data\HbxBookingListRequestData;
+use App\Services\Supplier\Data\HbxBookingListResultData;
+use App\Services\Supplier\Data\HbxBookingReconfirmationRequestData;
+use App\Services\Supplier\Data\HbxBookingReconfirmationResultData;
 use App\Services\Supplier\Data\HotelDetailsRequestData;
 use App\Services\Supplier\Data\HotelDetailsResultData;
 use App\Services\Supplier\Data\HotelSearchRequestData;
@@ -57,6 +63,8 @@ class HbxHotelSupplier implements HotelSupplierInterface
         } else {
             $payload['destination'] = ['code' => $this->destinationCode($request->destinationIdentifier)];
         }
+
+        $payload = $this->withAvailabilityMetadata($payload, $request->metadata);
 
         $response = $this->client->request($this->supplier, SupplierOperation::Search, 'POST', '/hotel-api/1.0/hotels', array_filter($payload), $correlationId);
         $hotels = $this->normalizer->hotels($response['body'], $request->currency, $request->rooms);
@@ -169,7 +177,7 @@ class HbxHotelSupplier implements HotelSupplierInterface
     public function getBooking(SupplierBookingLookupRequestData $request): SupplierBookingDetailsData
     {
         $correlationId = $this->correlationIds->make($request->correlationId);
-        $response = $this->client->request($this->supplier, SupplierOperation::GetBooking, 'GET', '/hotel-api/1.0/bookings/'.$request->supplierBookingReference, [], $correlationId);
+        $response = $this->client->request($this->supplier, SupplierOperation::GetBooking, 'GET', '/hotel-api/1.0/bookings/'.$request->supplierBookingReference.'?language='.$this->language('en'), [], $correlationId);
         $booking = $response['body']['booking'] ?? null;
 
         if (! is_array($booking)) {
@@ -192,10 +200,73 @@ class HbxHotelSupplier implements HotelSupplierInterface
         );
     }
 
-    public function cancel(SupplierCancellationRequestData $request): SupplierCancellationResultData
+    public function bookingList(HbxBookingListRequestData $request): HbxBookingListResultData
     {
         $correlationId = $this->correlationIds->make($request->correlationId);
-        $snapshot = $this->idempotency->findOrReserve($this->supplier, SupplierOperation::Cancel, $request->idempotencyKey, $request->jsonSerialize());
+        $response = $this->client->request($this->supplier, SupplierOperation::BookingList, 'GET', '/hotel-api/1.0/bookings?'.http_build_query($request->toQuery()), [], $correlationId);
+
+        return new HbxBookingListResultData(
+            bookings: $response['body']['bookings']['bookings'] ?? $response['body']['bookings'] ?? [],
+            auditData: $response['body']['auditData'] ?? [],
+            correlationId: $correlationId,
+        );
+    }
+
+    public function changeBooking(HbxBookingChangeRequestData $request): HbxBookingChangeResultData
+    {
+        $correlationId = $this->correlationIds->make($request->correlationId);
+        $response = $this->client->request(
+            $this->supplier,
+            SupplierOperation::BookingChange,
+            'PUT',
+            '/hotel-api/1.0/bookings/'.$request->supplierBookingReference,
+            $request->toPayload(),
+            $correlationId,
+            allowRetry: false,
+        );
+        $booking = $response['body']['booking'] ?? [];
+        $status = $this->normalizer->bookingStatus($booking['status'] ?? null);
+
+        return new HbxBookingChangeResultData(
+            successful: $status === BookingSupplierStatus::Confirmed,
+            status: $status,
+            booking: is_array($booking) ? $booking : [],
+            correlationId: $correlationId,
+        );
+    }
+
+    public function bookingReconfirmations(HbxBookingReconfirmationRequestData $request): HbxBookingReconfirmationResultData
+    {
+        $correlationId = $this->correlationIds->make($request->correlationId);
+        $response = $this->client->request($this->supplier, SupplierOperation::BookingReconfirmation, 'GET', '/hotel-api/1.0/bookings/reconfirmations?'.http_build_query($request->toQuery()), [], $correlationId);
+
+        return new HbxBookingReconfirmationResultData(
+            reconfirmations: $response['body']['reconfirmations']['reconfirmations'] ?? $response['body']['reconfirmations'] ?? [],
+            auditData: $response['body']['auditData'] ?? [],
+            correlationId: $correlationId,
+        );
+    }
+
+    public function simulateCancellation(SupplierCancellationRequestData $request): SupplierCancellationResultData
+    {
+        return $this->cancelWithOperation(new SupplierCancellationRequestData(
+            supplierBookingReference: $request->supplierBookingReference,
+            idempotencyKey: $request->idempotencyKey,
+            cancellationReason: $request->cancellationReason,
+            correlationId: $request->correlationId,
+            metadata: array_merge($request->metadata, ['cancellation_flag' => 'SIMULATION']),
+        ), SupplierOperation::CancellationSimulation);
+    }
+
+    public function cancel(SupplierCancellationRequestData $request): SupplierCancellationResultData
+    {
+        return $this->cancelWithOperation($request, SupplierOperation::Cancel);
+    }
+
+    private function cancelWithOperation(SupplierCancellationRequestData $request, SupplierOperation $operation): SupplierCancellationResultData
+    {
+        $correlationId = $this->correlationIds->make($request->correlationId);
+        $snapshot = $this->idempotency->findOrReserve($this->supplier, $operation, $request->idempotencyKey, $request->jsonSerialize());
 
         if ($snapshot) {
             return $this->cancellationFromSnapshot($snapshot, $correlationId);
@@ -208,10 +279,10 @@ class HbxHotelSupplier implements HotelSupplierInterface
             }
 
             $path = '/hotel-api/1.0/bookings/'.$request->supplierBookingReference.'?cancellationFlag='.$flag;
-            $response = $this->client->request($this->supplier, SupplierOperation::Cancel, 'DELETE', $path, [], $correlationId);
+            $response = $this->client->request($this->supplier, $operation, 'DELETE', $path, [], $correlationId);
         } catch (SupplierTimeoutException) {
             $result = new SupplierCancellationResultData(false, CancellationSupplierStatus::Pending, null, null, null, config('travel.currency.default'), warnings: ['HBX cancellation outcome is uncertain after timeout; manual review is required.'], failureCode: 'hbx_cancellation_timeout', failureMessage: 'HBX cancellation timed out after submission.', requiresManualReview: true, correlationId: $correlationId);
-            $this->idempotency->complete($this->supplier, SupplierOperation::Cancel, $request->idempotencyKey, $result->jsonSerialize());
+            $this->idempotency->complete($this->supplier, $operation, $request->idempotencyKey, $result->jsonSerialize());
 
             return $result;
         }
@@ -219,22 +290,25 @@ class HbxHotelSupplier implements HotelSupplierInterface
         $currency = $booking['currency'] ?? config('travel.currency.default');
         $penalty = $this->normalizer->money($booking['cancellationAmount'] ?? $booking['hotel']['cancellationAmount'] ?? '0', $currency);
         $status = $this->normalizer->cancellationStatus($booking['status'] ?? null);
-        $successful = $status === CancellationSupplierStatus::Cancelled;
+        $isSimulation = $operation === SupplierOperation::CancellationSimulation;
+        $successful = $isSimulation
+            ? is_array($booking) && $booking !== [] && $status !== CancellationSupplierStatus::Failed && $status !== CancellationSupplierStatus::Rejected
+            : $status === CancellationSupplierStatus::Cancelled;
         $result = new SupplierCancellationResultData(
             successful: $successful,
-            status: $status,
-            cancellationReference: $successful ? ($booking['reference'] ?? $request->supplierBookingReference) : null,
+            status: $isSimulation && $successful ? CancellationSupplierStatus::Pending : $status,
+            cancellationReference: $successful && ! $isSimulation ? ($booking['reference'] ?? $request->supplierBookingReference) : null,
             penaltyAmount: $penalty,
             refundableAmount: null,
             currency: $currency,
-            cancelledAt: $successful ? now()->toImmutable() : null,
+            cancelledAt: $successful && ! $isSimulation ? now()->toImmutable() : null,
             failureCode: $successful ? null : 'hbx_cancellation_not_confirmed',
-            failureMessage: $successful ? null : 'HBX did not confirm the sandbox cancellation.',
+            failureMessage: $successful ? null : ($isSimulation ? 'HBX did not return a valid cancellation simulation.' : 'HBX did not confirm the sandbox cancellation.'),
             requiresManualReview: ! $successful,
             correlationId: $correlationId,
         );
 
-        $this->idempotency->complete($this->supplier, SupplierOperation::Cancel, $request->idempotencyKey, $result->jsonSerialize());
+        $this->idempotency->complete($this->supplier, $operation, $request->idempotencyKey, $result->jsonSerialize());
 
         return $result;
     }
@@ -303,6 +377,30 @@ class HbxHotelSupplier implements HotelSupplierInterface
             'ar', 'ara' => 'ARA',
             default => 'ENG',
         };
+    }
+
+    private function withAvailabilityMetadata(array $payload, array $metadata): array
+    {
+        foreach (['keywords', 'boards', 'rooms', 'dailyRate', 'minRate', 'maxRate', 'maxHotels', 'paymentType', 'reviewScore', 'packaging'] as $key) {
+            if (array_key_exists($key, $metadata) && $metadata[$key] !== null && $metadata[$key] !== '') {
+                $payload[$key] = $metadata[$key];
+            }
+        }
+
+        if (isset($metadata['geolocation']) && is_array($metadata['geolocation'])) {
+            $payload['geolocation'] = $metadata['geolocation'];
+            unset($payload['destination'], $payload['hotels']);
+        }
+
+        if (isset($metadata['stay']) && is_array($metadata['stay'])) {
+            $payload['stay'] = array_merge($payload['stay'], $metadata['stay']);
+        }
+
+        if (isset($metadata['filter']) && is_array($metadata['filter'])) {
+            $payload['filter'] = $metadata['filter'];
+        }
+
+        return $payload;
     }
 
     private function rateKeyRooms(array $selectedRooms, string $fallbackRateKey): array

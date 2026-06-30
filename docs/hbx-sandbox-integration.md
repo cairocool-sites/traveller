@@ -54,8 +54,12 @@ The adapter implements:
 - Hotel details: sandbox-compatible hotel lookup through the hotels endpoint where supported
 - CheckRate: `POST /hotel-api/1.0/checkrates`
 - Booking: `POST /hotel-api/1.0/bookings`
+- Booking list: `GET /hotel-api/1.0/bookings`
 - Booking lookup: `GET /hotel-api/1.0/bookings/{reference}`
+- Booking change: `PUT /hotel-api/1.0/bookings/{reference}`
+- Cancellation simulation: `DELETE /hotel-api/1.0/bookings/{reference}?cancellationFlag=SIMULATION`
 - Cancellation: `DELETE /hotel-api/1.0/bookings/{reference}?cancellationFlag=CANCELLATION`
+- Booking reconfirmations: `GET /hotel-api/1.0/bookings/reconfirmations`
 - Health/status: `GET /hotel-api/1.0/status`
 
 Automated tests use Laravel HTTP fakes and never call live HBX.
@@ -76,9 +80,17 @@ Public pages use public hotel/rate tokens. HBX hotel codes and rate keys are ret
 
 Booking uses existing supplier idempotency records. The adapter never retries booking blindly. If a booking request times out after submission, the result is `uncertain`, requires manual review, and should be reconciled through booking lookup.
 
+## Booking List, Change, and Reconfirmation
+
+Booking list uses official bounded pagination (`from`, `to`) plus documented filters for `start`, `end`, `filterType`, `status`, `clientReference`, `creationUser`, `country`, `destination`, and `hotel`.
+
+Booking change is implemented only as protected low-level adapter support for official `SIMULATION` and `UPDATE` payloads. No public customer modification workflow is enabled.
+
+Reconfirmation retrieval uses official filters for pagination, optional check-in/reconfirmation date windows, `clientReferences`, and HBX `references`.
+
 ## Cancellation
 
-Cancellation uses existing supplier idempotency records. The adapter never retries cancellation blindly. The live cancellation call uses the official `cancellationFlag=CANCELLATION` query parameter; `SIMULATION` remains available only through explicit internal metadata and is not used by automated customer flows. Penalties are normalized when HBX returns them. Timeout or unknown cancellation results require manual review.
+Cancellation uses existing supplier idempotency records. The adapter never retries cancellation blindly. HBX cancellations run the official `cancellationFlag=SIMULATION` request first and persist a sanitized simulation snapshot. The live `cancellationFlag=CANCELLATION` request is sent only after a safe simulation result. Penalties are normalized when HBX returns them. Timeout, unavailable simulation, rejected simulation, or unknown cancellation results require manual review.
 
 ## Logging and Redaction
 
