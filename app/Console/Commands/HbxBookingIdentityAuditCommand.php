@@ -57,6 +57,9 @@ class HbxBookingIdentityAuditCommand extends Command
         }
         $this->line('Cause classification: '.$audit['classification']);
         $this->line('Local actual cancellation request found: '.$this->actualCancellationFound($audit['cancellationAudit']));
+        foreach ($audit['cancellationAudit'] as $entry) {
+            $this->line('Cancellation audit: mode='.($entry['mode'] ?? 'unknown').' timestamp='.($entry['operation_timestamp'] ?? 'not supplied').' correlation='.($entry['correlation_id'] ?? 'not supplied').' result='.($entry['result_category'] ?? 'not supplied'));
+        }
         $this->line('No booking, cancellation, modification, CheckRate, or production request was sent by this command.');
 
         return self::SUCCESS;
