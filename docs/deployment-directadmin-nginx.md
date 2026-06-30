@@ -4,8 +4,8 @@ Phase 10 does not deploy the application. This document defines the expected pro
 
 ## Server Requirements
 
-- PHP 8.3 or newer. Current local validation used PHP 8.5.
-- Required PHP extensions: `ctype`, `curl`, `dom`, `fileinfo`, `filter`, `hash`, `intl`, `json`, `mbstring`, `openssl`, `pcre`, `PDO`, `pdo_mysql`, `session`, `tokenizer`, `xml`, `zip`.
+- PHP 8.4.1 or newer. PHP 8.5 is recommended because the project was validated with PHP 8.5 and the locked Symfony dependencies require PHP `>=8.4.1`.
+- Required PHP extensions: `bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `filter`, `hash`, `intl`, `json`, `mbstring`, `openssl`, `pcre`, `PDO`, `pdo_mysql`, `session`, `tokenizer`, `xml`, `zip`.
 - Optional extension: `soap` only when a real SOAP supplier is enabled.
 - MySQL 8 with `utf8mb4`.
 - Redis for production cache, sessions, queues, and locks.
@@ -14,6 +14,8 @@ Phase 10 does not deploy the application. This document defines the expected pro
 ## Document Root
 
 The web root must point to Laravel `public/`. Never expose the repository root, `.env`, `storage/`, `vendor/`, or source files through Nginx.
+
+For the DirectAdmin staging subdomain `travel.cairocool.com`, see the stricter operational checklist in [deployment/directadmin-staging.md](deployment/directadmin-staging.md).
 
 Example Nginx location rules:
 
@@ -28,7 +30,7 @@ location / {
 location ~ \.php$ {
     include fastcgi_params;
     fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
-    fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+    fastcgi_pass unix:/run/php/php8.5-fpm.sock;
 }
 
 location ~ /\.(?!well-known).* {

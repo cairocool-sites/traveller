@@ -50,6 +50,7 @@ return [
     ],
 
     'payments' => [
+        'live_enabled' => (bool) env('TRAVEL_PAYMENT_LIVE_ENABLED', false),
         'evidence_max_kilobytes' => (int) env('TRAVEL_PAYMENT_EVIDENCE_MAX_KB', 4096),
         'evidence_mimes' => ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
         'evidence_mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
@@ -67,6 +68,7 @@ return [
     ],
 
     'cancellations' => [
+        'actual_supplier_cancellation_enabled' => (bool) env('TRAVEL_ACTUAL_SUPPLIER_CANCELLATION_ENABLED', false),
         'request_lifetime_hours' => (int) env('TRAVEL_CANCELLATION_REQUEST_LIFETIME_HOURS', 24),
         'submission_rate_limit' => env('TRAVEL_CANCELLATION_RATE_LIMIT', '6,1'),
         'auto_supplier_cancel_mock' => (bool) env('TRAVEL_AUTO_SUPPLIER_CANCEL_MOCK', true),

@@ -26,7 +26,7 @@ Cairo Cool Travel should be built as a modular Laravel hotel booking platform wi
 Recommended baseline stack:
 
 - Laravel 11 or current stable Laravel version at implementation time
-- PHP 8.3+
+- PHP 8.4.1+; PHP 8.5 is recommended for deployment
 - MySQL 8
 - Redis for cache, queues, sessions, locks, and rate limiting
 - Laravel queues for supplier calls, booking confirmation workflows, payment workflows, notifications, and reconciliation jobs

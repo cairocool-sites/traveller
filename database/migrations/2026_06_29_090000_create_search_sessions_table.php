@@ -27,7 +27,7 @@ return new class extends Migration
             $table->json('criteria_snapshot');
             $table->json('results_snapshot')->nullable();
             $table->json('warnings')->nullable();
-            $table->timestamp('expires_at')->index();
+            $table->timestamp('expires_at')->nullable()->index();
             $table->timestamps();
 
             $table->index(['destination_type', 'destination_id']);
