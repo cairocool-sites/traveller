@@ -76,6 +76,12 @@ class BookingResource extends Resource
                     ->label(__('admin.bookings.actions.reconcile'))
                     ->visible(fn (Booking $record): bool => Gate::allows('reconcile', $record))
                     ->action(fn (Booking $record) => app(BookingReconciliationService::class)->reconcile($record)),
+                Action::make('view_reconciliation')
+                    ->label(__('admin.bookings.actions.view_reconciliation'))
+                    ->icon('heroicon-o-scale')
+                    ->visible(fn (Booking $record): bool => Gate::allows('reconcile', $record))
+                    ->url(fn (Booking $record): string => route('admin.bookings.reconciliation', $record))
+                    ->openUrlInNewTab(),
             ])
             ->defaultSort('created_at', 'desc');
     }

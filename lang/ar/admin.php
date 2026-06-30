@@ -455,6 +455,7 @@ return [
         'history_plural_model_label' => 'Booking status histories',
         'actions' => [
             'reconcile' => 'Reconcile',
+            'view_reconciliation' => 'عرض المطابقة',
             'preview_voucher' => 'Preview voucher',
             'download_voucher' => 'Download voucher',
         ],

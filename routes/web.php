@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\BookingReconciliationController;
 use App\Http\Controllers\Admin\BookingVoucherController;
 use App\Http\Controllers\Admin\PaymentEvidenceController;
 use App\Http\Controllers\HealthController;
@@ -39,5 +40,6 @@ Route::get('/verify/voucher/{token}', [VerificationController::class, 'voucher']
 Route::get('/verify/invoice/{token}', [VerificationController::class, 'invoice'])->middleware('throttle:document-verification')->name('verify.invoice');
 Route::get('/verify/receipt/{token}', [VerificationController::class, 'receipt'])->middleware('throttle:document-verification')->name('verify.receipt');
 Route::get('/admin/bookings/{booking}/voucher', BookingVoucherController::class)->middleware('auth')->name('admin.bookings.voucher');
+Route::get('/admin/bookings/{booking}/reconciliation', BookingReconciliationController::class)->middleware('auth')->name('admin.bookings.reconciliation');
 Route::get('/admin/payment-evidence/{evidence}', [PaymentEvidenceController::class, 'show'])->middleware(['signed', 'throttle:evidence-downloads'])->name('admin.payment-evidence.show');
 Route::get('/hotels/{hotel}', [HotelSearchController::class, 'show'])->name('hotels.show');

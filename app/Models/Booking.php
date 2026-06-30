@@ -72,6 +72,11 @@ class Booking extends Model
         return $this->hasMany(BookingCancellation::class);
     }
 
+    public function certificationEvidences(): HasMany
+    {
+        return $this->hasMany(BookingCertificationEvidence::class);
+    }
+
     public function refunds(): HasMany
     {
         return $this->hasMany(Refund::class);

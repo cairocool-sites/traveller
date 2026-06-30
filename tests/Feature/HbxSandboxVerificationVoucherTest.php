@@ -1,17 +1,21 @@
 <?php
 
 use App\Enums\BookingStatus;
+use App\Enums\PaymentStatus;
 use App\Enums\RateCheckStatus;
 use App\Enums\SupplierStatus;
 use App\Models\Booking;
 use App\Models\City;
+use App\Models\Currency;
 use App\Models\HbxDestination;
 use App\Models\HbxHotel;
+use App\Models\ManualPaymentMethod;
 use App\Models\RateCheck;
 use App\Models\SearchSession;
 use App\Models\Supplier;
 use App\Models\SupplierDestinationMapping;
 use App\Models\User;
+use App\Services\Booking\BookingReconciliationService;
 use App\Services\Booking\BookingService;
 use App\Services\Booking\RateCheckService;
 use App\Services\PublicSearch\HotelSearchService;
@@ -251,6 +255,112 @@ it('downloads printable voucher fallback with a safe filename', function () {
         ->assertHeader('Content-Disposition', 'attachment; filename="cairo-cool-travel-voucher-'.Str::of($booking->booking_reference)->lower().'.html"');
 });
 
+it('retrieves hbx booking detail and stores reconciliation evidence without silent overwrite', function () {
+    $booking = phase14LocalConfirmedBooking();
+    $originalHotelName = $booking->hotel_snapshot['name'];
+
+    Http::fake(fn () => Http::response(phase14BookingDetailPayload($booking), 200));
+
+    $evidence = app(BookingReconciliationService::class)->audit($booking->refresh());
+
+    expect($evidence->summary_status)->toBe('matched')
+        ->and($evidence->field_results['supplier_reference']['classification'])->toBe('matched')
+        ->and($evidence->field_results['check_in']['classification'])->toBe('matched')
+        ->and($evidence->field_results['check_out']['classification'])->toBe('matched')
+        ->and($booking->refresh()->hotel_snapshot['name'])->toBe($originalHotelName);
+
+    Http::assertSent(fn ($request): bool => $request->method() === 'GET'
+        && $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/bookings/HBX-PHASE14-BOOKING');
+});
+
+it('classifies reconciliation mismatches without overwriting local booking fields', function () {
+    $booking = phase14LocalConfirmedBooking();
+    $localCheckIn = $booking->check_in->toDateString();
+    $payload = phase14BookingDetailPayload($booking);
+    $payload['booking']['hotel']['rooms'][0]['rates'][0]['checkIn'] = '2026-07-08';
+
+    Http::fake(fn () => Http::response($payload, 200));
+
+    $evidence = app(BookingReconciliationService::class)->audit($booking->refresh());
+
+    expect($evidence->summary_status)->toBe('manual_review')
+        ->and($evidence->field_results['check_in']['classification'])->toBe('mismatched')
+        ->and($booking->refresh()->check_in->toDateString())->toBe($localCheckIn);
+});
+
+it('runs certification evidence with cancellation simulation only and keeps the supplier booking confirmed', function () {
+    $booking = phase14LocalConfirmedBooking();
+    Http::fakeSequence()
+        ->push(phase14BookingDetailPayload($booking))
+        ->push(phase14CancellationSimulationPayload($booking))
+        ->push(phase14BookingDetailPayload($booking));
+
+    $this->artisan('hbx:certification:evidence --booking='.$booking->booking_reference)
+        ->expectsOutputToContain('Booking Detail retrieved: yes')
+        ->expectsOutputToContain('Supplier reference: HBX-PHASE14-BOOKING')
+        ->expectsOutputToContain('Cancellation simulation:')
+        ->expectsOutputToContain('Supplier booking remains confirmed: yes')
+        ->doesntExpectOutputToContain('phase14-api-key')
+        ->doesntExpectOutputToContain('phase14-api-secret')
+        ->doesntExpectOutputToContain('Sandbox Tester')
+        ->doesntExpectOutputToContain('phase14-rate')
+        ->assertSuccessful();
+
+    Http::assertSent(fn ($request): bool => $request->method() === 'DELETE'
+        && $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/bookings/HBX-PHASE14-BOOKING?cancellationFlag=SIMULATION');
+    Http::assertNotSent(fn ($request): bool => str_contains($request->url(), 'cancellationFlag=CANCELLATION'));
+});
+
+it('blocks certification evidence on production endpoints before supplier calls', function () {
+    $booking = phase14LocalConfirmedBooking();
+    config(['services.hbx.base_url' => 'https://api.hotelbeds.com']);
+    Http::fake();
+
+    $this->artisan('hbx:certification:evidence --booking='.$booking->booking_reference)
+        ->expectsOutputToContain('blocked outside the sandbox endpoint')
+        ->assertFailed();
+});
+
+it('renders semantic dates and localized supplier and payment statuses on public pages', function () {
+    $booking = phase14LocalConfirmedBooking();
+
+    $this->get(route('bookings.show', ['booking' => $booking->public_uuid, 'locale' => 'en']))
+        ->assertOk()
+        ->assertSee('Check-in')
+        ->assertSee('2026-07-07')
+        ->assertSee('Check-out')
+        ->assertSee('2026-07-10')
+        ->assertSee('Confirmed')
+        ->assertSee('Payment pending')
+        ->assertDontSee('supplier_failed')
+        ->assertDontSee('payment_pending');
+
+    app()->setLocale('ar');
+
+    $this->get(route('bookings.show', ['booking' => $booking->public_uuid, 'locale' => 'ar']))
+        ->assertOk()
+        ->assertSee('تاريخ الوصول')
+        ->assertSee('2026-07-07')
+        ->assertSee('تاريخ المغادرة')
+        ->assertSee('2026-07-10')
+        ->assertSee('مؤكد')
+        ->assertSee('بانتظار الدفع');
+});
+
+it('keeps supplier status unchanged when payment validation fails and shows field errors', function () {
+    $booking = phase14LocalConfirmedBooking();
+    ManualPaymentMethod::query()->where('code', 'bank_transfer')->update(['requires_reference' => true, 'supports_attachment' => false]);
+    $method = ManualPaymentMethod::query()->where('code', 'bank_transfer')->firstOrFail();
+
+    $this->post(route('payments.store', ['booking' => $booking->public_uuid, 'locale' => 'en']), [
+        'manual_payment_method_id' => $method->id,
+        'submitted_reference' => '',
+        'customer_notes' => 'sandbox note',
+    ])->assertSessionHasErrors('submitted_reference');
+
+    expect($booking->refresh()->supplier_status)->toBe('confirmed');
+});
+
 function phase14Criteria(array $overrides = []): array
 {
     $city = City::query()->where('name_en', 'Cairo')->firstOrFail();
@@ -294,9 +404,9 @@ function phase14SeedHbxMapping(): void
     );
 }
 
-function phase14RateCheckUsingCurrentFake(): RateCheck
+function phase14RateCheckUsingCurrentFake(array $overrides = []): RateCheck
 {
-    $session = phase14SearchSession();
+    $session = phase14SearchSession($overrides);
     $hotel = $session->results_snapshot[0];
     $rate = $hotel['rates'][0];
     $rateCheck = app(RateCheckService::class)->check($session, $hotel['public_token'], $rate['public_rate_token']);
@@ -306,7 +416,7 @@ function phase14RateCheckUsingCurrentFake(): RateCheck
     return $rateCheck;
 }
 
-function phase14ConfirmedBooking(): Booking
+function phase14ConfirmedBooking(array $criteriaOverrides = []): Booking
 {
     config(['services.hbx.sandbox_booking_enabled' => true]);
     Http::fakeSequence()
@@ -314,9 +424,118 @@ function phase14ConfirmedBooking(): Booking
         ->push(phase14CheckRatePayload())
         ->push(phase14BookingResponse());
 
-    $rateCheck = phase14RateCheckUsingCurrentFake();
+    $rateCheck = phase14RateCheckUsingCurrentFake($criteriaOverrides);
 
     return app(BookingService::class)->createAndSubmit($rateCheck, phase14BookingPayload());
+}
+
+function phase14LocalConfirmedBooking(): Booking
+{
+    $supplier = Supplier::query()->where('code', 'hbx_hotels')->firstOrFail();
+    $currency = Currency::query()->where('code', 'EGP')->firstOrFail();
+    $city = City::query()->where('name_en', 'Cairo')->firstOrFail();
+    $occupancy = [['adults' => 2, 'children' => 0, 'child_ages' => []]];
+    $roomSnapshot = [
+        'room_name' => 'Sandbox Standard Room',
+        'board_basis' => 'bed_and_breakfast',
+        'supplier_total' => ['minor_amount' => 12000, 'currency' => 'EGP'],
+        'cancellation_summary' => 'Penalty may apply after supplier deadline.',
+    ];
+
+    $session = SearchSession::query()->create([
+        'public_uuid' => (string) Str::uuid(),
+        'destination_type' => 'city',
+        'destination_id' => $city->id,
+        'destination_label' => 'Cairo',
+        'check_in' => '2026-07-07',
+        'check_out' => '2026-07-10',
+        'occupancy' => $occupancy,
+        'nationality' => 'EG',
+        'residency_country' => 'EG',
+        'currency' => 'EGP',
+        'locale' => 'en',
+        'correlation_id' => (string) Str::uuid(),
+        'criteria_snapshot' => [],
+        'results_snapshot' => [['name' => 'HBX Phase 14 Sandbox Hotel']],
+        'warnings' => [],
+        'expires_at' => now()->addHour(),
+    ]);
+
+    $rateCheck = RateCheck::query()->create([
+        'public_uuid' => (string) Str::uuid(),
+        'search_session_id' => $session->id,
+        'supplier_id' => $supplier->id,
+        'currency_id' => $currency->id,
+        'status' => RateCheckStatus::Available,
+        'supplier_hotel_reference' => '1401',
+        'supplier_rate_reference' => 'phase14-rate-checked',
+        'supplier_room_reference' => 'STD',
+        'original_amount_minor' => 12000,
+        'checked_amount_minor' => 12000,
+        'price_changed' => false,
+        'cancellation_policy_snapshot' => [['amount' => ['minor_amount' => 1000, 'currency' => 'EGP']]],
+        'room_snapshot' => $roomSnapshot,
+        'occupancy_snapshot' => $occupancy,
+        'supplier_reference_snapshot' => ['supplier' => 'hbx_hotels'],
+        'correlation_id' => (string) Str::uuid(),
+        'checked_at' => now(),
+        'expires_at' => now()->addHour(),
+    ]);
+
+    $booking = Booking::query()->create([
+        'public_uuid' => (string) Str::uuid(),
+        'booking_reference' => 'CCT-2026-422M23IT',
+        'search_session_id' => $session->id,
+        'rate_check_id' => $rateCheck->id,
+        'supplier_id' => $supplier->id,
+        'currency_id' => $currency->id,
+        'status' => BookingStatus::Confirmed,
+        'payment_status' => PaymentStatus::Pending,
+        'locale' => 'en',
+        'check_in' => '2026-07-07',
+        'check_out' => '2026-07-10',
+        'rooms_count' => 1,
+        'adults_count' => 2,
+        'children_count' => 0,
+        'supplier_booking_reference' => 'HBX-PHASE14-BOOKING',
+        'supplier_confirmation_reference' => 'HBX-PHASE14-BOOKING',
+        'supplier_status' => 'confirmed',
+        'total_amount_minor' => 12000,
+        'net_amount_minor' => 10000,
+        'taxes_amount_minor' => null,
+        'fees_amount_minor' => null,
+        'cancellation_policy_snapshot' => [['amount' => ['minor_amount' => 1000, 'currency' => 'EGP']]],
+        'hotel_snapshot' => ['name' => 'HBX Phase 14 Sandbox Hotel', 'location' => 'Cairo', 'star_rating' => 5],
+        'room_snapshot' => $roomSnapshot,
+        'occupancy_snapshot' => $occupancy,
+        'supplier_response_snapshot' => ['reference_present' => true],
+        'correlation_id' => (string) Str::uuid(),
+        'idempotency_key' => (string) Str::uuid(),
+        'idempotency_payload_hash' => hash('sha256', 'phase14-local'),
+        'contact_email' => 'sandbox.guest@example.test',
+        'contact_phone' => '+200000000000',
+        'customer_nationality' => 'EG',
+        'confirmed_at' => now(),
+    ]);
+
+    $room = $booking->rooms()->create([
+        'room_index' => 1,
+        'room_name' => 'Sandbox Standard Room',
+        'board_basis' => 'bed_and_breakfast',
+        'adults' => 2,
+        'children' => 0,
+        'child_ages' => [],
+        'amount_minor' => 12000,
+        'cancellation_policy_snapshot' => [['amount' => ['minor_amount' => 1000, 'currency' => 'EGP']]],
+        'supplier_room_reference' => 'STD',
+    ]);
+
+    $booking->guests()->createMany([
+        ['booking_room_id' => $room->id, 'type' => 'adult', 'first_name' => 'Sandbox', 'last_name' => 'Tester', 'is_lead_guest' => true, 'sort_order' => 1],
+        ['booking_room_id' => $room->id, 'type' => 'adult', 'first_name' => 'Sandbox', 'last_name' => 'Traveler', 'is_lead_guest' => false, 'sort_order' => 2],
+    ]);
+
+    return $booking->refresh();
 }
 
 function phase14BookingPayload(array $overrides = []): array
@@ -387,5 +606,48 @@ function phase14BookingResponse(): array
         'totalNet' => '100.00',
         'currency' => 'EGP',
         'creationDate' => now()->toIso8601String(),
+    ]];
+}
+
+function phase14BookingDetailPayload(Booking $booking): array
+{
+    return ['booking' => [
+        'reference' => 'HBX-PHASE14-BOOKING',
+        'status' => 'CONFIRMED',
+        'totalNet' => '120.00',
+        'currency' => 'EGP',
+        'creationDate' => now()->toIso8601String(),
+        'holder' => ['name' => 'Sandbox', 'surname' => 'Tester'],
+        'hotel' => [
+            'code' => 1401,
+            'name' => 'HBX Phase 14 Sandbox Hotel',
+            'categoryCode' => '5EST',
+            'destinationCode' => 'CAI',
+            'rooms' => [[
+                'code' => 'STD',
+                'name' => 'Sandbox Standard Room',
+                'paxes' => [
+                    ['type' => 'AD'],
+                    ['type' => 'AD'],
+                ],
+                'rates' => [[
+                    'boardCode' => 'BB',
+                    'checkIn' => $booking->check_in->toDateString(),
+                    'checkOut' => $booking->check_out->toDateString(),
+                    'cancellationPolicies' => [['amount' => '10.00', 'from' => now()->addDay()->toIso8601String()]],
+                    'rateComments' => 'Sandbox remarks available.',
+                ]],
+            ]],
+        ],
+    ]];
+}
+
+function phase14CancellationSimulationPayload(Booking $booking): array
+{
+    return ['booking' => [
+        'reference' => $booking->supplier_booking_reference,
+        'status' => 'CONFIRMED',
+        'currency' => 'EGP',
+        'cancellationAmount' => '10.00',
     ]];
 }

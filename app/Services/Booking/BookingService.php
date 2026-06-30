@@ -182,6 +182,7 @@ class BookingService
             $booking->forceFill([
                 'confirmed_at' => $target === BookingStatus::Confirmed ? now() : null,
                 'failed_at' => $target === BookingStatus::SupplierFailed ? now() : null,
+                'payment_status' => $target === BookingStatus::Confirmed ? PaymentStatus::Pending : $booking->payment_status,
             ])->save();
 
             $this->notifySafely($booking);

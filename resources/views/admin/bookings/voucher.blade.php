@@ -164,6 +164,18 @@
                 <span class="value">{{ data_get($booking->hotel_snapshot, 'name', 'Selected hotel') }}</span>
             </div>
             <div class="item">
+                <span class="label">Hotel address</span>
+                <span class="value">{{ data_get($booking->hotel_snapshot, 'address', 'Unavailable from supplier content') }}</span>
+            </div>
+            <div class="item">
+                <span class="label">Destination</span>
+                <span class="value">{{ data_get($booking->hotel_snapshot, 'location', 'Unavailable from supplier content') }}</span>
+            </div>
+            <div class="item">
+                <span class="label">Category</span>
+                <span class="value">{{ data_get($booking->hotel_snapshot, 'star_rating', 'Not specified') }}</span>
+            </div>
+            <div class="item">
                 <span class="label">Room</span>
                 <span class="value">{{ data_get($booking->room_snapshot, 'room_name', 'Selected room') }}</span>
             </div>
@@ -172,12 +184,20 @@
                 <span class="value">{{ data_get($booking->room_snapshot, 'board_basis', 'Not specified') }}</span>
             </div>
             <div class="item">
-                <span class="label">Check-in / Check-out</span>
-                <span class="value">{{ $booking->check_in->toDateString() }} to {{ $booking->check_out->toDateString() }}</span>
+                <span class="label">Check-in</span>
+                <span class="value">{{ $booking->check_in->toDateString() }}</span>
+            </div>
+            <div class="item">
+                <span class="label">Check-out</span>
+                <span class="value">{{ $booking->check_out->toDateString() }}</span>
             </div>
             <div class="item">
                 <span class="label">Guest summary</span>
                 <span class="value">{{ $booking->adults_count }} adult(s){{ $booking->children_count ? ', '.$booking->children_count.' child(ren)' : '' }}</span>
+            </div>
+            <div class="item">
+                <span class="label">Lead passenger</span>
+                <span class="value">{{ optional($booking->guests->firstWhere('is_lead_guest', true))->first_name ? optional($booking->guests->firstWhere('is_lead_guest', true))->first_name.' '.optional($booking->guests->firstWhere('is_lead_guest', true))->last_name : 'Not specified' }}</span>
             </div>
             <div class="item">
                 <span class="label">Selling total</span>
@@ -186,6 +206,14 @@
             <div class="item">
                 <span class="label">Cancellation summary</span>
                 <span class="value">{{ data_get($booking->room_snapshot, 'cancellation_summary', 'See booking conditions.') }}</span>
+            </div>
+            <div class="item">
+                <span class="label">Booking remarks</span>
+                <span class="value">{{ $booking->special_requests ?: data_get($booking->room_snapshot, 'remarks', 'No supplier remarks supplied') }}</span>
+            </div>
+            <div class="item">
+                <span class="label">Customer support</span>
+                <span class="value">Cairo Cool Travel support - sandbox verification desk</span>
             </div>
         </section>
 
