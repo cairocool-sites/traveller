@@ -202,8 +202,11 @@ class HbxHotelSupplier implements HotelSupplierInterface
         }
 
         try {
-            $flag = $request->metadata['cancellation_flag'] ?? 'CANCELLATION';
-            $flag = $flag === 'SIMULATION' ? 'SIMULATION' : 'CANCELLATION';
+            $flag = $request->metadata['cancellation_flag'] ?? null;
+            if (! in_array($flag, ['SIMULATION', 'CANCELLATION'], true)) {
+                throw new InvalidSupplierResponseException('HBX cancellation requires an explicit cancellation flag.', $correlationId);
+            }
+
             $path = '/hotel-api/1.0/bookings/'.$request->supplierBookingReference.'?cancellationFlag='.$flag;
             $response = $this->client->request($this->supplier, SupplierOperation::Cancel, 'DELETE', $path, [], $correlationId);
         } catch (SupplierTimeoutException) {

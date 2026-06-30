@@ -63,13 +63,13 @@ class BookingResource extends Resource
                 Action::make('preview_voucher')
                     ->label(__('admin.bookings.actions.preview_voucher'))
                     ->icon('heroicon-o-document-text')
-                    ->visible(fn (Booking $record): bool => Gate::allows('view', $record) && in_array($record->status, [BookingStatus::Confirmed, BookingStatus::ManualReview], true))
+                    ->visible(fn (Booking $record): bool => Gate::allows('view', $record) && ! $record->hasUnresolvedSupplierIdentity() && in_array($record->status, [BookingStatus::Confirmed, BookingStatus::ManualReview], true))
                     ->url(fn (Booking $record): string => route('admin.bookings.voucher', $record))
                     ->openUrlInNewTab(),
                 Action::make('download_voucher')
                     ->label(__('admin.bookings.actions.download_voucher'))
                     ->icon('heroicon-o-arrow-down-tray')
-                    ->visible(fn (Booking $record): bool => Gate::allows('view', $record) && in_array($record->status, [BookingStatus::Confirmed, BookingStatus::ManualReview], true))
+                    ->visible(fn (Booking $record): bool => Gate::allows('view', $record) && ! $record->hasUnresolvedSupplierIdentity() && in_array($record->status, [BookingStatus::Confirmed, BookingStatus::ManualReview], true))
                     ->url(fn (Booking $record): string => route('admin.bookings.voucher', ['booking' => $record, 'download' => true]))
                     ->openUrlInNewTab(),
                 Action::make('reconcile')

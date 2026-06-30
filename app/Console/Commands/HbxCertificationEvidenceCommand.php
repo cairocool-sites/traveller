@@ -35,7 +35,7 @@ class HbxCertificationEvidenceCommand extends Command
         }
 
         try {
-            $result = $evidence->collect($booking);
+            $result = $evidence->collect($booking, includeCancellationSimulation: false);
         } catch (HbxCertificationEvidenceException $exception) {
             $this->error($exception->getMessage());
 

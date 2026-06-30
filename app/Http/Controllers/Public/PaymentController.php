@@ -19,6 +19,8 @@ class PaymentController extends Controller
     {
         $bookingModel = Booking::query()->with(['currency', 'payments'])->where('public_uuid', $booking)->firstOrFail();
 
+        abort_if($bookingModel->hasUnresolvedSupplierIdentity(), 409);
+
         return view('public.payments.show', [
             'booking' => $bookingModel,
             'methods' => ManualPaymentMethod::query()->where('is_active', true)->orderBy('sort_order')->get(),
@@ -31,6 +33,8 @@ class PaymentController extends Controller
     public function store(string $booking, Request $request, PaymentService $payments): RedirectResponse
     {
         $bookingModel = Booking::query()->where('public_uuid', $booking)->firstOrFail();
+
+        abort_if($bookingModel->hasUnresolvedSupplierIdentity(), 409);
 
         $request->validate([
             'manual_payment_method_id' => ['required', 'integer', 'exists:manual_payment_methods,id'],

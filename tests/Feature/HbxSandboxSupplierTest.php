@@ -249,7 +249,7 @@ it('normalizes booking lookup reconciliation', function () {
 it('normalizes cancellation success, penalty, and unknown timeout', function () {
     Http::fake(['*' => Http::response(['booking' => ['reference' => 'HBX-1', 'status' => 'CANCELLED', 'currency' => 'EGP', 'cancellationAmount' => '30.00']], 200)]);
 
-    $cancelled = hbx()->cancel(new SupplierCancellationRequestData('HBX-1', 'cancel-1'));
+    $cancelled = hbx()->cancel(new SupplierCancellationRequestData('HBX-1', 'cancel-1', metadata: ['cancellation_flag' => 'CANCELLATION']));
 
     expect($cancelled->successful)->toBeTrue()
         ->and($cancelled->status)->toBe(CancellationSupplierStatus::Cancelled)
@@ -260,7 +260,7 @@ it('normalizes cancellation success, penalty, and unknown timeout', function () 
 
     Http::fake(fn () => throw new ConnectionException('timeout'));
 
-    $unknown = hbx()->cancel(new SupplierCancellationRequestData('HBX-2', 'cancel-2'));
+    $unknown = hbx()->cancel(new SupplierCancellationRequestData('HBX-2', 'cancel-2', metadata: ['cancellation_flag' => 'CANCELLATION']));
 
     expect($unknown->requiresManualReview)->toBeTrue()
         ->and($unknown->status)->toBe(CancellationSupplierStatus::Pending);

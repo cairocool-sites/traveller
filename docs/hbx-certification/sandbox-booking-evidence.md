@@ -14,17 +14,13 @@ The evidence command is:
 php artisan hbx:certification:evidence --booking=CCT-2026-422M23IT
 ```
 
-The command retrieves Booking Detail with:
+The certification evidence command now retrieves Booking Detail with:
 
 ```text
 GET /hotel-api/1.0/bookings/{bookingReference}
 ```
 
-It then performs a cancellation simulation only:
-
-```text
-DELETE /hotel-api/1.0/bookings/{bookingReference}?cancellationFlag=SIMULATION
-```
+During the identity investigation, the command does not perform cancellation simulation. Use `hbx:booking-identity:audit` for forensic identity evidence.
 
 The command prints sanitized evidence only. It never prints credentials, signatures, headers, rate keys, raw payloads, supplier net price, card data, full guest identity, phone, email, or production URLs.
 

@@ -196,7 +196,7 @@ it('marks timeout outcomes for manual review without retry', function () {
     expect($call)->toBe(3);
 });
 
-it('reconciles pending manual review bookings through hbx lookup', function () {
+it('audits pending manual review bookings through hbx lookup without automatic status overwrite', function () {
     Http::fakeSequence()
         ->push(phase13AvailabilityPayload())
         ->push(phase13CheckRatePayload())
@@ -209,7 +209,8 @@ it('reconciles pending manual review bookings through hbx lookup', function () {
 
     $reconciled = app(BookingReconciliationService::class)->reconcile($booking);
 
-    expect($reconciled->status)->toBe(BookingStatus::Confirmed);
+    expect($reconciled->status)->toBe(BookingStatus::ManualReview)
+        ->and($reconciled->certificationEvidences()->where('operation_type', 'booking_detail_reconciliation')->exists())->toBeTrue();
 });
 
 it('renders confirmation safely and does not leak credentials or raw rate keys', function () {

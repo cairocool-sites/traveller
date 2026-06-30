@@ -18,6 +18,8 @@ class BookingVoucherController extends Controller
     {
         Gate::authorize('view', $booking);
 
+        abort_if($booking->hasUnresolvedSupplierIdentity(), 409);
+
         abort_unless(in_array($booking->status, [BookingStatus::Confirmed, BookingStatus::ManualReview], true), 404);
 
         $view = view('admin.bookings.voucher', [

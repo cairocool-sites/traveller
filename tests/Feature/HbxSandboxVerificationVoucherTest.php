@@ -5,6 +5,7 @@ use App\Enums\PaymentStatus;
 use App\Enums\RateCheckStatus;
 use App\Enums\SupplierStatus;
 use App\Models\Booking;
+use App\Models\BookingCertificationEvidence;
 use App\Models\City;
 use App\Models\Currency;
 use App\Models\HbxDestination;
@@ -18,6 +19,8 @@ use App\Models\User;
 use App\Services\Booking\BookingReconciliationService;
 use App\Services\Booking\BookingService;
 use App\Services\Booking\RateCheckService;
+use App\Services\Hbx\HbxBookingIdentityService;
+use App\Services\Hbx\HbxCertificationEvidenceException;
 use App\Services\PublicSearch\HotelSearchService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
@@ -288,19 +291,16 @@ it('classifies reconciliation mismatches without overwriting local booking field
         ->and($booking->refresh()->check_in->toDateString())->toBe($localCheckIn);
 });
 
-it('runs certification evidence with cancellation simulation only and keeps the supplier booking confirmed', function () {
+it('runs certification evidence without cancellation simulation during identity investigation', function () {
     $booking = phase14LocalConfirmedBooking();
-    Http::fakeSequence()
-        ->push(phase14BookingDetailPayload($booking))
-        ->push(phase14CancellationSimulationPayload($booking))
-        ->push(phase14BookingDetailPayload($booking));
+    Http::fakeSequence()->push(phase14BookingDetailPayload($booking));
 
     $this->artisan('hbx:certification:evidence --booking='.$booking->booking_reference)
         ->expectsOutputToContain('Booking Detail retrieved: yes')
         ->expectsOutputToContain('Supplier reference: HBX-PHASE14-BOOKING')
         ->expectsOutputToContain('Check-in: 2026-07-07')
         ->expectsOutputToContain('Check-out: 2026-07-10')
-        ->expectsOutputToContain('Cancellation simulation:')
+        ->expectsOutputToContain('Cancellation simulation: not_run')
         ->expectsOutputToContain('Supplier booking remains confirmed: yes')
         ->doesntExpectOutputToContain('phase14-api-key')
         ->doesntExpectOutputToContain('phase14-api-secret')
@@ -308,9 +308,93 @@ it('runs certification evidence with cancellation simulation only and keeps the 
         ->doesntExpectOutputToContain('phase14-rate')
         ->assertSuccessful();
 
-    Http::assertSent(fn ($request): bool => $request->method() === 'DELETE'
-        && $request->url() === 'https://api.test.hotelbeds.com/hotel-api/1.0/bookings/HBX-PHASE14-BOOKING?cancellationFlag=SIMULATION');
+    Http::assertNotSent(fn ($request): bool => $request->method() === 'DELETE');
     Http::assertNotSent(fn ($request): bool => str_contains($request->url(), 'cancellationFlag=CANCELLATION'));
+});
+
+it('runs read-only hbx booking identity audit with bounded booking list candidates', function () {
+    $booking = phase14LocalConfirmedBooking();
+    Http::fakeSequence()
+        ->push(phase14BookingDetailPayload($booking))
+        ->push(phase14BookingListPayload($booking, reference: 'HBX-PHASE14-BOOKING'));
+
+    $this->artisan('hbx:booking-identity:audit --booking='.$booking->booking_reference)
+        ->expectsOutputToContain('HBX booking identity forensic audit')
+        ->expectsOutputToContain('Stored supplier reference: HBX-PHASE14-BOOKING')
+        ->expectsOutputToContain('Client reference:')
+        ->expectsOutputToContain('Booking List candidates: 1')
+        ->expectsOutputToContain('Cause classification: exact_match')
+        ->expectsOutputToContain('No booking, cancellation, modification, CheckRate, or production request was sent')
+        ->assertSuccessful();
+
+    Http::assertSent(fn ($request): bool => $request->method() === 'GET'
+        && str_starts_with($request->url(), 'https://api.test.hotelbeds.com/hotel-api/1.0/bookings?')
+        && str_contains($request->url(), 'clientReference=')
+        && str_contains($request->url(), 'filterType=CREATION')
+        && str_contains($request->url(), 'from=1')
+        && str_contains($request->url(), 'to=25'));
+    Http::assertNotSent(fn ($request): bool => in_array($request->method(), ['POST', 'PUT', 'DELETE'], true));
+});
+
+it('classifies hbx detail hotel mismatch as supplier reference unexpected', function () {
+    $booking = phase14LocalConfirmedBooking();
+    $detail = phase14BookingDetailPayload($booking);
+    $detail['booking']['hotel']['code'] = 108694;
+    $detail['booking']['hotel']['name'] = 'Indiana Hotel Cairo';
+
+    Http::fakeSequence()
+        ->push($detail)
+        ->push(['bookings' => ['bookings' => []]]);
+
+    $audit = app(HbxBookingIdentityService::class)->audit($booking);
+
+    expect($audit['classification'])->toBe('supplier_reference_reused_or_unexpected');
+});
+
+it('requires exact identity evidence before correcting supplier reference and audits manual correction', function () {
+    $booking = phase14LocalConfirmedBooking();
+    $booking->forceFill(['supplier_booking_reference' => 'WRONG-REFERENCE', 'supplier_confirmation_reference' => 'WRONG-REFERENCE'])->save();
+
+    Http::fakeSequence()
+        ->push(phase14BookingDetailPayload($booking, reference: 'WRONG-REFERENCE'))
+        ->push(phase14BookingListPayload($booking, reference: 'HBX-CORRECT-1'))
+        ->push(phase14BookingDetailPayload($booking, reference: 'WRONG-REFERENCE'))
+        ->push(phase14BookingListPayload($booking, reference: 'HBX-CORRECT-1'));
+
+    $service = app(HbxBookingIdentityService::class);
+
+    expect(fn () => $service->correctSupplierReference($booking, 'NOT-IN-LIST', 'wrong'))
+        ->toThrow(HbxCertificationEvidenceException::class);
+
+    $evidence = $service->correctSupplierReference($booking->refresh(), 'HBX-CORRECT-1', 'Exact clientReference and identity match.');
+
+    expect($booking->refresh()->supplier_booking_reference)->toBe('HBX-CORRECT-1')
+        ->and($evidence->operation_type)->toBe('supplier_reference_resolution')
+        ->and($evidence->sanitized_snapshot['old_reference'])->toBe('WRONG-REFERENCE');
+});
+
+it('blocks voucher payment and cancellation while supplier identity is unresolved', function () {
+    $booking = phase14LocalConfirmedBooking();
+    BookingCertificationEvidence::query()->create([
+        'booking_id' => $booking->id,
+        'operation_type' => 'booking_identity_forensic_audit',
+        'local_reference' => $booking->booking_reference,
+        'supplier_reference' => $booking->supplier_booking_reference,
+        'summary_status' => 'manual_review',
+    ]);
+    $admin = User::factory()->create();
+    $admin->assignRole('super_admin');
+
+    $this->get(route('bookings.show', ['booking' => $booking->public_uuid, 'locale' => 'en']))
+        ->assertOk()
+        ->assertSee('Booking under review')
+        ->assertSee($booking->booking_reference)
+        ->assertDontSee('Manual payment')
+        ->assertDontSee('Cancel booking');
+
+    $this->actingAs($admin)->get(route('admin.bookings.voucher', $booking))->assertStatus(409);
+    $this->get(route('payments.show', ['booking' => $booking->public_uuid, 'locale' => 'en']))->assertStatus(409);
+    $this->get(route('cancellations.create', ['booking' => $booking->public_uuid, 'locale' => 'en']))->assertStatus(409);
 });
 
 it('blocks certification evidence on production endpoints before supplier calls', function () {
@@ -611,10 +695,10 @@ function phase14BookingResponse(): array
     ]];
 }
 
-function phase14BookingDetailPayload(Booking $booking): array
+function phase14BookingDetailPayload(Booking $booking, ?string $reference = null): array
 {
     return ['booking' => [
-        'reference' => 'HBX-PHASE14-BOOKING',
+        'reference' => $reference ?? 'HBX-PHASE14-BOOKING',
         'status' => 'CONFIRMED',
         'totalNet' => '120.00',
         'currency' => 'EGP',
@@ -642,6 +726,30 @@ function phase14BookingDetailPayload(Booking $booking): array
             ]],
         ],
     ]];
+}
+
+function phase14BookingListPayload(Booking $booking, string $reference): array
+{
+    return ['bookings' => ['bookings' => [[
+        'reference' => $reference,
+        'clientReference' => Str::of($booking->idempotency_key)->replaceMatches('/[^A-Za-z0-9_-]/', '')->limit(20, '')->toString(),
+        'creationDate' => $booking->created_at->toDateString(),
+        'status' => 'CONFIRMED',
+        'hotel' => [
+            'code' => 1401,
+            'name' => 'HBX Phase 14 Sandbox Hotel',
+            'destinationCode' => 'CAI',
+            'checkIn' => $booking->check_in->toDateString(),
+            'checkOut' => $booking->check_out->toDateString(),
+            'rooms' => [[
+                'code' => 'STD',
+                'paxes' => [['type' => 'AD'], ['type' => 'AD']],
+                'rates' => [['boardCode' => 'BB', 'rooms' => 1]],
+            ]],
+        ],
+        'currency' => 'EGP',
+        'totalSellingRate' => '120.00',
+    ]]]];
 }
 
 function phase14CancellationSimulationPayload(Booking $booking): array

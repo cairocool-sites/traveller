@@ -126,14 +126,15 @@ it('rejects guest details that do not match occupancy', function () {
     ]));
 })->throws(InvalidArgumentException::class);
 
-it('places uncertain supplier bookings into manual review and reconciles them by lookup', function () {
+it('places uncertain supplier bookings into manual review and audits lookup without automatic confirmation', function () {
     $booking = app(BookingService::class)->createAndSubmit(phase7RateCheck(), phase7BookingPayload(['scenario' => 'uncertain']));
 
     expect($booking->status)->toBe(BookingStatus::ManualReview);
 
     $reconciled = app(BookingReconciliationService::class)->reconcile($booking);
 
-    expect($reconciled->status)->toBe(BookingStatus::Confirmed);
+    expect($reconciled->status)->toBe(BookingStatus::ManualReview)
+        ->and($reconciled->certificationEvidences()->where('operation_type', 'booking_detail_reconciliation')->exists())->toBeTrue();
 });
 
 it('renders the public check rate and confirmation flow', function () {

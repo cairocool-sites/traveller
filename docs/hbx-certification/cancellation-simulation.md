@@ -1,6 +1,6 @@
 # Cancellation Simulation
 
-Phase 14 supports HBX cancellation simulation for certification evidence only.
+Phase 14 supports HBX cancellation simulation for certification evidence only, but simulation is paused during the booking identity forensic investigation.
 
 The request uses:
 
@@ -8,7 +8,7 @@ The request uses:
 DELETE /hotel-api/1.0/bookings/{bookingReference}?cancellationFlag=SIMULATION
 ```
 
-No real cancellation is sent by the certification evidence command. No public UI action defaults to real HBX cancellation.
+No real cancellation is sent by the certification evidence command. No public UI action defaults to real HBX cancellation. The HBX adapter requires an explicit `cancellationFlag` value; it cannot silently default to `CANCELLATION`.
 
 The simulation audit stores:
 

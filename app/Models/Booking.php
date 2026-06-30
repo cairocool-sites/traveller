@@ -77,6 +77,14 @@ class Booking extends Model
         return $this->hasMany(BookingCertificationEvidence::class);
     }
 
+    public function hasUnresolvedSupplierIdentity(): bool
+    {
+        return $this->certificationEvidences()
+            ->whereIn('operation_type', ['booking_identity_forensic_audit', 'booking_detail_reconciliation', 'hbx_certification_evidence'])
+            ->whereIn('summary_status', ['manual_review', 'reference_mismatch', 'local_mapping_error', 'supplier_reference_reused_or_unexpected', 'insufficient_evidence'])
+            ->exists();
+    }
+
     public function refunds(): HasMany
     {
         return $this->hasMany(Refund::class);

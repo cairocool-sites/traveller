@@ -365,6 +365,7 @@ return [
             'hotel_details' => 'Hotel details',
             'check_rate' => 'Check rate',
             'book' => 'Book',
+            'booking_list' => 'Booking list',
             'get_booking' => 'Get booking',
             'cancel' => 'Cancel',
             'health_check' => 'Health check',

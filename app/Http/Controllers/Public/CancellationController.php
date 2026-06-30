@@ -20,6 +20,8 @@ class CancellationController extends Controller
     {
         $bookingModel = Booking::query()->with('currency')->where('public_uuid', $booking)->firstOrFail();
 
+        abort_if($bookingModel->hasUnresolvedSupplierIdentity(), 409);
+
         return view('public.cancellations.show', [
             'booking' => $bookingModel,
             'eligibility' => $eligibility->evaluate($bookingModel),
@@ -32,6 +34,7 @@ class CancellationController extends Controller
     public function store(string $booking, Request $request, CancellationService $cancellations): RedirectResponse
     {
         $bookingModel = Booking::query()->where('public_uuid', $booking)->firstOrFail();
+        abort_if($bookingModel->hasUnresolvedSupplierIdentity(), 409);
         $validated = $request->validate([
             'customer_reason' => ['nullable', 'string', 'max:1000'],
             'confirm' => ['accepted'],

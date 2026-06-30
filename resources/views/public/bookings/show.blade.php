@@ -1,11 +1,20 @@
 <x-layouts.public :meta-title="$metaTitle" :meta-description="$metaDescription">
     <section class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
         <div class="cct-card p-6 sm:p-8">
+            @php($identityUnresolved = $booking->hasUnresolvedSupplierIdentity())
             <p class="cct-badge bg-[#14B8A6]/15 text-[#0F766E]">
-                {{ $booking->supplier_status === 'confirmed' ? __('public.booking.confirmed_heading') : __('public.booking.confirmation_title') }}
+                {{ $identityUnresolved ? __('public.booking.under_review_heading') : ($booking->supplier_status === 'confirmed' ? __('public.booking.confirmed_heading') : __('public.booking.confirmation_title')) }}
             </p>
             <h1 class="mt-4 text-3xl font-black text-[#0B1F33]">{{ $booking->booking_reference }}</h1>
             <p class="mt-3 rounded-2xl bg-blue-50 p-4 text-sm font-semibold text-blue-900">{{ __('public.booking.sandbox_notice') }}</p>
+
+            @if ($identityUnresolved)
+                <div class="mt-6 rounded-2xl border border-amber-300 bg-amber-50 p-5 text-sm font-semibold text-amber-950">
+                    <p>{{ __('public.booking.identity_review_notice') }}</p>
+                    <p class="mt-2">{{ __('public.payments.booking_reference') }}: {{ $booking->booking_reference }}</p>
+                    <p class="mt-2">{{ __('public.booking.support_notice') }}</p>
+                </div>
+            @else
 
             <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <div class="rounded-2xl border border-slate-200 bg-[#F6F8FB] p-4">
@@ -51,6 +60,7 @@
             @endif
             @if ($booking->status === \App\Enums\BookingStatus::Confirmed)
                 <a href="{{ route('cancellations.create', ['booking' => $booking->public_uuid, 'locale' => app()->getLocale()]) }}" class="mt-4 inline-flex rounded border border-slate-300 px-5 py-2 text-sm font-semibold text-slate-800">{{ __('public.cancellations.title') }}</a>
+            @endif
             @endif
             <p class="mt-6 text-sm font-semibold text-slate-500">{{ __('public.booking.confirmation_note') }}</p>
         </div>

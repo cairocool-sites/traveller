@@ -41,5 +41,6 @@ Route::get('/verify/invoice/{token}', [VerificationController::class, 'invoice']
 Route::get('/verify/receipt/{token}', [VerificationController::class, 'receipt'])->middleware('throttle:document-verification')->name('verify.receipt');
 Route::get('/admin/bookings/{booking}/voucher', BookingVoucherController::class)->middleware('auth')->name('admin.bookings.voucher');
 Route::get('/admin/bookings/{booking}/reconciliation', BookingReconciliationController::class)->middleware('auth')->name('admin.bookings.reconciliation');
+Route::post('/admin/bookings/{booking}/reconciliation/resolve', [BookingReconciliationController::class, 'resolve'])->middleware('auth')->name('admin.bookings.reconciliation.resolve');
 Route::get('/admin/payment-evidence/{evidence}', [PaymentEvidenceController::class, 'show'])->middleware(['signed', 'throttle:evidence-downloads'])->name('admin.payment-evidence.show');
 Route::get('/hotels/{hotel}', [HotelSearchController::class, 'show'])->name('hotels.show');
