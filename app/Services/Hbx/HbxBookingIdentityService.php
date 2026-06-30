@@ -272,6 +272,10 @@ class HbxBookingIdentityService
             return 'exact_match';
         }
 
+        if ($this->originalBookingResponseProvesIdentity($local, $original, $detail, $candidates)) {
+            return 'exact_match';
+        }
+
         if (($detail['hotel_code'] ?? null) && (string) ($detail['hotel_code'] ?? '') !== (string) ($local['hotel_code'] ?? '')) {
             return 'supplier_reference_reused_or_unexpected';
         }
@@ -293,6 +297,62 @@ class HbxBookingIdentityService
             && (int) ($local['occupancy_count'] ?? 0) === (int) ($candidate['occupancy_count'] ?? 0)
             && ($local['currency'] ?? null) === ($candidate['currency'] ?? null)
             && ($candidate['client_reference_match'] ?? false) === true;
+    }
+
+    private function originalBookingResponseProvesIdentity(array $local, array $original, array $detail, array $candidates): bool
+    {
+        if (! ($original['found'] ?? false)) {
+            return false;
+        }
+
+        if (($original['client_reference'] ?? null) !== ($local['client_reference'] ?? null)) {
+            return false;
+        }
+
+        if (! $this->sameSupplierReference($local, $original)) {
+            return false;
+        }
+
+        if (! $this->sameOperationalFingerprint($local, $original)) {
+            return false;
+        }
+
+        $detailReferenceMatches = $this->sameSupplierReference($local, $detail);
+        $detailMatches = $detailReferenceMatches && $this->sameOperationalFingerprint($local, $detail, requireDates: false);
+
+        $candidateMatches = collect($candidates)->contains(fn (array $candidate): bool => $this->sameSupplierReference($local, $candidate)
+            && $this->sameOperationalFingerprint($local, $candidate));
+
+        return $detailMatches || $candidateMatches;
+    }
+
+    private function sameSupplierReference(array $local, array $source): bool
+    {
+        $localReference = $local['supplier_reference'] ?? null;
+        $sourceReference = $source['booking_reference_value'] ?? $source['reference'] ?? $source['supplier_reference'] ?? null;
+
+        return filled($localReference) && filled($sourceReference) && (string) $localReference === (string) $sourceReference;
+    }
+
+    private function sameOperationalFingerprint(array $local, array $source, bool $requireDates = true): bool
+    {
+        if ((string) ($local['hotel_code'] ?? '') === '' || (string) ($local['hotel_code'] ?? '') !== (string) ($source['hotel_code'] ?? '')) {
+            return false;
+        }
+
+        if ($requireDates && (($local['check_in'] ?? null) !== ($source['check_in'] ?? null) || ($local['check_out'] ?? null) !== ($source['check_out'] ?? null))) {
+            return false;
+        }
+
+        if (isset($source['room_count']) && (int) ($source['room_count'] ?? 0) !== (int) ($local['room_count'] ?? 0)) {
+            return false;
+        }
+
+        if (isset($source['occupancy_count']) && (int) ($source['occupancy_count'] ?? 0) !== (int) ($local['occupancy_count'] ?? 0)) {
+            return false;
+        }
+
+        return true;
     }
 
     private function comparisonTable(array $local, array $original, array $detail, array $candidate): array

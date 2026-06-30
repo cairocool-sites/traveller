@@ -101,8 +101,9 @@ class BookingReconciliationService
             'room_type' => $this->compare(data_get($booking->room_snapshot, 'room_name'), $this->roomName($room)),
             'board' => $this->compare(data_get($booking->room_snapshot, 'board_basis'), $this->roomBoard($room)),
             'passenger_count' => $this->compare($booking->adults_count + $booking->children_count, $this->supplierPassengerCount($supplierBooking)),
-            'currency' => $this->compare($booking->currency?->code, $supplierTotal?->currency ?? $supplierBooking->hotel?->currency),
-            'total_amount' => $this->compare($booking->total_amount_minor, $supplierTotal?->minorAmount),
+            'customer_currency' => $this->result($booking->currency?->code, null, 'customer_pricing'),
+            'supplier_currency' => $this->result(null, $supplierTotal?->currency ?? $supplierBooking->hotel?->currency, 'supplier_pricing'),
+            'supplier_total_amount' => $this->result(null, $supplierTotal?->minorAmount, 'supplier_pricing'),
             'cancellation_policy_presence' => $this->compare((bool) $booking->cancellation_policy_snapshot, $this->supplierCancellationPolicyPresent($supplierBooking)),
         ];
     }

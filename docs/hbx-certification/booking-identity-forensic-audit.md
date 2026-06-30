@@ -32,8 +32,16 @@ Identity fingerprint fields:
 - room count
 - board
 - occupancy count
-- currency
+- customer currency and supplier currency as separate pricing context
 - creation-date window
+
+The original booking response is preserved as identity evidence. If HBX Booking List omits
+`clientReference`, the audit may still classify the identity as `exact_match` when the original
+booking request contains the expected `clientReference`, the stored supplier reference matches
+the confirmation response, and Booking Detail or Booking List confirms the same hotel/date/room
+fingerprint. Supplier currency differences are treated as pricing context, not as identity
+mismatches, because HBX can return supplier-facing totals in a different currency from the
+customer payable/display currency.
 
 Classifications:
 
