@@ -84,6 +84,8 @@ class BookingReconciliationService
             'supplier_status' => $supplierBooking->status->value,
             'hotel_code' => $supplierBooking->hotel?->supplierHotelId,
             'hotel_name' => $supplierBooking->hotel?->name,
+            'check_in' => $this->roomDate($room, 'checkIn'),
+            'check_out' => $this->roomDate($room, 'checkOut'),
             'room_count' => $this->supplierRoomCount($supplierBooking),
             'room_type' => $this->roomName($room),
             'board' => $this->roomBoard($room),

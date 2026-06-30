@@ -49,6 +49,8 @@ class HbxCertificationEvidenceCommand extends Command
         $this->line('Supplier reference: '.$detail['supplier_reference']);
         $this->line('Supplier status: '.$detail['supplier_status']);
         $this->line('Hotel: '.($detail['hotel_name'] ?: 'not supplied').' / '.($detail['hotel_code'] ?: 'not supplied'));
+        $this->line('Check-in: '.($detail['check_in'] ?: 'not supplied'));
+        $this->line('Check-out: '.($detail['check_out'] ?: 'not supplied'));
         $this->line('Room count: '.$detail['room_count']);
         $this->line('Room type: '.($detail['room_type'] ?: 'not supplied'));
         $this->line('Board: '.($detail['board'] ?: 'not supplied'));

@@ -298,6 +298,8 @@ it('runs certification evidence with cancellation simulation only and keeps the 
     $this->artisan('hbx:certification:evidence --booking='.$booking->booking_reference)
         ->expectsOutputToContain('Booking Detail retrieved: yes')
         ->expectsOutputToContain('Supplier reference: HBX-PHASE14-BOOKING')
+        ->expectsOutputToContain('Check-in: 2026-07-07')
+        ->expectsOutputToContain('Check-out: 2026-07-10')
         ->expectsOutputToContain('Cancellation simulation:')
         ->expectsOutputToContain('Supplier booking remains confirmed: yes')
         ->doesntExpectOutputToContain('phase14-api-key')
