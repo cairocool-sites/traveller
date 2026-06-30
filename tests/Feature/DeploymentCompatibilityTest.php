@@ -86,6 +86,7 @@ it('keeps deployment script safe for staging', function (): void {
 
     expect($script)->toContain('/usr/local/php85/bin/php')
         ->and($script)->toContain('8.4.1')
+        ->and($script)->toContain('extension_loaded')
         ->and($script)->toContain('install --no-dev --optimize-autoloader')
         ->and($script)->toContain('artisan migrate --force')
         ->and($script)->not->toContain('migrate:fresh')

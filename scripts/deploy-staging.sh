@@ -22,7 +22,7 @@ PHP_VERSION="$("$PHP_BIN" -r 'echo PHP_VERSION;')"
 }
 
 for extension in "${REQUIRED_EXTENSIONS[@]}"; do
-    "$PHP_BIN" -m | grep -qi "^${extension}$" || {
+    "$PHP_BIN" -r "exit(extension_loaded('$extension') ? 0 : 1);" || {
         echo "Missing required PHP extension: $extension" >&2
         exit 1
     }
