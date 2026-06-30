@@ -69,6 +69,9 @@ class HbxCatalogueController extends Controller
     public function sitemap(): Response
     {
         $urls = collect([route('home'), route('hotels.index')])
+            ->merge(collect(PageController::pages())->keys()->map(
+                fn (string $page): string => route('pages.'.$page)
+            ))
             ->merge($this->publicDestinations()->limit(500)->get()->map(
                 fn (HbxDestination $destination): string => route('catalogue.destinations.show', $destination->slug)
             ))

@@ -16,6 +16,87 @@ return [
         'footer_note' => 'Modern hotel search for Egypt and selected regional destinations.',
         'wordmark_subtitle' => 'Hotels across Egypt and beyond',
     ],
+    'pages' => [
+        'eyebrow' => 'Customer information',
+        'safe_notice' => 'This page contains launch-readiness information only. Supplier availability, prices, booking status, payments, and cancellation eligibility must always be verified inside the live booking flow.',
+        'about' => [
+            'meta_title' => 'About Cairo Cool Travel',
+            'meta_description' => 'Learn about Cairo Cool Travel and the hotel-booking experience being prepared for Egypt and regional travel.',
+            'title' => 'About Cairo Cool Travel',
+            'intro' => 'Cairo Cool Travel is preparing a bilingual hotel-booking experience for Egypt first, with careful foundations for regional growth.',
+            'sections' => [
+                ['title' => 'Hotel-first focus', 'body' => 'The current platform scope focuses on hotel discovery, offer review, manual payment review, documents, and safe support workflows.'],
+                ['title' => 'Arabic and English', 'body' => 'The public experience is designed for Arabic RTL and English LTR use, with EGP as the default currency and selected additional currencies supported.'],
+                ['title' => 'Supplier-safe design', 'body' => 'External supplier content is normalized before display and never overwrites internal canonical hotel data automatically.'],
+            ],
+        ],
+        'contact' => [
+            'meta_title' => 'Contact Cairo Cool Travel',
+            'meta_description' => 'Contact and support information for Cairo Cool Travel launch readiness.',
+            'title' => 'Contact',
+            'intro' => 'Contact channels will be published before launch. During sandbox verification, use local booking references only when requesting support.',
+            'sections' => [
+                ['title' => 'Support references', 'body' => 'Use the Cairo Cool Travel local booking reference when asking about a booking. Do not share payment cards or supplier credentials.'],
+                ['title' => 'Manual review', 'body' => 'Bookings that require identity or supplier review may have payment, voucher, and cancellation actions temporarily restricted.'],
+                ['title' => 'Launch channels', 'body' => 'Official email, phone, and operating hours will be added after final operational approval.'],
+            ],
+        ],
+        'terms' => [
+            'meta_title' => 'Terms of use',
+            'meta_description' => 'Terms of use placeholder for Cairo Cool Travel launch readiness.',
+            'title' => 'Terms of use',
+            'intro' => 'These terms are a readiness placeholder and must be reviewed before production launch.',
+            'sections' => [
+                ['title' => 'Use of the service', 'body' => 'Customers should provide accurate search, guest, contact, and payment-review information. Availability and conditions may change before final confirmation.'],
+                ['title' => 'Supplier conditions', 'body' => 'Hotel offers, cancellation rules, taxes, fees, and restrictions are displayed from normalized supplier or internal records where available.'],
+                ['title' => 'No production guarantee yet', 'body' => 'Sandbox and staging behavior is for testing only and does not represent a production travel service until launch approval is complete.'],
+            ],
+        ],
+        'privacy' => [
+            'meta_title' => 'Privacy notice',
+            'meta_description' => 'Privacy notice placeholder for Cairo Cool Travel launch readiness.',
+            'title' => 'Privacy notice',
+            'intro' => 'This notice summarizes the privacy posture prepared for the hotel-booking workflow.',
+            'sections' => [
+                ['title' => 'Data minimization', 'body' => 'The platform is designed to collect only the information needed for search, booking review, manual payments, documents, support, and compliance.'],
+                ['title' => 'Sensitive data', 'body' => 'API credentials, signatures, supplier payloads, and payment-card data are not shown in public pages. Payment-card capture is out of scope.'],
+                ['title' => 'Access controls', 'body' => 'Administrative access is role-based, and sensitive supplier diagnostics are restricted to authorized users.'],
+            ],
+        ],
+        'payment-policy' => [
+            'meta_title' => 'Payment policy',
+            'meta_description' => 'Manual payment policy placeholder for Cairo Cool Travel.',
+            'title' => 'Payment policy',
+            'intro' => 'Manual payment review is supported while online payment gateway selection remains out of scope.',
+            'sections' => [
+                ['title' => 'Manual submission', 'body' => 'Customers may submit a manual payment reference and permitted evidence file for admin review when the booking is eligible.'],
+                ['title' => 'No card capture', 'body' => 'The current workflow does not collect payment-card numbers or send payment gateway transactions.'],
+                ['title' => 'Review before documents', 'body' => 'Vouchers, invoices, and receipts depend on the booking and payment review state and may be blocked during manual review.'],
+            ],
+        ],
+        'cancellation-policy' => [
+            'meta_title' => 'Cancellation policy',
+            'meta_description' => 'Cancellation policy placeholder for Cairo Cool Travel.',
+            'title' => 'Cancellation policy',
+            'intro' => 'Cancellation eligibility depends on the confirmed offer conditions and supplier state.',
+            'sections' => [
+                ['title' => 'Policy snapshot', 'body' => 'Cancellation conditions are stored from the checked rate or confirmed booking snapshot when available.'],
+                ['title' => 'Manual review', 'body' => 'Cancellation may be blocked when supplier identity is unresolved or the booking is under manual review.'],
+                ['title' => 'Refund tracking', 'body' => 'Refund status is tracked separately from the cancellation request and reviewed by authorized administrators.'],
+            ],
+        ],
+        'support' => [
+            'meta_title' => 'Support',
+            'meta_description' => 'Support guidance for Cairo Cool Travel customers.',
+            'title' => 'Support',
+            'intro' => 'Support workflows are prepared around safe references, minimal sensitive data, and manual review where needed.',
+            'sections' => [
+                ['title' => 'What to provide', 'body' => 'Provide the local booking reference, travel dates, and a short description of the issue. Do not include payment-card data or supplier credentials.'],
+                ['title' => 'Under-review bookings', 'body' => 'If a booking is under review, wait for manual resolution before attempting payment, voucher download, cancellation, or modification.'],
+                ['title' => 'Operational readiness', 'body' => 'Final public support channels and service hours will be published before production launch.'],
+            ],
+        ],
+    ],
     'home' => [
         'meta_title' => 'Cairo Cool Travel hotel search',
         'meta_description' => 'Search hotel stays in Arabic or English with Cairo Cool Travel.',

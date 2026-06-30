@@ -27,8 +27,8 @@
                 <nav class="hidden items-center gap-7 text-sm font-bold text-slate-100 lg:flex" aria-label="{{ __('public.nav.primary') }}">
                     <a class="transition hover:text-[#14B8A6]" href="{{ route('home', ['locale' => app()->getLocale()]) }}">{{ __('public.nav.home') }}</a>
                     <a class="transition hover:text-[#14B8A6]" href="{{ route('hotels.index', ['locale' => app()->getLocale()]) }}">{{ __('public.nav.hotels') }}</a>
-                    <a class="transition hover:text-[#14B8A6]" href="#about">{{ __('public.nav.about') }}</a>
-                    <a class="transition hover:text-[#14B8A6]" href="#contact">{{ __('public.nav.contact') }}</a>
+                    <a class="transition hover:text-[#14B8A6]" href="{{ route('pages.about', ['locale' => app()->getLocale()]) }}">{{ __('public.nav.about') }}</a>
+                    <a class="transition hover:text-[#14B8A6]" href="{{ route('pages.contact', ['locale' => app()->getLocale()]) }}">{{ __('public.nav.contact') }}</a>
                 </nav>
 
                 <div class="hidden items-center gap-3 lg:flex">
@@ -47,8 +47,8 @@
                     <div class="absolute end-0 mt-3 w-72 rounded-2xl border border-slate-200 bg-white p-3 text-[#0B1F33] shadow-2xl">
                         <a class="block rounded-xl px-4 py-3 text-sm font-bold hover:bg-slate-50" href="{{ route('home', ['locale' => app()->getLocale()]) }}">{{ __('public.nav.home') }}</a>
                         <a class="block rounded-xl px-4 py-3 text-sm font-bold hover:bg-slate-50" href="{{ route('hotels.index', ['locale' => app()->getLocale()]) }}">{{ __('public.nav.hotels') }}</a>
-                        <a class="block rounded-xl px-4 py-3 text-sm font-bold hover:bg-slate-50" href="#about">{{ __('public.nav.about') }}</a>
-                        <a class="block rounded-xl px-4 py-3 text-sm font-bold hover:bg-slate-50" href="#contact">{{ __('public.nav.contact') }}</a>
+                        <a class="block rounded-xl px-4 py-3 text-sm font-bold hover:bg-slate-50" href="{{ route('pages.about', ['locale' => app()->getLocale()]) }}">{{ __('public.nav.about') }}</a>
+                        <a class="block rounded-xl px-4 py-3 text-sm font-bold hover:bg-slate-50" href="{{ route('pages.contact', ['locale' => app()->getLocale()]) }}">{{ __('public.nav.contact') }}</a>
                         <div class="mt-3 grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1 text-center text-xs font-black">
                             <a class="rounded-lg px-3 py-2 {{ app()->getLocale() === 'ar' ? 'bg-white text-[#0B1F33] shadow-sm' : 'text-slate-700' }}" href="{{ request()->fullUrlWithQuery(['locale' => 'ar']) }}">AR</a>
                             <a class="rounded-lg px-3 py-2 {{ app()->getLocale() === 'en' ? 'bg-white text-[#0B1F33] shadow-sm' : 'text-slate-700' }}" href="{{ request()->fullUrlWithQuery(['locale' => 'en']) }}">EN</a>
@@ -68,13 +68,22 @@
                     <p class="text-base font-black text-[#0B1F33]">{{ __('public.brand') }}</p>
                     <p class="mt-3 leading-6">{{ __('public.layout.footer_note') }}</p>
                 </div>
-                <div id="about">
+                <div>
                     <p class="font-black text-[#0B1F33]">{{ __('public.nav.about') }}</p>
-                    <p class="mt-3 leading-6">{{ __('public.home.guidance') }}</p>
+                    <div class="mt-3 grid gap-2">
+                        <a class="hover:text-[#0F766E]" href="{{ route('pages.about', ['locale' => app()->getLocale()]) }}">{{ __('public.nav.about') }}</a>
+                        <a class="hover:text-[#0F766E]" href="{{ route('pages.terms', ['locale' => app()->getLocale()]) }}">{{ __('public.pages.terms.title') }}</a>
+                        <a class="hover:text-[#0F766E]" href="{{ route('pages.privacy', ['locale' => app()->getLocale()]) }}">{{ __('public.pages.privacy.title') }}</a>
+                    </div>
                 </div>
                 <div>
                     <p class="font-black text-[#0B1F33]">{{ __('public.nav.contact') }}</p>
-                    <p class="mt-3 leading-6">{{ __('public.layout.contact_placeholder') }}</p>
+                    <div class="mt-3 grid gap-2">
+                        <a class="hover:text-[#0F766E]" href="{{ route('pages.contact', ['locale' => app()->getLocale()]) }}">{{ __('public.nav.contact') }}</a>
+                        <a class="hover:text-[#0F766E]" href="{{ route('pages.support', ['locale' => app()->getLocale()]) }}">{{ __('public.pages.support.title') }}</a>
+                        <a class="hover:text-[#0F766E]" href="{{ route('pages.payment-policy', ['locale' => app()->getLocale()]) }}">{{ __('public.pages.payment-policy.title') }}</a>
+                        <a class="hover:text-[#0F766E]" href="{{ route('pages.cancellation-policy', ['locale' => app()->getLocale()]) }}">{{ __('public.pages.cancellation-policy.title') }}</a>
+                    </div>
                 </div>
             </div>
         </footer>

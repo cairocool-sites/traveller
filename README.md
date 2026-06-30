@@ -2,7 +2,7 @@
 
 Cairo Cool Travel is a Laravel hotel booking platform planned for Egypt first, with future expansion to Saudi Arabia and the UAE.
 
-This repository is currently in Phase 13: HBX Sandbox Booking Completion only.
+This repository is currently in Phase 14: HBX Sandbox Verification, voucher readiness, and supplier-independent public-site hardening.
 
 ## Current Scope
 
@@ -37,6 +37,7 @@ This repository is currently in Phase 13: HBX Sandbox Booking Completion only.
 - Production-readiness checks, safe health endpoints, scheduler heartbeat, named rate limiters, security headers, operational cleanup, DirectAdmin/Nginx deployment documentation, backup/restore documentation, and CI workflow.
 - HBX Hotels Sandbox adapter foundation behind the supplier contract, with authentication/signature generation, safe sandbox health checks, availability, CheckRate, booking, lookup, cancellation normalization, and fake-HTTP automated tests.
 - Public HBX Availability, CheckRate, and sandbox booking flow using short-lived server-side offer snapshots, public rate tokens, sanitized logging, and explicit guards that block production HBX booking submission.
+- Internal voucher readiness, supplier identity forensic audit tooling, and public trust/policy pages.
 
 ## Out of Scope
 
@@ -83,6 +84,8 @@ See [docs/hbx-sandbox-integration.md](docs/hbx-sandbox-integration.md) for the P
 See [docs/hbx-public-search-checkrate.md](docs/hbx-public-search-checkrate.md) for the Phase 12 public HBX search and CheckRate integration.
 
 See [docs/hbx-sandbox-booking.md](docs/hbx-sandbox-booking.md) for the Phase 13 HBX Sandbox booking completion.
+
+See [docs/hbx-sandbox-verification-voucher.md](docs/hbx-sandbox-verification-voucher.md), [docs/hbx-certification/external-blockers.md](docs/hbx-certification/external-blockers.md), and [docs/public-site-readiness.md](docs/public-site-readiness.md) for Phase 14 verification, external blocker, voucher, and public readiness notes.
 
 ## Local Documentation
 
