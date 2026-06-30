@@ -42,7 +42,7 @@ Credentials, signatures, headers, and raw sensitive payloads are never printed. 
 
 `hbx_hotel_translations`, `hbx_hotel_images`, `hbx_hotel_facilities`, and `hbx_hotel_rooms` preserve typed hotel content used for rendering and filtering. Generic content-resource storage remains available for lower-use master resources but does not replace typed destination and hotel records.
 
-`hbx_content_resources` stores generic official Content API master/descriptive resources such as boards, rooms, accommodations, categories, category groups, chains, facilities, facility groups, issues, languages, promotions, segments, image types, currencies, terminals, rate comments, and zones. The table preserves supplier codes, language, relationship hints, payload hash, sanitized JSON payload, last update time, active state, and sync timestamp.
+`hbx_content_resources` stores generic official Content API master/descriptive resources such as boards, board groups, rooms, accommodations, categories, group categories, classifications, chains, facilities, facility groups, facility typologies, issues, languages, promotions, segments, image types, currencies, terminals, and rate comments. Destination zones are not a standalone Content API endpoint in the official OpenAPI file; they are stored from the zones embedded in destination responses. The table preserves supplier codes, language, relationship hints, payload hash, sanitized JSON payload, last update time, active state, and sync timestamp.
 
 `hbx_content_sync_batches` records each manual, scheduled, or queued content sync. It stores the resource, mode, country/destination filters, language, page limit, differential timestamp, checkpoint summary, processed/stored counts, dry-run flag, queue flag, safe status, and sanitized error message. It never stores API keys, signatures, supplier credentials, raw headers, or raw response bodies.
 
@@ -83,7 +83,9 @@ php artisan hbx:content:sync --resource=hotels --hotel-codes=12345,67890 --from=
 php artisan hbx:content:sync --resource=hotels --hotel-codes=12345,67890 --details
 php artisan hbx:content:diagnose-hotels --from=1 --to=10 --language=ENG
 php artisan hbx:content:diagnose-hotels --details --codes=12345 --language=ENG
-php artisan hbx:content:sync --resource=boards --country=EG --last-update-time=2026-06-01
+php artisan hbx:content:sync --resource=boards --last-update-time=2026-06-01
+php artisan hbx:content:sync --resource=groupcategories --page-limit=1
+php artisan hbx:content:sync --resource=category_groups --page-limit=1
 php artisan hbx:content:sync --resource=all --country=EG --page-limit=1
 php artisan hbx:content:sync --resource=all --full-authorized-portfolio --confirm --page-limit=1
 php artisan hbx:content:sync --resource=hotels --country=EG --last-update-time=2026-06-01 --queue

@@ -27,23 +27,33 @@ class HbxContentApiClient
     public const HOTEL_DETAILS_PATH_TEMPLATE = '/hotel-content-api/1.0/hotels/%s/details';
 
     public const RESOURCE_PATHS = [
-        'zones' => '/hotel-content-api/1.0/locations/zones',
         'rooms' => '/hotel-content-api/1.0/types/rooms',
         'boards' => '/hotel-content-api/1.0/types/boards',
+        'boardgroups' => '/hotel-content-api/1.0/types/boardgroups',
         'accommodations' => '/hotel-content-api/1.0/types/accommodations',
         'categories' => '/hotel-content-api/1.0/types/categories',
-        'category_groups' => '/hotel-content-api/1.0/types/categorygroups',
+        'classifications' => '/hotel-content-api/1.0/types/classifications',
+        'groupcategories' => '/hotel-content-api/1.0/types/groupcategories',
         'chains' => '/hotel-content-api/1.0/types/chains',
         'facilities' => '/hotel-content-api/1.0/types/facilities',
-        'facility_groups' => '/hotel-content-api/1.0/types/facilitygroups',
+        'facilitygroups' => '/hotel-content-api/1.0/types/facilitygroups',
+        'facilitytypologies' => '/hotel-content-api/1.0/types/facilitytypologies',
         'issues' => '/hotel-content-api/1.0/types/issues',
         'languages' => '/hotel-content-api/1.0/types/languages',
         'promotions' => '/hotel-content-api/1.0/types/promotions',
         'segments' => '/hotel-content-api/1.0/types/segments',
-        'image_types' => '/hotel-content-api/1.0/types/imagetypes',
+        'imagetypes' => '/hotel-content-api/1.0/types/imagetypes',
         'currencies' => '/hotel-content-api/1.0/types/currencies',
         'terminals' => '/hotel-content-api/1.0/types/terminals',
         'rate_comments' => '/hotel-content-api/1.0/types/ratecomments',
+    ];
+
+    public const RESOURCE_ALIASES = [
+        'board_groups' => 'boardgroups',
+        'category_groups' => 'groupcategories',
+        'facility_groups' => 'facilitygroups',
+        'facility_typologies' => 'facilitytypologies',
+        'image_types' => 'imagetypes',
     ];
 
     public function __construct(
@@ -80,6 +90,8 @@ class HbxContentApiClient
 
     public function resource(Supplier $supplier, string $resource, array $query = [], ?string $correlationId = null): array
     {
+        $resource = self::RESOURCE_ALIASES[$resource] ?? $resource;
+
         if (! isset(self::RESOURCE_PATHS[$resource])) {
             throw new \InvalidArgumentException("Unsupported HBX Content API resource [{$resource}].");
         }
