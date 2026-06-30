@@ -28,6 +28,9 @@
                 <div class="rounded-2xl border border-slate-200 bg-[#F6F8FB] p-4">
                     <p class="text-sm font-bold text-slate-500">{{ __('public.booking.total') }}</p>
                     <p class="mt-1 text-lg font-black text-[#0B1F33]">{{ $money->formatMinor($booking->total_amount_minor, $booking->currency->code) }}</p>
+                    @if ($approximateEgp = $money->approximateEgpFromMinor($booking->total_amount_minor, $booking->currency->code))
+                        <p class="mt-1 text-xs font-extrabold text-[#0F766E]">{{ $approximateEgp }}</p>
+                    @endif
                 </div>
                 <div class="rounded-2xl border border-slate-200 bg-[#F6F8FB] p-4">
                     <p class="text-sm font-bold text-slate-500">{{ __('public.booking.supplier_confirmation') }}</p>

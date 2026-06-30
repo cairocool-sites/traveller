@@ -26,7 +26,7 @@ return [
             'intro' => 'Cairo Cool Travel is preparing a bilingual hotel-booking experience for Egypt first, with careful foundations for regional growth.',
             'sections' => [
                 ['title' => 'Hotel-first focus', 'body' => 'The current platform scope focuses on hotel discovery, offer review, manual payment review, documents, and safe support workflows.'],
-                ['title' => 'Arabic and English', 'body' => 'The public experience is designed for Arabic RTL and English LTR use, with EGP as the default currency and selected additional currencies supported.'],
+                ['title' => 'Arabic and English', 'body' => 'The public experience is designed for Arabic RTL and English LTR use, with USD as the payable currency and EGP estimates shown where exchange rates are configured.'],
                 ['title' => 'Supplier-safe design', 'body' => 'External supplier content is normalized before display and never overwrites internal canonical hotel data automatically.'],
             ],
         ],
@@ -106,15 +106,15 @@ return [
         'hero_point_2' => 'Arabic and English',
         'hero_point_3' => 'Secure review steps',
         'featured_destinations' => 'Featured destinations',
-        'popular_destinations_copy' => 'Start with popular city stays, then refine dates, guests, rooms, and currency.',
+        'popular_destinations_copy' => 'Start with popular city stays, then refine dates, guests, and rooms.',
         'benefits' => 'Simple travel planning',
-        'guidance' => 'Choose a destination, travel dates, rooms, guests, and currency to view available hotel options.',
+        'guidance' => 'Choose a destination, travel dates, rooms, and guests to view available hotel options.',
         'why_title' => 'Designed for easier hotel choice',
         'why_copy' => 'Readable room details, clear board basis, and cancellation notes help you compare offers without clutter.',
         'secure_title' => 'Secure and careful review',
         'secure_copy' => 'Important price and condition checks are presented before any stay is completed.',
         'reliable_title' => 'Built for regional travel',
-        'reliable_copy' => 'The experience supports Arabic, English, EGP, and selected international currencies from the start.',
+        'reliable_copy' => 'The experience supports Arabic and English with USD payable prices and EGP display estimates where configured.',
     ],
     'search' => [
         'meta_title' => 'Hotel search',
@@ -222,6 +222,7 @@ return [
     'price' => [
         'from' => 'From',
         'unavailable' => 'Price unavailable',
+        'approx_egp' => 'Approx. :amount',
     ],
     'cancellation' => [
         'unknown' => 'Cancellation policy unavailable',

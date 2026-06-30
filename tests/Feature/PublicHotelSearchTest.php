@@ -4,6 +4,7 @@ use App\Enums\HotelStatus;
 use App\Models\City;
 use App\Models\Country;
 use App\Models\Currency;
+use App\Models\ExchangeRate;
 use App\Models\Hotel;
 use App\Models\SearchSession;
 use App\Services\Currency\CurrencyConversionService;
@@ -30,7 +31,7 @@ function publicSearchCriteria(array $overrides = []): array
         'rooms' => 1,
         'adults' => 2,
         'children' => 0,
-        'currency' => 'EGP',
+        'currency' => config('travel.currency.default'),
         'locale' => 'ar',
     ], $overrides);
 }
@@ -105,7 +106,7 @@ it('searches the mock supplier and hides supplier identifiers and net prices', f
 
     $response->assertOk()
         ->assertSee('Mock Cairo Nile Hotel')
-        ->assertSee('2,500.00 EGP')
+        ->assertSee('2,500.00 USD')
         ->assertDontSee('MCK-CAI-001')
         ->assertDontSee('2200.00')
         ->assertDontSee('mock_hotels');
@@ -176,10 +177,23 @@ it('handles unmapped supplier hotels and expired search sessions safely', functi
         ->assertNotFound();
 });
 
-it('formats money with currency precision and fails missing exchange rates explicitly', function () {
-    $this->get(route('hotels.search', publicSearchCriteria(['currency' => 'USD'])))
+it('uses USD as the payable search currency and shows optional EGP estimates', function () {
+    $usd = Currency::query()->where('code', 'USD')->firstOrFail();
+    $egp = Currency::query()->where('code', 'EGP')->firstOrFail();
+
+    ExchangeRate::query()->create([
+        'base_currency_id' => $usd->id,
+        'quote_currency_id' => $egp->id,
+        'rate' => '50.0000000000',
+        'source' => 'manual',
+        'effective_at' => now(),
+        'is_active' => true,
+    ]);
+
+    $this->get(route('hotels.search', publicSearchCriteria(['currency' => 'EGP'])))
         ->assertOk()
-        ->assertSee('2,500.00 USD');
+        ->assertSee('2,500.00 USD')
+        ->assertSee('125,000.00 EGP');
 
     expect(fn () => app(CurrencyConversionService::class)->convert('10.00', 'EGP', Currency::query()->where('code', 'USD')->firstOrFail()))
         ->toThrow(MissingExchangeRateException::class);

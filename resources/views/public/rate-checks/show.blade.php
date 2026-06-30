@@ -28,6 +28,9 @@
                     <div class="rounded-2xl border border-slate-200 bg-[#F6F8FB] p-5">
                         <p class="text-sm font-bold text-slate-500">{{ __('public.booking.confirmed_price') }}</p>
                         <p class="mt-2 text-3xl font-black text-[#0B1F33]">{{ $money->formatMinor($rateCheck->checked_amount_minor ?? $rateCheck->original_amount_minor, $rateCheck->currency->code) }}</p>
+                        @if ($approximateEgp = $money->approximateEgpFromMinor($rateCheck->checked_amount_minor ?? $rateCheck->original_amount_minor, $rateCheck->currency->code))
+                            <p class="mt-1 text-sm font-extrabold text-[#0F766E]">{{ $approximateEgp }}</p>
+                        @endif
                     </div>
                 </div>
 

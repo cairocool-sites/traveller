@@ -16,7 +16,7 @@ This project requires PHP 8.4.1 or newer because the locked Symfony 8.1 dependen
 - Arabic as the default locale.
 - English as the fallback locale.
 - `Africa/Cairo` as the application timezone.
-- EGP as the default business currency.
+- USD as the default payable business currency, with EGP shown as an approximate local display estimate when an active USD to EGP exchange rate exists.
 - Supported currencies configured: EGP, USD, EUR, SAR, AED, GBP.
 - Pest test foundation.
 - Laravel Pint formatting.

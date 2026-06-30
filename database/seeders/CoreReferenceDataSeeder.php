@@ -90,8 +90,8 @@ class CoreReferenceDataSeeder extends Seeder
     private function seedCurrencies(): void
     {
         $currencies = [
-            ['code' => 'EGP', 'numeric_code' => '818', 'name_en' => 'Egyptian Pound', 'name_ar' => 'جنيه مصري', 'symbol' => 'E£', 'decimal_places' => 2, 'is_base' => true, 'sort_order' => 10],
-            ['code' => 'USD', 'numeric_code' => '840', 'name_en' => 'US Dollar', 'name_ar' => 'دولار أمريكي', 'symbol' => '$', 'decimal_places' => 2, 'is_base' => false, 'sort_order' => 20],
+            ['code' => 'USD', 'numeric_code' => '840', 'name_en' => 'US Dollar', 'name_ar' => 'دولار أمريكي', 'symbol' => '$', 'decimal_places' => 2, 'is_base' => true, 'sort_order' => 10],
+            ['code' => 'EGP', 'numeric_code' => '818', 'name_en' => 'Egyptian Pound', 'name_ar' => 'جنيه مصري', 'symbol' => 'E£', 'decimal_places' => 2, 'is_base' => false, 'sort_order' => 20],
             ['code' => 'EUR', 'numeric_code' => '978', 'name_en' => 'Euro', 'name_ar' => 'يورو', 'symbol' => '€', 'decimal_places' => 2, 'is_base' => false, 'sort_order' => 30],
             ['code' => 'SAR', 'numeric_code' => '682', 'name_en' => 'Saudi Riyal', 'name_ar' => 'ريال سعودي', 'symbol' => 'SAR', 'decimal_places' => 2, 'is_base' => false, 'sort_order' => 40],
             ['code' => 'AED', 'numeric_code' => '784', 'name_en' => 'UAE Dirham', 'name_ar' => 'درهم إماراتي', 'symbol' => 'AED', 'decimal_places' => 2, 'is_base' => false, 'sort_order' => 50],
@@ -99,14 +99,14 @@ class CoreReferenceDataSeeder extends Seeder
         ];
 
         foreach ($currencies as $currencyData) {
-            Currency::query()->firstOrCreate(
+            Currency::query()->updateOrCreate(
                 ['code' => $currencyData['code']],
                 [...$currencyData, 'is_active' => true],
             );
         }
 
         if (! Currency::query()->where('is_base', true)->where('is_active', true)->exists()) {
-            Currency::query()->where('code', 'EGP')->firstOrFail()->forceFill([
+            Currency::query()->where('code', 'USD')->firstOrFail()->forceFill([
                 'is_active' => true,
                 'is_base' => true,
             ])->save();

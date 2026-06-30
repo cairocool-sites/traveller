@@ -22,7 +22,7 @@ Important defaults:
 - `APP_FALLBACK_LOCALE=en`
 - `APP_TIMEZONE=Africa/Cairo`
 - `DB_CONNECTION=mysql`
-- `TRAVEL_DEFAULT_CURRENCY=EGP`
+- `TRAVEL_DEFAULT_CURRENCY=USD`
 
 ## Database
 

@@ -27,7 +27,7 @@ class HotelSearchForm extends Component
 
     public array $childAges = [];
 
-    public string $currency = 'EGP';
+    public string $currency = 'USD';
 
     public string $locale = 'ar';
 
@@ -40,7 +40,7 @@ class HotelSearchForm extends Component
     public function mount(?string $locale = null): void
     {
         $this->locale = $locale ?: app()->getLocale();
-        $this->currency = request()->query('currency', config('travel.currency.default'));
+        $this->currency = config('travel.currency.default');
         $this->checkIn = CarbonImmutable::now()->addDays(7)->toDateString();
         $this->checkOut = CarbonImmutable::now()->addDays(10)->toDateString();
     }
@@ -79,7 +79,7 @@ class HotelSearchForm extends Component
             'child_ages' => $this->childAges,
             'nationality' => $this->nationality,
             'residency_country' => $this->residencyCountry,
-            'currency' => $this->currency,
+            'currency' => config('travel.currency.default'),
             'locale' => $this->locale,
         ]);
     }

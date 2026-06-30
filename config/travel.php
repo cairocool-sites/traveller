@@ -26,7 +26,7 @@ return [
     ],
 
     'currency' => [
-        'default' => env('TRAVEL_DEFAULT_CURRENCY', 'EGP'),
+        'default' => env('TRAVEL_DEFAULT_CURRENCY', 'USD'),
         'supported' => ['EGP', 'USD', 'EUR', 'SAR', 'AED', 'GBP'],
     ],
 

@@ -67,6 +67,9 @@
                                     </div>
                                     <div class="sm:text-end">
                                         <p class="text-3xl font-black text-[#0B1F33]">{{ $money->formatArray($rate['total']) }}</p>
+                                        @if ($approximateEgp = $money->approximateEgpFromArray($rate['total']))
+                                            <p class="mt-1 text-sm font-extrabold text-[#0F766E]">{{ $approximateEgp }}</p>
+                                        @endif
                                         @if (isset($rate['public_rate_token'], $searchSession))
                                             <form method="POST" action="{{ route('rate-checks.store', ['locale' => app()->getLocale()]) }}" class="mt-3">
                                                 @csrf

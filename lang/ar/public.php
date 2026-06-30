@@ -222,6 +222,7 @@ return [
     'price' => [
         'from' => 'ابتداء من',
         'unavailable' => 'السعر غير متاح',
+        'approx_egp' => 'تقريبًا :amount',
     ],
     'cancellation' => [
         'unknown' => 'سياسة الإلغاء غير متاحة',
