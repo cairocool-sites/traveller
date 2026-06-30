@@ -213,7 +213,7 @@ it('renders confirmed internal voucher without sensitive values', function () {
         ->assertSee('Sandbox / Test Booking')
         ->assertSee($booking->booking_reference)
         ->assertSee('HBX-PHASE14-BOOKING')
-        ->assertSee('120.00 EGP')
+        ->assertSee('120.00 USD')
         ->assertDontSee('phase14-api-key')
         ->assertDontSee('phase14-api-secret')
         ->assertDontSee($booking->contact_email)

@@ -58,11 +58,10 @@
 
         <div class="lg:col-span-2">
             <label for="currency" class="cct-label">{{ __('public.search.currency') }}</label>
-            <select id="currency" wire:model="currency" class="cct-input min-h-11 py-2.5">
-                @foreach ($currencies as $currencyOption)
-                    <option value="{{ $currencyOption->code }}">{{ $currencyOption->code }}</option>
-                @endforeach
-            </select>
+            <input type="hidden" wire:model="currency">
+            <div id="currency" class="cct-input flex min-h-11 items-center py-2.5 font-black text-[#0B1F33]">
+                {{ config('travel.currency.default') }}
+            </div>
         </div>
     </div>
 

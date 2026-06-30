@@ -21,7 +21,7 @@ Implication:
 
 ## Architecture Proposal
 
-Cairo Cool Travel should be built as a modular Laravel hotel booking platform with a supplier abstraction layer from the beginning. The first release should support hotels only, B2C users, Arabic as the default language, EGP as the default currency, and a Mock Supplier that allows the full booking flow to be tested without external APIs.
+Cairo Cool Travel should be built as a modular Laravel hotel booking platform with a supplier abstraction layer from the beginning. The first release should support hotels only, B2C users, Arabic as the default language, USD as the payable default currency, optional EGP display estimates for Egyptian customers, and a Mock Supplier that allows the full booking flow to be tested without external APIs.
 
 Recommended baseline stack:
 
@@ -368,7 +368,7 @@ Scope:
 - Build customer-facing hotel search and hotel details pages.
 - Use Mock Supplier via the supplier abstraction.
 - Support Arabic default UI and English secondary UI.
-- Support EGP default currency and configured secondary currencies.
+- Support USD as the payable default currency and configured secondary currencies, with EGP display estimates when exchange rates are available.
 
 Definition of Done:
 
@@ -470,7 +470,7 @@ Definition of Done:
 ## First 10 Tasks
 
 1. Create a fresh Laravel project in the repository.
-2. Configure `.env.example` for MySQL 8, Redis, queues, Arabic default locale, EGP default currency, and `Africa/Cairo` timezone.
+2. Configure `.env.example` for MySQL 8, Redis, queues, Arabic default locale, USD default currency, and `Africa/Cairo` timezone.
 3. Add baseline testing setup with Pest or PHPUnit.
 4. Install and configure Filament.
 5. Install and configure roles and permissions.

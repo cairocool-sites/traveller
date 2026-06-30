@@ -6,6 +6,9 @@
             <p>{{ __('public.booking.payment_status') }}: {{ __('public.booking.payment_statuses.'.$booking->payment_status->value) }}</p>
             <p>{{ __('public.payments.booking_reference') }}: {{ $booking->booking_reference }}</p>
             <p>{{ __('public.booking.total') }}: {{ $money->formatMinor($booking->total_amount_minor, $booking->currency->code) }}</p>
+            @if ($approximateEgp = $money->approximateEgpFromMinor($booking->total_amount_minor, $booking->currency->code))
+                <p>{{ $approximateEgp }}</p>
+            @endif
         </div>
         <div class="mt-4 rounded border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900">{{ __('public.payments.sandbox_notice') }}</div>
 

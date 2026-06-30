@@ -22,8 +22,8 @@ it('uses Africa Cairo as the application timezone', function () {
     expect(config('app.timezone'))->toBe('Africa/Cairo');
 });
 
-it('uses EGP as the default travel currency', function () {
-    expect(config('travel.currency.default'))->toBe('EGP');
+it('uses USD as the default travel currency', function () {
+    expect(config('travel.currency.default'))->toBe('USD');
 });
 
 it('configures all supported travel currencies', function () {

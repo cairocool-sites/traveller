@@ -155,7 +155,7 @@ class HotelSearchService
     private function validate(array $criteria): array
     {
         $locale = $criteria['locale'] ?? app()->getLocale();
-        $currency = strtoupper($criteria['currency'] ?? config('travel.currency.default'));
+        $currency = strtoupper(config('travel.currency.default'));
         $rooms = (int) ($criteria['rooms'] ?? 1);
         $adults = (int) ($criteria['adults'] ?? 2);
         $children = (int) ($criteria['children'] ?? 0);

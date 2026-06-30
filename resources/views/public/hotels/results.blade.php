@@ -119,6 +119,9 @@
                             <div class="lg:text-end">
                                 <p class="text-sm font-bold text-slate-500">{{ __('public.price.from') }}</p>
                                 <p class="mt-1 text-3xl font-black text-[#0B1F33]">{{ $money->formatArray($hotel['minimum_price']) }}</p>
+                                @if ($approximateEgp = $money->approximateEgpFromArray($hotel['minimum_price']))
+                                    <p class="mt-1 text-sm font-extrabold text-[#0F766E]">{{ $approximateEgp }}</p>
+                                @endif
                                 <p class="mt-2 text-xs font-semibold text-slate-500">{{ $hotel['taxes_known'] ? __('public.results.taxes_known') : __('public.results.taxes_unknown') }}</p>
                             </div>
                             <a class="cct-button mt-5 w-full" href="{{ route('hotels.show', ['hotel' => $hotel['public_token'], 'search' => $searchSession->public_uuid, 'locale' => app()->getLocale()]) }}">

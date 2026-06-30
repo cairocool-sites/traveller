@@ -24,7 +24,7 @@ Reference-data deletes are intentionally restricted in the database where remova
 
 ## Currency Rules
 
-Currency codes are stored uppercase. EGP is seeded as the single active base currency. The application prevents disabling a base currency when no other active base currency exists.
+Currency codes are stored uppercase. USD is seeded as the single active base currency and default payable currency. EGP remains supported for approximate local display estimates when an active USD to EGP exchange rate exists. The application prevents disabling a base currency when no other active base currency exists.
 
 Money amounts are not stored in Phase 3 booking/payment tables because those modules do not exist yet. Exchange rates use `decimal(20, 10)`. Conversion accepts and returns decimal strings to avoid binary floating point drift.
 

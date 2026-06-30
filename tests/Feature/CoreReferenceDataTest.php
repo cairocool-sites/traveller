@@ -39,9 +39,9 @@ it('seeds countries cities currencies and facilities idempotently', function () 
         ->and(Facility::query()->count())->toBe($counts['facilities']);
 });
 
-it('keeps EGP as the only initial active base currency', function () {
+it('keeps USD as the only initial active base currency', function () {
     expect(Currency::query()->where('is_active', true)->where('is_base', true)->pluck('code')->all())
-        ->toBe(['EGP']);
+        ->toBe(['USD']);
 });
 
 it('normalizes currency and country codes to uppercase', function () {
@@ -104,42 +104,42 @@ it('rejects invalid exchange rates', function () {
 });
 
 it('resolves the latest active applicable exchange rate', function () {
-    $egp = Currency::query()->where('code', 'EGP')->firstOrFail();
     $usd = Currency::query()->where('code', 'USD')->firstOrFail();
+    $egp = Currency::query()->where('code', 'EGP')->firstOrFail();
 
     ExchangeRate::query()->create([
-        'base_currency_id' => $egp->id,
-        'quote_currency_id' => $usd->id,
-        'rate' => '0.0200000000',
+        'base_currency_id' => $usd->id,
+        'quote_currency_id' => $egp->id,
+        'rate' => '48.5000000000',
         'source' => 'manual',
         'effective_at' => now()->subDay(),
     ]);
     ExchangeRate::query()->create([
-        'base_currency_id' => $egp->id,
-        'quote_currency_id' => $usd->id,
-        'rate' => '0.0210000000',
+        'base_currency_id' => $usd->id,
+        'quote_currency_id' => $egp->id,
+        'rate' => '49.0000000000',
         'source' => 'manual',
         'effective_at' => now(),
     ]);
 
-    $rate = app(LatestExchangeRateResolver::class)->resolve('EGP', 'USD');
+    $rate = app(LatestExchangeRateResolver::class)->resolve('USD', 'EGP');
 
-    expect($rate->rate)->toBe('0.0210000000');
+    expect($rate->rate)->toBe('49.0000000000');
 });
 
 it('converts currency with decimal precision and explicit missing-rate failures', function () {
-    $egp = Currency::query()->where('code', 'EGP')->firstOrFail();
     $usd = Currency::query()->where('code', 'USD')->firstOrFail();
+    $egp = Currency::query()->where('code', 'EGP')->firstOrFail();
 
     ExchangeRate::query()->create([
-        'base_currency_id' => $egp->id,
-        'quote_currency_id' => $usd->id,
-        'rate' => '0.0205550000',
+        'base_currency_id' => $usd->id,
+        'quote_currency_id' => $egp->id,
+        'rate' => '48.5500000000',
         'source' => 'manual',
         'effective_at' => now(),
     ]);
 
-    expect(app(CurrencyConversionService::class)->convert('100.00', 'EGP', 'USD'))->toBe('2.06')
+    expect(app(CurrencyConversionService::class)->convert('100.00', 'USD', 'EGP'))->toBe('4855.00')
         ->and(fn () => app(CurrencyConversionService::class)->convert('100.00', 'USD', 'EUR'))
         ->toThrow(MissingExchangeRateException::class);
 });
