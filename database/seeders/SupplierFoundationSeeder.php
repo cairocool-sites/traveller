@@ -46,7 +46,7 @@ class SupplierFoundationSeeder extends Seeder
                 'environment' => SupplierEnvironment::Sandbox,
                 'status' => config('services.hbx.enabled') && ! app()->environment('testing') ? SupplierStatus::Active : SupplierStatus::Inactive,
                 'priority' => 20,
-                'timeout_seconds' => (int) config('services.hbx.timeout', 45),
+                'timeout_seconds' => (int) config('services.hbx.timeout', 60),
                 'connect_timeout_seconds' => (int) config('services.hbx.connect_timeout', 15),
                 'max_retries' => 1,
                 'retry_delay_milliseconds' => 250,

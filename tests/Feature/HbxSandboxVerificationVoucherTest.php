@@ -224,6 +224,48 @@ it('renders confirmed internal voucher without sensitive values', function () {
         ->assertDontSee('totalNet');
 });
 
+it('allows customer voucher access through opaque booking uuid without sensitive values', function () {
+    $booking = phase14ConfirmedBooking();
+
+    $this->get(route('bookings.voucher', $booking->public_uuid))
+        ->assertOk()
+        ->assertSee('Cairo Cool Travel')
+        ->assertSee('Sandbox / Test Booking')
+        ->assertSee($booking->booking_reference)
+        ->assertSee('Payable through Cairo Cool Travel')
+        ->assertSee('Reference: '.$booking->booking_reference)
+        ->assertDontSee('phase14-api-key')
+        ->assertDontSee('phase14-api-secret')
+        ->assertDontSee($booking->contact_email)
+        ->assertDontSee($booking->contact_phone)
+        ->assertDontSee($booking->supplier_rate_reference);
+});
+
+it('blocks customer voucher access while supplier identity is unresolved', function () {
+    $booking = phase14ConfirmedBooking();
+
+    $booking->certificationEvidences()->create([
+        'operation_type' => 'booking_identity_forensic_audit',
+        'local_reference' => $booking->booking_reference,
+        'supplier_reference' => $booking->supplier_booking_reference,
+        'summary_status' => 'local_mapping_error',
+    ]);
+
+    $this->get(route('bookings.voucher', $booking->public_uuid))
+        ->assertStatus(409);
+});
+
+it('shows hbx rate comments before guest details when supplied', function () {
+    $rateCheck = phase14RateCheck([
+        'rate_comments' => 'Contract remarks must be reviewed before booking.',
+    ]);
+
+    $this->get(route('rate-checks.show', $rateCheck->public_uuid))
+        ->assertOk()
+        ->assertSee('Important supplier remarks')
+        ->assertSee('Contract remarks must be reviewed before booking.');
+});
+
 it('rejects final vouchers for unconfirmed non-review bookings', function () {
     $booking = phase14ConfirmedBooking();
     $booking->forceFill(['status' => BookingStatus::Draft])->save();
@@ -699,6 +741,53 @@ function phase14BookingPayload(array $overrides = []): array
             ['type' => 'adult', 'first_name' => 'Sandbox', 'last_name' => 'Traveler', 'is_lead_guest' => false],
         ],
     ], $overrides);
+}
+
+function phase14RateCheck(array $roomSnapshot = []): RateCheck
+{
+    $currency = Currency::query()->where('code', 'USD')->firstOrFail();
+    $supplier = Supplier::query()->where('code', 'hbx_hotels')->firstOrFail();
+
+    $session = SearchSession::query()->create([
+        'public_uuid' => (string) Str::uuid(),
+        'locale' => 'en',
+        'destination_type' => 'hbx_destination',
+        'destination_id' => 1,
+        'destination_label' => 'Cairo',
+        'check_in' => now()->addDays(10)->toDateString(),
+        'check_out' => now()->addDays(12)->toDateString(),
+        'occupancy' => [['adults' => 2, 'children' => 0, 'child_ages' => []]],
+        'currency' => 'USD',
+        'correlation_id' => (string) Str::uuid(),
+        'criteria_snapshot' => [],
+        'results_snapshot' => [],
+        'expires_at' => now()->addMinutes(20),
+    ]);
+
+    return RateCheck::query()->create([
+        'public_uuid' => (string) Str::uuid(),
+        'search_session_id' => $session->id,
+        'supplier_id' => $supplier->id,
+        'currency_id' => $currency->id,
+        'status' => RateCheckStatus::Available,
+        'supplier_hotel_reference' => '1401',
+        'supplier_rate_reference' => 'phase14-rate-checked',
+        'supplier_room_reference' => 'STD',
+        'original_amount_minor' => 12000,
+        'checked_amount_minor' => 12000,
+        'price_changed' => false,
+        'cancellation_policy_snapshot' => [],
+        'room_snapshot' => array_merge([
+            'room_name' => 'Sandbox Standard Room',
+            'board_basis' => 'bed_and_breakfast',
+            'cancellation_summary' => 'Free cancellation until supplier deadline.',
+        ], $roomSnapshot),
+        'occupancy_snapshot' => [['adults' => 2, 'children' => 0, 'child_ages' => []]],
+        'supplier_reference_snapshot' => [],
+        'correlation_id' => (string) Str::uuid(),
+        'checked_at' => now(),
+        'expires_at' => now()->addMinutes(20),
+    ]);
 }
 
 function phase14AvailabilityPayload(): array

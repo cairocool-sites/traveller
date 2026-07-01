@@ -1,6 +1,6 @@
 # Voucher Evidence
 
-The internal voucher is available only for authorized admin users and only for confirmed bookings or manual-review provisional bookings.
+The voucher is available to authorized admin users and to the customer through the opaque public booking UUID. Confirmed bookings show a final voucher. Manual-review bookings show a provisional notice only. Bookings with unresolved supplier identity are blocked from voucher access.
 
 The printable HTML fallback includes:
 
@@ -19,6 +19,8 @@ The printable HTML fallback includes:
 - selling total and currency
 - cancellation summary
 - booking remarks when supplied
+- HBX rate comments when supplied
+- safe payment wording, VAT notice, and local payment reference
 - customer support wording
 - issue date
 

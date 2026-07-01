@@ -19,7 +19,7 @@ class HbxConfiguration
 
     public function timeoutSeconds(): int
     {
-        return (int) config('services.hbx.timeout', 45);
+        return (int) config('services.hbx.timeout', 60);
     }
 
     public function connectTimeoutSeconds(): int

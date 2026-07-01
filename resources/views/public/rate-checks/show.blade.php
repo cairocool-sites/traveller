@@ -39,6 +39,12 @@
                     <p class="mt-2 text-sm leading-6 text-slate-600">
                         {{ $rateCheck->room_snapshot['cancellation_summary'] ?? __('public.cancellation.unknown') }}
                     </p>
+                    @if (filled($rateCheck->room_snapshot['rate_comments'] ?? null))
+                        <div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
+                            <p class="font-black">{{ __('public.booking.rate_comments_title') }}</p>
+                            <p class="mt-2">{{ $rateCheck->room_snapshot['rate_comments'] }}</p>
+                        </div>
+                    @endif
                     <p class="mt-3 text-sm font-semibold text-slate-600">{{ __('public.booking.not_completed_notice') }}</p>
                 </div>
 

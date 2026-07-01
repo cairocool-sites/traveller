@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\HbxDestination;
 use App\Models\HbxHotel;
+use App\Models\Supplier;
 use App\Models\SupplierOperationLog;
 use App\Services\Supplier\Hbx\HbxApiCapabilityRegistry;
 use Illuminate\Console\Command;
@@ -47,9 +48,12 @@ class HbxCertificationReadinessCommand extends Command
             ['Technical', 'Sandbox endpoint only during development', $this->sandboxStatus(), 'Production remains blocked unless services.hbx.base_url is explicitly changed in a later approved step.'],
             ['Workflow', 'Availability before CheckRate/Booking', $this->ready($availability?->implemented && $checkRate?->implemented && $booking?->implemented), 'Public and manual flows resolve opaque local IDs, then call Availability, CheckRate when required, then guarded Booking.'],
             ['Workflow', 'No repeated Availability during booking step', $this->ready(true), 'BookingService submits from stored RateCheck snapshots and does not re-run Availability.'],
+            ['Workflow', 'Booking confirmation timeout is at least 60 seconds', $this->bookingTimeoutStatus(), 'HBX booking operations enforce a 60-second minimum timeout even if the supplier record is configured lower.'],
             ['Availability/CheckRate/Confirmation', 'CheckRate only when applicable and booking guarded', $this->ready($checkRate?->implemented), 'RECHECK requires CheckRate; BOOKABLE may proceed from freshness rules; sandbox booking guard defaults disabled.'],
+            ['Availability/CheckRate/Confirmation', 'Rate comments shown before booking', $this->ready(true), 'HBX rateComments are normalized into the RateCheck snapshot and displayed before guest details when supplied.'],
             ['Availability/CheckRate/Confirmation', 'Sandbox confirmation evidence', $this->manual((bool) $booking?->sandbox_tested), $booking?->sandbox_tested ? 'Sanitized successful sandbox booking log exists.' : 'Needs one controlled HBX sandbox booking after approval.'],
             ['Voucher', 'Voucher for confirmed bookings', $this->ready($voucher?->implemented && Route::has('admin.bookings.voucher')), 'Protected internal voucher route exists for confirmed or manual-review bookings.'],
+            ['Voucher', 'Customer voucher access', $this->ready(Route::has('bookings.voucher')), 'Public voucher route uses the opaque booking UUID and blocks unresolved supplier identity.'],
             ['Voucher', 'Voucher customer/supplier data review', $this->manual(false), 'Manual evidence must confirm hotel, passenger, booking, room, board, rate comments if applicable, and sandbox/test notice.'],
             ['Content', 'Content API implementation documented', $this->partial($contentHotels?->implemented && $contentDetails?->implemented), 'Countries, destinations, hotels, details, diagnostics, and code-based fallback are implemented.'],
             ['Content', 'Real hotel content stored locally', HbxHotel::query()->where('supplier_code', 'hbx_hotels')->exists() ? 'partial' : 'blocked', 'Stored HBX hotels: '.HbxHotel::query()->where('supplier_code', 'hbx_hotels')->count().'; destinations: '.HbxDestination::query()->where('supplier_code', 'hbx_hotels')->count().'.'],
@@ -79,6 +83,13 @@ class HbxCertificationReadinessCommand extends Command
         return rtrim((string) config('services.hbx.base_url'), '/') === 'https://api.test.hotelbeds.com'
             ? 'ready'
             : 'blocked';
+    }
+
+    private function bookingTimeoutStatus(): string
+    {
+        $supplierTimeout = (int) (Supplier::query()->where('code', 'hbx_hotels')->value('timeout_seconds') ?: 0);
+
+        return max(60, $supplierTimeout, (int) config('services.hbx.timeout', 60)) >= 60 ? 'ready' : 'blocked';
     }
 
     private function latestHotelsLog(): ?SupplierOperationLog

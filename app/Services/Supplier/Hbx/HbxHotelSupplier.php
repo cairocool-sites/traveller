@@ -121,6 +121,10 @@ class HbxHotelSupplier implements HotelSupplierInterface
             cancellationPolicies: $rate->cancellationPolicies,
             warnings: (bool) ($rate->metadata['requires_check_rate'] ?? false) ? ['HBX RECHECK rate confirmed.'] : [],
             correlationId: $correlationId,
+            metadata: [
+                'rate_comments' => $rate->metadata['rate_comments'] ?? null,
+                'rate_comments_id' => $rate->metadata['rate_comments_id'] ?? null,
+            ],
         );
     }
 

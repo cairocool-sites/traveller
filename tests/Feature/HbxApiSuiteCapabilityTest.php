@@ -10,6 +10,7 @@ use Database\Seeders\SupplierFoundationSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
@@ -68,7 +69,8 @@ it('prints hbx certification readiness without making supplier requests', functi
 
     expect($output)->not->toContain('cert-api-key')
         ->and($output)->not->toContain('cert-api-secret')
-        ->and($output)->not->toContain('X-Signature:');
+        ->and($output)->not->toContain('X-Signature:')
+        ->and(Route::has('bookings.voucher'))->toBeTrue();
 });
 
 it('prints hbx capability status without making supplier requests', function () {

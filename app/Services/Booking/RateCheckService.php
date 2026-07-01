@@ -66,6 +66,7 @@ class RateCheckService
         };
 
         $checkedTotal = $result->confirmedTotal ? $this->pricing->sellingPrice($result->confirmedTotal) : null;
+        $confirmedRoomSnapshot = $this->confirmedRoomSnapshot($rate, $result->metadata);
 
         return DB::transaction(fn (): RateCheck => RateCheck::query()->create([
             'public_uuid' => (string) Str::uuid(),
@@ -81,16 +82,32 @@ class RateCheckService
             'checked_amount_minor' => $checkedTotal?->minorAmount,
             'price_changed' => $result->priceChanged,
             'cancellation_policy_snapshot' => array_map(fn ($policy): array => $policy->jsonSerialize(), $result->cancellationPolicies),
-            'room_snapshot' => $rate,
+            'room_snapshot' => $confirmedRoomSnapshot,
             'occupancy_snapshot' => $session->occupancy,
             'supplier_reference_snapshot' => [
                 'confirmed_rate_key' => $result->confirmedRateKey,
                 'warnings' => $result->warnings,
                 'failure_reason' => $result->failureReason,
+                'rate_comments' => $confirmedRoomSnapshot['rate_comments'] ?? null,
             ],
             'correlation_id' => $correlationId,
             'checked_at' => now(),
             'expires_at' => $result->rateExpiry ?? now()->addMinutes(config('travel.booking.rate_check_lifetime_minutes')),
         ]));
+    }
+
+    private function confirmedRoomSnapshot(array $rate, array $metadata): array
+    {
+        $rateComments = $metadata['rate_comments'] ?? null;
+
+        if (is_string($rateComments)) {
+            $rate['rate_comments'] = Str::of($rateComments)->trim()->limit(2000, '')->toString();
+        }
+
+        if (filled($metadata['rate_comments_id'] ?? null)) {
+            $rate['rate_comments_id'] = $metadata['rate_comments_id'];
+        }
+
+        return $rate;
     }
 }

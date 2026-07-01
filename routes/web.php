@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\BookingVoucherController;
 use App\Http\Controllers\Admin\PaymentEvidenceController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\Public\BookingController;
+use App\Http\Controllers\Public\BookingVoucherController as PublicBookingVoucherController;
 use App\Http\Controllers\Public\CancellationController;
 use App\Http\Controllers\Public\DocumentController;
 use App\Http\Controllers\Public\HbxCatalogueController;
@@ -35,6 +36,7 @@ Route::get('/sitemap.xml', [HbxCatalogueController::class, 'sitemap'])->name('ca
 Route::post('/rate-checks', [RateCheckController::class, 'store'])->middleware('throttle:booking-submission')->name('rate-checks.store');
 Route::get('/rate-checks/{rateCheck}', [RateCheckController::class, 'show'])->name('rate-checks.show');
 Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
+Route::get('/bookings/{booking}/voucher', PublicBookingVoucherController::class)->middleware('throttle:status-pages')->name('bookings.voucher');
 Route::get('/bookings/{booking}/payment', [PaymentController::class, 'show'])->name('payments.show');
 Route::post('/bookings/{booking}/payment', [PaymentController::class, 'store'])->middleware('throttle:payment-submission')->name('payments.store');
 Route::get('/bookings/{booking}/cancel', [CancellationController::class, 'show'])->name('cancellations.create');
