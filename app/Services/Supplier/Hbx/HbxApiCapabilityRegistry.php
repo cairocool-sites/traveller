@@ -105,16 +105,25 @@ class HbxApiCapabilityRegistry
 
     private function evidence(array $definition): array
     {
+        $operations = $this->operationsFor($definition['capability_code']);
+        $path = $definition['endpoint_path'] ?? null;
+        $method = $definition['http_method'] ?? null;
+
+        if ($operations === [] && ! $path && ! $method) {
+            return [
+                'latest' => null,
+                'successful' => false,
+                'successful_at' => null,
+            ];
+        }
+
         $query = SupplierOperationLog::query()
             ->whereHas('supplier', fn ($query) => $query->where('code', self::SUPPLIER_CODE));
 
-        $operations = $this->operationsFor($definition['capability_code']);
         if ($operations !== []) {
             $query->whereIn('operation', array_map(fn (SupplierOperation $operation): string => $operation->value, $operations));
         }
 
-        $path = $definition['endpoint_path'] ?? null;
-        $method = $definition['http_method'] ?? null;
         if ($method) {
             $query->where('request_method', $method);
         }

@@ -163,3 +163,27 @@ it('keeps credential access confirmed after a prior successful capability call e
         ->and($availability->last_successful_call_at)->not->toBeNull()
         ->and($availability->last_sanitized_failure)->toContain('Sanitized supplier failure');
 });
+
+it('does not infer credential access for non-callable gated capabilities from unrelated successful logs', function () {
+    config(['services.hbx.enabled' => true, 'services.hbx.api_key' => 'key', 'services.hbx.api_secret' => 'secret']);
+    $this->seed(SupplierFoundationSeeder::class);
+
+    $supplier = Supplier::query()->where('code', 'hbx_hotels')->firstOrFail();
+
+    SupplierOperationLog::query()->create([
+        'supplier_id' => $supplier->id,
+        'correlation_id' => (string) Str::uuid(),
+        'operation' => SupplierOperation::CheckRate,
+        'request_method' => 'POST',
+        'request_url' => '/hotel-api/1.0/checkrates',
+        'successful' => true,
+        'created_at' => now(),
+    ]);
+
+    app(HbxApiCapabilityRegistry::class)->sync();
+
+    expect(HbxApiCapability::query()->where('capability_code', 'booking_check_rate')->value('credential_access_confirmed'))->toBeTrue()
+        ->and(HbxApiCapability::query()->where('capability_code', 'payment_data_support')->value('credential_access_confirmed'))->toBeFalse()
+        ->and(HbxApiCapability::query()->where('capability_code', 'cache_full')->value('credential_access_confirmed'))->toBeFalse()
+        ->and(HbxApiCapability::query()->where('capability_code', 'production_access')->value('credential_access_confirmed'))->toBeFalse();
+});
