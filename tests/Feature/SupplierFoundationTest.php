@@ -27,6 +27,7 @@ use App\Services\Supplier\Exceptions\MissingSupplierException;
 use App\Services\Supplier\Exceptions\UnsupportedSupplierOperationException;
 use App\Services\Supplier\PayloadSanitizer;
 use App\Services\Supplier\SupplierManager;
+use App\Services\Supplier\Tbo\TboHotelSupplier;
 use App\Services\Supplier\Transport\SecureSupplierXmlTransport;
 use App\Support\Money\Money;
 use Carbon\CarbonImmutable;
@@ -94,6 +95,30 @@ it('resolves and filters suppliers through the manager', function () {
     Supplier::query()->where('code', 'mock_hotels')->update(['status' => SupplierStatus::Active, 'booking_enabled' => false]);
 
     expect(fn () => $manager->resolve('mock_hotels', SupplierOperation::Book))->toThrow(UnsupportedSupplierOperationException::class);
+});
+
+it('seeds TBO as a safe inactive supplier shell', function () {
+    $supplier = Supplier::query()->where('code', 'tbo_hotels')->firstOrFail();
+
+    expect($supplier->status)->toBe(SupplierStatus::Inactive)
+        ->and($supplier->integration_type->value)->toBe('rest')
+        ->and($supplier->search_enabled)->toBeFalse()
+        ->and($supplier->booking_enabled)->toBeFalse()
+        ->and($supplier->cancellation_enabled)->toBeFalse()
+        ->and(fn () => app(SupplierManager::class)->resolve('tbo_hotels', SupplierOperation::Search))->toThrow(DisabledSupplierException::class);
+});
+
+it('resolves TBO only when explicitly activated and keeps operations closed', function () {
+    Supplier::query()->where('code', 'tbo_hotels')->update([
+        'status' => SupplierStatus::Active,
+        'search_enabled' => true,
+    ]);
+
+    $adapter = app(SupplierManager::class)->resolve('tbo_hotels', SupplierOperation::Search);
+
+    expect($adapter)->toBeInstanceOf(TboHotelSupplier::class)
+        ->and(fn () => $adapter->search(supplierSearchRequest()))->toThrow(UnsupportedSupplierOperationException::class)
+        ->and($adapter->healthCheck()->healthy)->toBeFalse();
 });
 
 it('orders enabled suppliers by priority', function () {

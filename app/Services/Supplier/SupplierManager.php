@@ -12,6 +12,7 @@ use App\Services\Supplier\Exceptions\MissingSupplierException;
 use App\Services\Supplier\Exceptions\UnsupportedSupplierOperationException;
 use App\Services\Supplier\Hbx\HbxHotelSupplier;
 use App\Services\Supplier\Mock\MockHotelSupplier;
+use App\Services\Supplier\Tbo\TboHotelSupplier;
 use Illuminate\Support\Collection;
 
 class SupplierManager
@@ -28,6 +29,9 @@ class SupplierManager
 
         return match ($supplier->integration_type) {
             SupplierIntegrationType::Mock => app(MockHotelSupplier::class, ['supplier' => $supplier]),
+            SupplierIntegrationType::Rest => $supplier->code === 'tbo_hotels'
+                ? app(TboHotelSupplier::class, ['supplier' => $supplier])
+                : throw new UnsupportedSupplierOperationException('No REST adapter is registered for this supplier.'),
             SupplierIntegrationType::Json => $supplier->code === 'hbx_hotels'
                 ? app(HbxHotelSupplier::class, ['supplier' => $supplier])
                 : throw new UnsupportedSupplierOperationException('No JSON adapter is registered for this supplier.'),

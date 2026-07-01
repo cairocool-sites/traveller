@@ -57,4 +57,16 @@ return [
         ],
     ],
 
+    'tbo' => [
+        'enabled' => (bool) env('TBO_ENABLED', false),
+        'username' => env('TBO_USERNAME'),
+        'password' => env('TBO_PASSWORD'),
+        'base_url' => env('TBO_BASE_URL', 'https://api.tbotechnology.in'),
+        'timeout' => (int) env('TBO_TIMEOUT', 45),
+        'connect_timeout' => (int) env('TBO_CONNECT_TIMEOUT', 15),
+        'integration_tests' => (bool) env('TBO_INTEGRATION_TESTS', false),
+        'sandbox_booking_enabled' => (bool) env('TBO_SANDBOX_BOOKING_ENABLED', false),
+        'production_enabled' => (bool) env('TBO_PRODUCTION_ENABLED', false),
+    ],
+
 ];

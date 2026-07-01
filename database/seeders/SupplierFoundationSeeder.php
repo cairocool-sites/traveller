@@ -62,6 +62,30 @@ class SupplierFoundationSeeder extends Seeder
             ],
         );
 
+        Supplier::query()->updateOrCreate(
+            ['code' => 'tbo_hotels'],
+            [
+                'name' => 'TBO Hotels Supplier',
+                'integration_type' => SupplierIntegrationType::Rest,
+                'environment' => SupplierEnvironment::Sandbox,
+                'status' => SupplierStatus::Inactive,
+                'priority' => 30,
+                'timeout_seconds' => (int) config('services.tbo.timeout', 45),
+                'connect_timeout_seconds' => (int) config('services.tbo.connect_timeout', 15),
+                'max_retries' => 0,
+                'retry_delay_milliseconds' => 250,
+                'search_enabled' => false,
+                'details_enabled' => false,
+                'check_rate_enabled' => false,
+                'booking_enabled' => false,
+                'cancellation_enabled' => false,
+                'booking_lookup_enabled' => false,
+                'health_check_enabled' => true,
+                'base_url' => config('services.tbo.base_url'),
+                'health_status' => SupplierHealthStatus::Unknown,
+            ],
+        );
+
         app(HbxApiCapabilityRegistry::class)->sync();
     }
 }
