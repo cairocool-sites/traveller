@@ -2,6 +2,7 @@
 
 namespace App\Services\Supplier\Hbx;
 
+use App\Enums\SupplierOperation;
 use App\Models\HbxApiCapability;
 use App\Models\Supplier;
 use App\Models\SupplierOperationLog;
@@ -21,17 +22,18 @@ class HbxApiCapabilityRegistry
         $productionEnabled = rtrim((string) config('services.hbx.base_url'), '/') === 'https://api.hotelbeds.com';
 
         return collect($this->definitions())->map(function (array $definition) use ($configured, $productionEnabled): HbxApiCapability {
-            $lastLog = $this->lastLog($definition['endpoint_path'] ?? null, $definition['http_method'] ?? null);
+            $evidence = $this->evidence($definition);
+            $lastLog = $evidence['latest'];
 
             return HbxApiCapability::query()->updateOrCreate(
                 ['supplier_code' => self::SUPPLIER_CODE, 'capability_code' => $definition['capability_code']],
                 array_merge($definition, [
                     'supplier_code' => self::SUPPLIER_CODE,
                     'configured' => $configured,
-                    'credential_access_confirmed' => $lastLog?->successful === true || false,
-                    'sandbox_tested' => $lastLog?->successful === true || false,
+                    'credential_access_confirmed' => $evidence['successful'],
+                    'sandbox_tested' => $evidence['successful'],
                     'production_enabled' => $productionEnabled && (bool) ($definition['production_capable'] ?? false),
-                    'last_successful_call_at' => $lastLog?->successful ? $lastLog->created_at : null,
+                    'last_successful_call_at' => $evidence['successful_at'],
                     'last_sanitized_failure' => $lastLog && ! $lastLog->successful ? Str::limit((string) $lastLog->error_message, 500, '') : null,
                 ]),
             );
@@ -56,7 +58,7 @@ class HbxApiCapabilityRegistry
             $this->capability('content_destinations', 'Hotel Content API', 'Destinations', 'GET', '/hotel-content-api/1.0/locations/destinations', true, true, false),
             $this->capability('content_hotels', 'Hotel Content API', 'Hotels', 'GET', '/hotel-content-api/1.0/hotels', true, true, false),
             $this->capability('content_hotel_details', 'Hotel Content API', 'Hotel details', 'GET', '/hotel-content-api/1.0/hotels/{hotelCodes}/details', true, true, false),
-            $this->capability('content_master_data', 'Hotel Content API', 'Master/descriptive resources', 'GET', '/hotel-content-api/1.0/*', false, false, false, 'Rooms, boards, accommodations, categories, chains, facilities, issues, languages, promotions, terminals, currencies, images, and rate comments are tracked for the full content slice.'),
+            $this->capability('content_master_data', 'Hotel Content API', 'Master/descriptive resources', 'GET', '/hotel-content-api/1.0/types/*', true, true, false, 'Rooms, boards, accommodations, categories, chains, facilities, issues, languages, promotions, terminals, currencies, images, and rate comments are tracked for the full content slice. Some resources may still require HBX account authorization.'),
             $this->capability('cache_full', 'Hotel Cache API', 'FULL file import', null, null, false, false, false, 'Capability-gated; authorization must be detected without faking success.'),
             $this->capability('cache_incremental', 'Hotel Cache API', 'Incremental/update import', null, null, false, false, false, 'Capability-gated; cache data cannot replace live Booking API validation.'),
             $this->capability('cds_change_discovery', 'Change Discovery Service', 'Change Discovery Service', null, null, false, false, false, 'Capability-gated; Content API differential sync remains fallback.'),
@@ -81,17 +83,81 @@ class HbxApiCapabilityRegistry
         ];
     }
 
-    private function lastLog(?string $path, ?string $method): ?SupplierOperationLog
+    private function evidence(array $definition): array
     {
-        if (! $path || ! $method || str_contains($path, '{')) {
-            return null;
+        $query = SupplierOperationLog::query()
+            ->whereHas('supplier', fn ($query) => $query->where('code', self::SUPPLIER_CODE));
+
+        $operations = $this->operationsFor($definition['capability_code']);
+        if ($operations !== []) {
+            $query->whereIn('operation', array_map(fn (SupplierOperation $operation): string => $operation->value, $operations));
         }
 
-        return SupplierOperationLog::query()
-            ->whereHas('supplier', fn ($query) => $query->where('code', self::SUPPLIER_CODE))
-            ->where('request_method', $method)
-            ->where('request_url', $path)
-            ->latest('id')
-            ->first();
+        $path = $definition['endpoint_path'] ?? null;
+        $method = $definition['http_method'] ?? null;
+        if ($method) {
+            $query->where('request_method', $method);
+        }
+
+        if ($path) {
+            $query->where(function ($query) use ($path): void {
+                foreach ($this->pathPatterns($path) as $pattern) {
+                    $query->orWhere('request_url', 'like', $pattern);
+                }
+            });
+        }
+
+        $latest = (clone $query)->latest('id')->first();
+        $successful = (clone $query)->where('successful', true)->latest('id')->first();
+
+        return [
+            'latest' => $latest,
+            'successful' => $successful !== null,
+            'successful_at' => $successful?->created_at,
+        ];
+    }
+
+    /**
+     * @return array<int, SupplierOperation>
+     */
+    private function operationsFor(string $capabilityCode): array
+    {
+        return match ($capabilityCode) {
+            'booking_availability' => [SupplierOperation::Search],
+            'booking_check_rate' => [SupplierOperation::CheckRate],
+            'booking_confirmation' => [SupplierOperation::Book],
+            'booking_list' => [SupplierOperation::BookingList],
+            'booking_detail' => [SupplierOperation::GetBooking],
+            'booking_modification' => [SupplierOperation::BookingChange],
+            'booking_cancel_simulation' => [SupplierOperation::CancellationSimulation],
+            'booking_cancellation' => [SupplierOperation::Cancel],
+            'booking_reconfirmation' => [SupplierOperation::BookingReconfirmation],
+            'content_countries',
+            'content_destinations',
+            'content_hotels',
+            'content_hotel_details',
+            'content_master_data' => [SupplierOperation::HotelDetails],
+            default => [],
+        };
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function pathPatterns(string $path): array
+    {
+        if ($path === '/hotel-content-api/1.0/types/*') {
+            return ['/hotel-content-api/1.0/types/%'];
+        }
+
+        if (str_contains($path, '{bookingId}')) {
+            return [str_replace('{bookingId}', '%', $path).'%'];
+        }
+
+        if (str_contains($path, '{hotelCodes}')) {
+            return [str_replace('{hotelCodes}', '%', $path).'%'];
+        }
+
+        return [$path, $path.'?%'];
     }
 }
