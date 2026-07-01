@@ -13,6 +13,8 @@ class PayloadSanitizer
         'signature',
         'access_token',
         'token',
+        'username',
+        'user_name',
         'password',
         'secret',
         'credential',

@@ -67,6 +67,16 @@ return [
         'integration_tests' => (bool) env('TBO_INTEGRATION_TESTS', false),
         'sandbox_booking_enabled' => (bool) env('TBO_SANDBOX_BOOKING_ENABLED', false),
         'production_enabled' => (bool) env('TBO_PRODUCTION_ENABLED', false),
+        'endpoints' => [
+            'hotel_search' => env('TBO_ENDPOINT_HOTEL_SEARCH', '/HotelBookingApi/HotelSearch'),
+            'available_hotel_rooms' => env('TBO_ENDPOINT_AVAILABLE_HOTEL_ROOMS', '/HotelBookingApi/AvailableHotelRooms'),
+            'availability_and_pricing' => env('TBO_ENDPOINT_AVAILABILITY_AND_PRICING', '/HotelBookingApi/AvailabilityandPricing'),
+            'hotel_book' => env('TBO_ENDPOINT_HOTEL_BOOK', '/HotelBookingApi/HotelBook'),
+            'hotel_booking_detail' => env('TBO_ENDPOINT_HOTEL_BOOKING_DETAIL', '/HotelBookingApi/HotelBookingDetail'),
+            'hotel_cancel' => env('TBO_ENDPOINT_HOTEL_CANCEL', '/HotelBookingApi/HotelCancel'),
+            'hotel_cancellation_policy' => env('TBO_ENDPOINT_HOTEL_CANCELLATION_POLICY', '/HotelBookingApi/HotelCancellationPolicy'),
+            'hotel_details' => env('TBO_ENDPOINT_HOTEL_DETAILS', '/HotelBookingApi/HotelDetails'),
+        ],
     ],
 
 ];

@@ -33,4 +33,14 @@ class TboConfiguration
             password: (string) ($credentials->get('password')?->encrypted_value ?: config('services.tbo.password', '')),
         );
     }
+
+    public function endpoint(string $key): string
+    {
+        return (string) config("services.tbo.endpoints.{$key}");
+    }
+
+    public function endpoints(): array
+    {
+        return config('services.tbo.endpoints', []);
+    }
 }

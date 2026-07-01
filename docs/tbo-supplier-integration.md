@@ -30,10 +30,25 @@ Do not commit real values.
 
 ## Next Implementation Steps
 
-1. Extract the exact TBO API endpoints and payloads from `TBOHAPI_v7.pdf`.
-2. Add a `TboHttpClient` with sanitized logging and no automatic retries for booking or cancellation.
-3. Implement a read-only health/auth test command.
-4. Implement search normalization to existing `HotelSearchResultData`.
+The local PDF exposes these Hotel Booking API operations as documentation links:
+
+- `HotelSearch`
+- `AvailableHotelRooms`
+- `HotelCancellationPolicy`
+- `AvailabilityandPricing`
+- `HotelBook`
+- `HotelBookingDetail`
+- `HotelCancel`
+- `HotelCancellationPolicyForAllRooms`
+- `HotelDetails`
+- `HotelBookingDetailBasedOnDate`
+
+The project now includes endpoint placeholders for the main operations. They must be confirmed against the exact TBO account service URL before enabling public traffic.
+
+1. Confirm the exact base URL and endpoint paths from the TBO account/PDF.
+2. Enable TBO credentials locally using encrypted supplier credentials.
+3. Run safe fake-backed tests first.
+4. Implement a controlled live connectivity command only after TBO confirms the endpoint shape.
 5. Implement hotel details and CheckRate.
 6. Implement booking and cancellation only after sandbox safeguards match the HBX controls.
 
