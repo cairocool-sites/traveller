@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Enums\SupplierStatus;
 use App\Jobs\HbxContentSyncJob;
 use App\Models\HbxContentSyncBatch;
+use App\Models\HbxHotel;
 use App\Models\Supplier;
 use App\Services\Supplier\Hbx\HbxContentApiClient;
 use App\Services\Supplier\Hbx\HbxContentSyncService;
@@ -21,6 +22,8 @@ class HbxContentSyncCommand extends Command
         {--destination= : HBX destination code}
         {--hotel-codes= : Comma-separated official HBX hotel codes from Availability}
         {--details : Use the official /hotels/{hotelCodes}/details fallback for --hotel-codes}
+        {--local-hotels : Use locally stored HBX hotel codes for bounded details sync}
+        {--chunk-size=50 : Number of hotel codes per details request when using --local-hotels}
         {--language=ENG : HBX language code}
         {--limit= : Maximum records to request using official from/to range}
         {--from= : Official HBX Content API from offset}
@@ -59,7 +62,9 @@ class HbxContentSyncCommand extends Command
             }
 
             if ($this->option('details') && ! $this->option('hotel-codes')) {
-                throw new RuntimeException('Use --hotel-codes with --details.');
+                if (! $this->option('local-hotels')) {
+                    throw new RuntimeException('Use --hotel-codes or --local-hotels with --details.');
+                }
             }
 
             $options = [
@@ -69,6 +74,8 @@ class HbxContentSyncCommand extends Command
                 'destination_code' => $this->option('destination') ? strtoupper((string) $this->option('destination')) : null,
                 'hotel_codes' => $this->option('hotel-codes'),
                 'details' => (bool) $this->option('details'),
+                'local_hotels' => (bool) $this->option('local-hotels'),
+                'chunk_size' => (int) $this->option('chunk-size'),
                 'language' => strtoupper((string) $this->option('language')),
                 'limit' => $this->option('limit') ? (int) $this->option('limit') : null,
                 'from' => $this->option('from') ? (int) $this->option('from') : null,
@@ -86,6 +93,8 @@ class HbxContentSyncCommand extends Command
                     'destination' => $this->option('destination'),
                     'hotel_codes' => $this->option('hotel-codes'),
                     'details' => (bool) $this->option('details'),
+                    'local_hotels' => (bool) $this->option('local-hotels'),
+                    'chunk_size' => $options['chunk_size'],
                     'language' => $options['language'],
                     'limit' => $options['limit'],
                     'from' => $options['from'],
@@ -143,10 +152,40 @@ class HbxContentSyncCommand extends Command
             'countries' => $this->syncCountries($supplier, $options),
             'destinations' => $sync->syncDestinations($supplier, $options),
             'hotels' => $options['details']
-                ? $sync->syncHotelDetailsByCodes($supplier, $options['hotel_codes'], $options)
+                ? $sync->syncHotelDetailsByCodes($supplier, $this->hotelCodesForDetails($options), $options)
                 : $sync->syncHotels($supplier, (string) ($options['destination_code'] ?: ''), $options),
             default => $sync->syncGenericResource($supplier, $resource, $options),
         };
+    }
+
+    private function hotelCodesForDetails(array $options): mixed
+    {
+        if (! $options['local_hotels']) {
+            return $options['hotel_codes'];
+        }
+
+        $chunkSize = max(1, min((int) $options['chunk_size'], 100));
+        $limit = $options['limit'] ? max(1, (int) $options['limit']) : null;
+
+        $query = HbxHotel::query()
+            ->where('supplier_code', HbxContentSyncService::SUPPLIER_CODE)
+            ->where('supplier_active', true)
+            ->when($options['country_code'], fn ($query) => $query->where('country_code', $options['country_code']))
+            ->when($options['destination_code'], fn ($query) => $query->where('destination_code', $options['destination_code']))
+            ->orderBy('hotel_code');
+
+        if ($limit) {
+            $query->limit($limit);
+        }
+
+        return $query
+            ->pluck('hotel_code')
+            ->filter()
+            ->unique()
+            ->chunk($chunkSize)
+            ->map(fn ($codes) => $codes->implode(','))
+            ->values()
+            ->all();
     }
 
     private function syncCountries(Supplier $supplier, array $options): array

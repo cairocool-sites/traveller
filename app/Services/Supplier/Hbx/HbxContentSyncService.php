@@ -171,37 +171,41 @@ class HbxContentSyncService
 
     public function syncHotelDetailsByCodes(Supplier $supplier, mixed $hotelCodes, array $options = []): array
     {
-        $codes = $this->hotelCodes($hotelCodes);
+        $chunks = $this->hotelCodeChunks($hotelCodes);
         $dryRun = (bool) ($options['dry_run'] ?? false);
         $language = (string) ($options['language'] ?? 'ENG');
+        $processed = 0;
+        $seen = [];
 
-        if ($codes === []) {
+        if ($chunks === []) {
             return ['processed' => 0, 'stored' => 0];
         }
 
-        $response = $this->client->hotelDetails($supplier, implode(',', $codes), [
-            'language' => $language,
-            'useSecondaryLanguage' => 'false',
-        ]);
+        foreach ($chunks as $codes) {
+            $response = $this->client->hotelDetails($supplier, implode(',', $codes), [
+                'language' => $language,
+                'useSecondaryLanguage' => 'false',
+            ]);
 
-        $items = $this->detailItems($response['body']);
-        $seen = [];
+            $items = $this->detailItems($response['body']);
+            $processed += count($items);
 
-        foreach ($items as $item) {
-            $code = (string) ($item['code'] ?? '');
+            foreach ($items as $item) {
+                $code = (string) ($item['code'] ?? '');
 
-            if ($code === '') {
-                continue;
-            }
+                if ($code === '') {
+                    continue;
+                }
 
-            $seen[] = $code;
+                $seen[] = $code;
 
-            if (! $dryRun) {
-                $this->storeHotel($supplier, $item, $language);
+                if (! $dryRun) {
+                    $this->storeHotel($supplier, $item, $language);
+                }
             }
         }
 
-        return ['processed' => count($items), 'stored' => $dryRun ? 0 : count(array_unique($seen))];
+        return ['processed' => $processed, 'stored' => $dryRun ? 0 : count(array_unique($seen))];
     }
 
     public function syncGenericResource(Supplier $supplier, string $resource, array $options = []): array
@@ -401,6 +405,19 @@ class HbxContentSyncService
             fn (mixed $code): string => (string) preg_replace('/\D+/', '', (string) $code),
             $codes,
         ))));
+    }
+
+    private function hotelCodeChunks(mixed $codes): array
+    {
+        if (is_array($codes)) {
+            $chunks = array_map(fn (mixed $chunk): array => $this->hotelCodes($chunk), $codes);
+
+            return array_values(array_filter($chunks, fn (array $chunk): bool => $chunk !== []));
+        }
+
+        $codes = $this->hotelCodes($codes);
+
+        return $codes === [] ? [] : [$codes];
     }
 
     private function localizedName(array $item, string $key): ?string

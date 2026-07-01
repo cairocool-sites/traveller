@@ -267,6 +267,46 @@ it('syncs hotel details by official hotel code fallback', function () {
         && $request->hasHeader('Accept-Encoding', 'gzip'));
 });
 
+it('syncs local hotel details in bounded chunks for images and descriptions', function () {
+    foreach (['4001', '4002'] as $code) {
+        HbxHotel::query()->create([
+            'supplier_code' => 'hbx_hotels',
+            'hotel_code' => $code,
+            'hotel_name' => 'Local HBX '.$code,
+            'destination_code' => 'CAI',
+            'country_code' => 'EG',
+            'supplier_active' => true,
+            'public_enabled' => true,
+            'is_active' => true,
+            'synced_at' => now(),
+        ]);
+    }
+
+    Http::fake(function ($request) {
+        preg_match('#/hotels/(\d+)/details#', $request->url(), $matches);
+        $code = $matches[1] ?? '4001';
+
+        return Http::response(['hotel' => [
+            'code' => (int) $code,
+            'name' => ['content' => 'Detailed Hotel '.$code],
+            'description' => ['content' => 'Description for hotel '.$code],
+            'destinationCode' => 'CAI',
+            'countryCode' => 'EG',
+            'images' => [['path' => '00/'.$code.'/'.$code.'_hb_a_001.jpg', 'visualOrder' => 0, 'order' => 1]],
+        ]], 200);
+    });
+
+    $this->artisan('hbx:content:sync --resource=hotels --details --local-hotels --country=EG --chunk-size=1 --language=ENG')
+        ->expectsOutputToContain('hotels: processed 2; stored 2.')
+        ->assertSuccessful();
+
+    expect(HbxHotelTranslation::query()->where('description', 'Description for hotel 4001')->exists())->toBeTrue()
+        ->and(HbxHotelImage::query()->where('path', '00/4001/4001_hb_a_001.jpg')->where('is_primary', true)->exists())->toBeTrue()
+        ->and(HbxHotelImage::query()->where('path', '00/4002/4002_hb_a_001.jpg')->where('is_primary', true)->exists())->toBeTrue();
+
+    Http::assertSentCount(2);
+});
+
 it('syncs generic hbx content resources with idempotent payload storage', function () {
     Http::fake(['api.test.hotelbeds.com/*' => Http::response(['boards' => ['boards' => [[
         'code' => 'BB',
