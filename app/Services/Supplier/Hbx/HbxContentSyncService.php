@@ -171,37 +171,41 @@ class HbxContentSyncService
 
     public function syncHotelDetailsByCodes(Supplier $supplier, mixed $hotelCodes, array $options = []): array
     {
-        $codes = $this->hotelCodes($hotelCodes);
+        $chunks = $this->hotelCodeChunks($hotelCodes);
         $dryRun = (bool) ($options['dry_run'] ?? false);
         $language = (string) ($options['language'] ?? 'ENG');
+        $processed = 0;
+        $seen = [];
 
-        if ($codes === []) {
+        if ($chunks === []) {
             return ['processed' => 0, 'stored' => 0];
         }
 
-        $response = $this->client->hotelDetails($supplier, implode(',', $codes), [
-            'language' => $language,
-            'useSecondaryLanguage' => 'false',
-        ]);
+        foreach ($chunks as $codes) {
+            $response = $this->client->hotelDetails($supplier, implode(',', $codes), [
+                'language' => $language,
+                'useSecondaryLanguage' => 'false',
+            ]);
 
-        $items = $this->detailItems($response['body']);
-        $seen = [];
+            $items = $this->detailItems($response['body']);
+            $processed += count($items);
 
-        foreach ($items as $item) {
-            $code = (string) ($item['code'] ?? '');
+            foreach ($items as $item) {
+                $code = (string) ($item['code'] ?? '');
 
-            if ($code === '') {
-                continue;
-            }
+                if ($code === '') {
+                    continue;
+                }
 
-            $seen[] = $code;
+                $seen[] = $code;
 
-            if (! $dryRun) {
-                $this->storeHotel($supplier, $item, $language);
+                if (! $dryRun) {
+                    $this->storeHotel($supplier, $item, $language);
+                }
             }
         }
 
-        return ['processed' => count($items), 'stored' => $dryRun ? 0 : count(array_unique($seen))];
+        return ['processed' => $processed, 'stored' => $dryRun ? 0 : count(array_unique($seen))];
     }
 
     public function syncGenericResource(Supplier $supplier, string $resource, array $options = []): array
@@ -403,6 +407,19 @@ class HbxContentSyncService
         ))));
     }
 
+    private function hotelCodeChunks(mixed $codes): array
+    {
+        if (is_array($codes)) {
+            $chunks = array_map(fn (mixed $chunk): array => $this->hotelCodes($chunk), $codes);
+
+            return array_values(array_filter($chunks, fn (array $chunk): bool => $chunk !== []));
+        }
+
+        $codes = $this->hotelCodes($codes);
+
+        return $codes === [] ? [] : [$codes];
+    }
+
     private function localizedName(array $item, string $key): ?string
     {
         $value = $item[$key] ?? null;
@@ -469,7 +486,7 @@ class HbxContentSyncService
         );
 
         foreach (array_values($item['images'] ?? []) as $index => $image) {
-            $path = (string) ($image['path'] ?? '');
+            $path = HbxHotelImage::normalizePath((string) ($image['path'] ?? ''));
 
             if ($path === '') {
                 continue;
@@ -478,13 +495,13 @@ class HbxContentSyncService
             HbxHotelImage::query()->updateOrCreate(
                 ['hbx_hotel_id' => $hotel->id, 'path' => $path],
                 [
-                    'image_type_code' => $image['imageTypeCode'] ?? $image['type'] ?? null,
-                    'room_code' => $image['roomCode'] ?? null,
-                    'sort_order' => (int) ($image['order'] ?? $index + 1),
+                    'image_type_code' => $this->codeValue($image['imageTypeCode'] ?? $image['type'] ?? null),
+                    'room_code' => $this->codeValue($image['roomCode'] ?? $image['room'] ?? null),
+                    'sort_order' => $this->imageSortOrder($image, $index),
                     'width' => $image['width'] ?? null,
                     'height' => $image['height'] ?? null,
                     'alt_text' => $hotel->hotel_name,
-                    'is_primary' => $index === 0,
+                    'is_primary' => (int) ($image['visualOrder'] ?? $index) === 0,
                     'is_active' => true,
                     'payload' => $image,
                 ],
@@ -492,7 +509,7 @@ class HbxContentSyncService
         }
 
         foreach (array_values($item['facilities'] ?? []) as $facility) {
-            $code = (string) ($facility['facilityCode'] ?? $facility['code'] ?? '');
+            $code = $this->codeValue($facility['facilityCode'] ?? $facility['code'] ?? null);
 
             if ($code === '') {
                 continue;
@@ -501,7 +518,7 @@ class HbxContentSyncService
             HbxHotelFacility::query()->updateOrCreate(
                 ['hbx_hotel_id' => $hotel->id, 'facility_code' => $code],
                 [
-                    'facility_group_code' => isset($facility['facilityGroupCode']) ? (string) $facility['facilityGroupCode'] : null,
+                    'facility_group_code' => $this->codeValue($facility['facilityGroupCode'] ?? $facility['facilityGroup'] ?? null),
                     'description' => $this->localizedName($facility, 'description'),
                     'is_active' => true,
                     'payload' => $facility,
@@ -510,14 +527,14 @@ class HbxContentSyncService
         }
 
         foreach (array_values($item['rooms'] ?? []) as $room) {
-            $code = (string) ($room['roomCode'] ?? $room['code'] ?? '');
+            $code = $this->codeValue($room['roomCode'] ?? $room['code'] ?? null);
 
             if ($code === '') {
                 continue;
             }
 
             HbxHotelRoom::query()->updateOrCreate(
-                ['hbx_hotel_id' => $hotel->id, 'room_code' => $code, 'characteristic_code' => $room['characteristicCode'] ?? null],
+                ['hbx_hotel_id' => $hotel->id, 'room_code' => $code, 'characteristic_code' => $this->codeValue($room['characteristicCode'] ?? $room['characteristic'] ?? null)],
                 [
                     'room_name' => $this->localizedName($room, 'description') ?: $this->localizedName($room, 'name'),
                     'min_adults' => $room['minAdults'] ?? null,
@@ -529,6 +546,27 @@ class HbxContentSyncService
                 ],
             );
         }
+    }
+
+    private function imageSortOrder(array $image, int $index): int
+    {
+        $visualOrder = max(0, (int) ($image['visualOrder'] ?? $index));
+        $order = max(0, (int) ($image['order'] ?? 0));
+
+        return ($visualOrder * 1000) + $order + 1;
+    }
+
+    private function codeValue(mixed $value): ?string
+    {
+        if (is_array($value)) {
+            $value = $value['code'] ?? $value['id'] ?? null;
+        }
+
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return (string) $value;
     }
 
     private function storeHotel(Supplier $supplier, array $item, string $language, string $destinationCode = '', ?string $countryCode = null): HbxHotel
@@ -552,8 +590,8 @@ class HbxContentSyncService
                 'longitude' => $item['coordinates']['longitude'] ?? $item['longitude'] ?? null,
                 'address' => $this->localizedName($item, 'address') ?: ($item['address']['content'] ?? null),
                 'postal_code' => $item['postalCode'] ?? null,
-                'accommodation_type_code' => $item['accommodationTypeCode'] ?? $item['accommodationType']['code'] ?? null,
-                'chain_code' => $item['chainCode'] ?? $item['chain']['code'] ?? null,
+                'accommodation_type_code' => $this->codeValue($item['accommodationTypeCode'] ?? $item['accommodationType'] ?? null),
+                'chain_code' => $this->codeValue($item['chainCode'] ?? $item['chain'] ?? null),
                 'primary_phone' => $item['phones'][0]['phoneNumber'] ?? null,
                 'primary_email' => $item['email'] ?? null,
                 'supplier_active' => true,

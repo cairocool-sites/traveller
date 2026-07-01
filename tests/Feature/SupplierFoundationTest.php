@@ -24,15 +24,18 @@ use App\Services\Supplier\Exceptions\DisabledSupplierException;
 use App\Services\Supplier\Exceptions\DuplicateSupplierRequestException;
 use App\Services\Supplier\Exceptions\InvalidSupplierResponseException;
 use App\Services\Supplier\Exceptions\MissingSupplierException;
+use App\Services\Supplier\Exceptions\SupplierAuthenticationException;
 use App\Services\Supplier\Exceptions\UnsupportedSupplierOperationException;
 use App\Services\Supplier\PayloadSanitizer;
 use App\Services\Supplier\SupplierManager;
+use App\Services\Supplier\Tbo\TboHotelSupplier;
 use App\Services\Supplier\Transport\SecureSupplierXmlTransport;
 use App\Support\Money\Money;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Http;
 use Spatie\Permission\PermissionRegistrar;
 
 uses(RefreshDatabase::class);
@@ -42,14 +45,14 @@ beforeEach(function (): void {
     $this->seed();
 });
 
-function supplierSearchRequest(array $metadata = [], array $rooms = []): HotelSearchRequestData
+function supplierSearchRequest(array $metadata = [], array $rooms = [], string $currency = 'EGP'): HotelSearchRequestData
 {
     return new HotelSearchRequestData(
         destinationIdentifier: $metadata['destination'] ?? 'Cairo',
         checkIn: CarbonImmutable::now()->addDays(10),
         checkOut: CarbonImmutable::now()->addDays(13),
         rooms: $rooms ?: [new RoomOccupancyData(2)],
-        currency: 'EGP',
+        currency: $currency,
         locale: 'ar',
         correlationId: $metadata['correlation_id'] ?? null,
         metadata: $metadata,
@@ -94,6 +97,97 @@ it('resolves and filters suppliers through the manager', function () {
     Supplier::query()->where('code', 'mock_hotels')->update(['status' => SupplierStatus::Active, 'booking_enabled' => false]);
 
     expect(fn () => $manager->resolve('mock_hotels', SupplierOperation::Book))->toThrow(UnsupportedSupplierOperationException::class);
+});
+
+it('seeds TBO as a safe inactive supplier shell', function () {
+    $supplier = Supplier::query()->where('code', 'tbo_hotels')->firstOrFail();
+
+    expect($supplier->status)->toBe(SupplierStatus::Inactive)
+        ->and($supplier->integration_type->value)->toBe('rest')
+        ->and($supplier->search_enabled)->toBeFalse()
+        ->and($supplier->booking_enabled)->toBeFalse()
+        ->and($supplier->cancellation_enabled)->toBeFalse()
+        ->and(fn () => app(SupplierManager::class)->resolve('tbo_hotels', SupplierOperation::Search))->toThrow(DisabledSupplierException::class);
+});
+
+it('resolves TBO only when explicitly activated and keeps operations closed', function () {
+    Supplier::query()->where('code', 'tbo_hotels')->update([
+        'status' => SupplierStatus::Active,
+        'search_enabled' => true,
+    ]);
+
+    $adapter = app(SupplierManager::class)->resolve('tbo_hotels', SupplierOperation::Search);
+
+    expect($adapter)->toBeInstanceOf(TboHotelSupplier::class)
+        ->and(fn () => $adapter->search(supplierSearchRequest()))->toThrow(SupplierAuthenticationException::class)
+        ->and($adapter->healthCheck()->healthy)->toBeFalse();
+});
+
+it('safely diagnoses TBO without live requests while inactive', function () {
+    $this->artisan('tbo:test-connection --diagnostic')
+        ->expectsOutputToContain('Supplier: tbo_hotels')
+        ->expectsOutputToContain('Status: inactive')
+        ->expectsOutputToContain('Endpoint keys:')
+        ->expectsOutputToContain('No external request was sent.')
+        ->assertSuccessful();
+});
+
+it('normalizes a fake TBO search response without exposing credentials', function () {
+    $supplier = Supplier::query()->where('code', 'tbo_hotels')->firstOrFail();
+    $supplier->update([
+        'status' => SupplierStatus::Active,
+        'search_enabled' => true,
+        'base_url' => 'https://tbo.test',
+    ]);
+    SupplierCredential::query()->create([
+        'supplier_id' => $supplier->id,
+        'credential_key' => 'username',
+        'encrypted_value' => 'safe-user',
+        'is_secret' => true,
+    ]);
+    SupplierCredential::query()->create([
+        'supplier_id' => $supplier->id,
+        'credential_key' => 'password',
+        'encrypted_value' => 'safe-pass',
+        'is_secret' => true,
+    ]);
+
+    Http::fake([
+        'https://tbo.test/HotelBookingApi/HotelSearch' => Http::response([
+            'HotelSearchResult' => [
+                'TraceId' => 'tbo-trace-1',
+                'SearchResults' => [[
+                    'ResultIndex' => '1',
+                    'HotelCode' => 'TBO1001',
+                    'HotelName' => 'TBO Cairo Test Hotel',
+                    'HotelCategory' => '4 Star',
+                    'HotelAddress' => 'Cairo',
+                    'Price' => ['CurrencyCode' => 'USD', 'OfferedPrice' => '120.50'],
+                    'IsRefundable' => true,
+                ]],
+            ],
+        ], 200),
+    ]);
+
+    $result = app(SupplierManager::class)
+        ->resolve('tbo_hotels', SupplierOperation::Search)
+        ->search(supplierSearchRequest(['city_id' => '12345', 'country_code' => 'EG'], currency: 'USD'));
+
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://tbo.test/HotelBookingApi/HotelSearch'
+        && $request['UserName'] === 'safe-user'
+        && $request['Password'] === 'safe-pass'
+        && $request['CityId'] === '12345'
+        && $request['NoOfRooms'] === 1);
+
+    $log = SupplierOperationLog::query()->latest('id')->firstOrFail();
+
+    expect($result->supplierCode)->toBe('tbo_hotels')
+        ->and($result->searchId)->toBe('tbo-trace-1')
+        ->and($result->hotels)->toHaveCount(1)
+        ->and($result->hotels[0]->supplierHotelId)->toBe('TBO1001')
+        ->and($result->hotels[0]->minimumTotalPrice->decimal())->toBe('120.50')
+        ->and($log->request_payload['UserName'])->toBe('[REDACTED]')
+        ->and($log->request_payload['Password'])->toBe('[REDACTED]');
 });
 
 it('orders enabled suppliers by priority', function () {

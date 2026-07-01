@@ -28,8 +28,8 @@
     <section class="cct-shell py-10">
         <div class="grid gap-8 lg:grid-cols-[1fr_360px]">
             <div>
-                @if ($primaryImage?->path)
-                    <img class="aspect-[16/7] min-h-64 w-full rounded-3xl object-cover shadow-[0_24px_60px_rgba(11,31,51,0.16)]" src="{{ $primaryImage->path }}" alt="{{ $primaryImage->alt_text ?: $hotelName }}" loading="lazy">
+                @if ($primaryImage?->url())
+                    <img class="aspect-[16/7] min-h-64 w-full rounded-3xl object-cover shadow-[0_24px_60px_rgba(11,31,51,0.16)]" src="{{ $primaryImage->url('bigger') }}" alt="{{ $primaryImage->alt_text ?: $hotelName }}" loading="lazy">
                 @else
                     <div class="relative flex aspect-[16/7] min-h-64 items-end overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#0B1F33,#0F766E)] p-6 text-white shadow-[0_24px_60px_rgba(11,31,51,0.16)]">
                         <div class="cct-hero-pattern absolute inset-0 opacity-45" aria-hidden="true"></div>

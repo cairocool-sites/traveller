@@ -24,10 +24,14 @@ it('seeds the hbx api suite capability matrix without secrets', function () {
 
     $this->seed(SupplierFoundationSeeder::class);
 
-    expect(HbxApiCapability::query()->count())->toBeGreaterThanOrEqual(20)
+    expect(HbxApiCapability::query()->count())->toBeGreaterThanOrEqual(40)
         ->and(HbxApiCapability::query()->where('capability_code', 'booking_availability')->value('implemented'))->toBeTrue()
         ->and(HbxApiCapability::query()->where('capability_code', 'payment_data_support')->value('public_enabled'))->toBeFalse()
         ->and(HbxApiCapability::query()->where('capability_code', 'cache_full')->value('implemented'))->toBeFalse()
+        ->and(HbxApiCapability::query()->where('capability_code', 'content_master_data')->value('implemented'))->toBeTrue()
+        ->and(HbxApiCapability::query()->where('capability_code', 'content_hotel_images')->value('implemented'))->toBeTrue()
+        ->and(HbxApiCapability::query()->where('capability_code', 'content_image_types')->value('implemented'))->toBeTrue()
+        ->and(HbxApiCapability::query()->where('capability_code', 'content_facilities')->value('implemented'))->toBeTrue()
         ->and(HbxApiCapability::query()->where('capability_code', 'certification_readiness')->value('implemented'))->toBeTrue();
 
     $encoded = HbxApiCapability::query()->get()->toJson();
@@ -76,6 +80,8 @@ it('prints hbx capability status without making supplier requests', function () 
         ->expectsOutputToContain('HBX Hotels API Suite capability matrix')
         ->expectsOutputToContain('No supplier request was sent by this command.')
         ->expectsOutputToContain('booking_availability')
+        ->expectsOutputToContain('content_hotel_images')
+        ->expectsOutputToContain('content_image_types')
         ->expectsOutputToContain('payment_data_support')
         ->assertSuccessful();
 });
@@ -118,4 +124,66 @@ it('derives sandbox-tested and failure status from sanitized operation logs', fu
         ->and($countries->credential_access_confirmed)->toBeFalse()
         ->and($countries->last_sanitized_failure)->toContain('Rate limit exceeded')
         ->and($countries->last_sanitized_failure)->not->toContain('secret');
+});
+
+it('keeps credential access confirmed after a prior successful capability call even if the latest call failed', function () {
+    config(['services.hbx.enabled' => true, 'services.hbx.api_key' => 'key', 'services.hbx.api_secret' => 'secret']);
+    $this->seed(SupplierFoundationSeeder::class);
+
+    $supplier = Supplier::query()->where('code', 'hbx_hotels')->firstOrFail();
+
+    SupplierOperationLog::query()->create([
+        'supplier_id' => $supplier->id,
+        'correlation_id' => (string) Str::uuid(),
+        'operation' => SupplierOperation::Search,
+        'request_method' => 'POST',
+        'request_url' => '/hotel-api/1.0/hotels',
+        'successful' => true,
+        'created_at' => now()->subMinute(),
+    ]);
+
+    SupplierOperationLog::query()->create([
+        'supplier_id' => $supplier->id,
+        'correlation_id' => (string) Str::uuid(),
+        'operation' => SupplierOperation::Search,
+        'request_method' => 'POST',
+        'request_url' => '/hotel-api/1.0/hotels',
+        'successful' => false,
+        'error_type' => SupplierErrorType::InvalidResponse,
+        'error_message' => 'Sanitized supplier failure after a valid call.',
+        'created_at' => now(),
+    ]);
+
+    app(HbxApiCapabilityRegistry::class)->sync();
+
+    $availability = HbxApiCapability::query()->where('capability_code', 'booking_availability')->firstOrFail();
+
+    expect($availability->credential_access_confirmed)->toBeTrue()
+        ->and($availability->sandbox_tested)->toBeTrue()
+        ->and($availability->last_successful_call_at)->not->toBeNull()
+        ->and($availability->last_sanitized_failure)->toContain('Sanitized supplier failure');
+});
+
+it('does not infer credential access for non-callable gated capabilities from unrelated successful logs', function () {
+    config(['services.hbx.enabled' => true, 'services.hbx.api_key' => 'key', 'services.hbx.api_secret' => 'secret']);
+    $this->seed(SupplierFoundationSeeder::class);
+
+    $supplier = Supplier::query()->where('code', 'hbx_hotels')->firstOrFail();
+
+    SupplierOperationLog::query()->create([
+        'supplier_id' => $supplier->id,
+        'correlation_id' => (string) Str::uuid(),
+        'operation' => SupplierOperation::CheckRate,
+        'request_method' => 'POST',
+        'request_url' => '/hotel-api/1.0/checkrates',
+        'successful' => true,
+        'created_at' => now(),
+    ]);
+
+    app(HbxApiCapabilityRegistry::class)->sync();
+
+    expect(HbxApiCapability::query()->where('capability_code', 'booking_check_rate')->value('credential_access_confirmed'))->toBeTrue()
+        ->and(HbxApiCapability::query()->where('capability_code', 'payment_data_support')->value('credential_access_confirmed'))->toBeFalse()
+        ->and(HbxApiCapability::query()->where('capability_code', 'cache_full')->value('credential_access_confirmed'))->toBeFalse()
+        ->and(HbxApiCapability::query()->where('capability_code', 'production_access')->value('credential_access_confirmed'))->toBeFalse();
 });

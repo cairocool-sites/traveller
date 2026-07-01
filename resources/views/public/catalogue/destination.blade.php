@@ -37,10 +37,11 @@
                         ? ($hotel->name_ar ?: $hotel->hotel_name)
                         : ($hotel->name_en ?: $hotel->hotel_name);
                     $image = $hotel->images->where('is_active', true)->sortBy('sort_order')->first();
+                    $imageUrl = $image?->url('medium');
                 @endphp
                 <article class="cct-card overflow-hidden">
-                    @if ($image?->path)
-                        <img class="h-44 w-full object-cover" src="{{ $image->path }}" alt="{{ $image->alt_text ?: $hotelName }}" loading="lazy">
+                    @if ($imageUrl)
+                        <img class="h-44 w-full object-cover" src="{{ $imageUrl }}" alt="{{ $image->alt_text ?: $hotelName }}" loading="lazy">
                     @else
                         <div class="h-44 bg-[linear-gradient(135deg,#0B1F33,#0F766E)]"></div>
                     @endif

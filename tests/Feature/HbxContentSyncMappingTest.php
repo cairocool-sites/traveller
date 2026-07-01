@@ -193,7 +193,10 @@ it('syncs hotels for a bounded destination and prevents duplicates', function ()
         'postalCode' => '11511',
         'accommodationTypeCode' => 'HOTEL',
         'chainCode' => 'CCT',
-        'images' => [['path' => 'https://photos.hotelbeds.com/giata/00/001001/001001a_hb_a_001.jpg', 'imageTypeCode' => 'GEN']],
+        'images' => [
+            ['path' => 'https://photos.hotelbeds.com/giata/original/00/001001/001001a_hb_a_002.jpg', 'type' => ['code' => 'DEP', 'description' => ['content' => 'Sports and Entertainment']], 'visualOrder' => 1, 'order' => 1],
+            ['path' => '00/001001/001001a_hb_a_001.jpg', 'imageTypeCode' => 'GEN', 'visualOrder' => 0, 'order' => 1],
+        ],
         'facilities' => [['facilityCode' => 10, 'facilityGroupCode' => 20, 'description' => ['content' => 'Wi-Fi']]],
         'rooms' => [['roomCode' => 'STD', 'description' => ['content' => 'Standard Room'], 'characteristicCode' => 'ST']],
     ]]]], 200)]);
@@ -207,7 +210,10 @@ it('syncs hotels for a bounded destination and prevents duplicates', function ()
         ->and(HbxHotel::query()->where('hotel_code', '1001')->value('address'))->toBe('Tahrir Square')
         ->and(HbxHotel::query()->where('hotel_code', '1001')->value('postal_code'))->toBe('11511')
         ->and(HbxHotelTranslation::query()->where('language', 'ENG')->exists())->toBeTrue()
-        ->and(HbxHotelImage::query()->where('path', 'https://photos.hotelbeds.com/giata/00/001001/001001a_hb_a_001.jpg')->exists())->toBeTrue()
+        ->and(HbxHotelImage::query()->where('path', '00/001001/001001a_hb_a_001.jpg')->where('is_primary', true)->exists())->toBeTrue()
+        ->and(HbxHotelImage::query()->where('path', '00/001001/001001a_hb_a_002.jpg')->exists())->toBeTrue()
+        ->and(HbxHotelImage::query()->where('path', '00/001001/001001a_hb_a_002.jpg')->value('image_type_code'))->toBe('DEP')
+        ->and(HbxHotelImage::query()->where('path', '00/001001/001001a_hb_a_001.jpg')->firstOrFail()->url())->toBe('https://photos.hotelbeds.com/giata/bigger/00/001001/001001a_hb_a_001.jpg')
         ->and(HbxHotelFacility::query()->where('facility_code', '10')->exists())->toBeTrue()
         ->and(HbxHotelRoom::query()->where('room_code', 'STD')->exists())->toBeTrue();
 
@@ -260,6 +266,46 @@ it('syncs hotel details by official hotel code fallback', function () {
     Http::assertSent(fn ($request): bool => str_starts_with($request->url(), 'https://api.test.hotelbeds.com/hotel-content-api/1.0/hotels/3003/details')
         && str_contains($request->url(), 'language=ENG')
         && $request->hasHeader('Accept-Encoding', 'gzip'));
+});
+
+it('syncs local hotel details in bounded chunks for images and descriptions', function () {
+    foreach (['4001', '4002'] as $code) {
+        HbxHotel::query()->create([
+            'supplier_code' => 'hbx_hotels',
+            'hotel_code' => $code,
+            'hotel_name' => 'Local HBX '.$code,
+            'destination_code' => 'CAI',
+            'country_code' => 'EG',
+            'supplier_active' => true,
+            'public_enabled' => true,
+            'is_active' => true,
+            'synced_at' => now(),
+        ]);
+    }
+
+    Http::fake(function ($request) {
+        preg_match('#/hotels/(\d+)/details#', $request->url(), $matches);
+        $code = $matches[1] ?? '4001';
+
+        return Http::response(['hotel' => [
+            'code' => (int) $code,
+            'name' => ['content' => 'Detailed Hotel '.$code],
+            'description' => ['content' => 'Description for hotel '.$code],
+            'destinationCode' => 'CAI',
+            'countryCode' => 'EG',
+            'images' => [['path' => '00/'.$code.'/'.$code.'_hb_a_001.jpg', 'visualOrder' => 0, 'order' => 1]],
+        ]], 200);
+    });
+
+    $this->artisan('hbx:content:sync --resource=hotels --details --local-hotels --country=EG --chunk-size=1 --language=ENG')
+        ->expectsOutputToContain('hotels: processed 2; stored 2.')
+        ->assertSuccessful();
+
+    expect(HbxHotelTranslation::query()->where('description', 'Description for hotel 4001')->exists())->toBeTrue()
+        ->and(HbxHotelImage::query()->where('path', '00/4001/4001_hb_a_001.jpg')->where('is_primary', true)->exists())->toBeTrue()
+        ->and(HbxHotelImage::query()->where('path', '00/4002/4002_hb_a_001.jpg')->where('is_primary', true)->exists())->toBeTrue();
+
+    Http::assertSentCount(2);
 });
 
 it('syncs generic hbx content resources with idempotent payload storage', function () {
