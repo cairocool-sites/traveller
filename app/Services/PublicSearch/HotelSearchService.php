@@ -276,7 +276,7 @@ class HotelSearchService
                 'location' => $localHbx?->address ?: $hotel->location,
                 'coordinates' => $hotel->coordinates,
                 'facilities' => $localHbx ? $localHbx->facilities->take(6)->pluck('description')->filter()->values()->all() : $hotel->facilities,
-                'primary_image' => $localHbx?->images->firstWhere('is_primary', true)?->path ?? $localHbx?->images->first()?->path,
+                'primary_image' => $localHbx?->images->firstWhere('is_primary', true)?->url() ?? $localHbx?->images->first()?->url(),
                 'rates' => $rates,
                 'minimum_price' => $minimumRate['total'] ?? $hotel->minimumTotalPrice?->jsonSerialize(),
                 'minimum_price_minor' => $minimumRate['total']['minor_amount'] ?? $hotel->minimumTotalPrice?->minorAmount ?? 0,

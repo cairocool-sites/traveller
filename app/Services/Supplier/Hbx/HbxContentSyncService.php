@@ -469,7 +469,7 @@ class HbxContentSyncService
         );
 
         foreach (array_values($item['images'] ?? []) as $index => $image) {
-            $path = (string) ($image['path'] ?? '');
+            $path = HbxHotelImage::normalizePath((string) ($image['path'] ?? ''));
 
             if ($path === '') {
                 continue;
@@ -480,11 +480,11 @@ class HbxContentSyncService
                 [
                     'image_type_code' => $image['imageTypeCode'] ?? $image['type'] ?? null,
                     'room_code' => $image['roomCode'] ?? null,
-                    'sort_order' => (int) ($image['order'] ?? $index + 1),
+                    'sort_order' => $this->imageSortOrder($image, $index),
                     'width' => $image['width'] ?? null,
                     'height' => $image['height'] ?? null,
                     'alt_text' => $hotel->hotel_name,
-                    'is_primary' => $index === 0,
+                    'is_primary' => (int) ($image['visualOrder'] ?? $index) === 0,
                     'is_active' => true,
                     'payload' => $image,
                 ],
@@ -529,6 +529,14 @@ class HbxContentSyncService
                 ],
             );
         }
+    }
+
+    private function imageSortOrder(array $image, int $index): int
+    {
+        $visualOrder = max(0, (int) ($image['visualOrder'] ?? $index));
+        $order = max(0, (int) ($image['order'] ?? 0));
+
+        return ($visualOrder * 1000) + $order + 1;
     }
 
     private function storeHotel(Supplier $supplier, array $item, string $language, string $destinationCode = '', ?string $countryCode = null): HbxHotel
