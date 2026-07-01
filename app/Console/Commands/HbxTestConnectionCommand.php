@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Enums\SupplierOperation;
 use App\Models\Supplier;
 use App\Services\Supplier\Exceptions\SupplierException;
+use App\Services\Supplier\Hbx\HbxConfiguration;
 use App\Services\Supplier\Hbx\HbxHotelSupplier;
 use App\Services\Supplier\SupplierManager;
 use Illuminate\Console\Command;
@@ -15,7 +16,7 @@ class HbxTestConnectionCommand extends Command
 
     protected $description = 'Safely test HBX sandbox connectivity without printing credentials or signatures.';
 
-    public function handle(SupplierManager $suppliers): int
+    public function handle(SupplierManager $suppliers, HbxConfiguration $config): int
     {
         if (! config('services.hbx.enabled')) {
             $this->warn('HBX sandbox is disabled. Set HBX_ENABLED=true to opt in.');
@@ -23,16 +24,16 @@ class HbxTestConnectionCommand extends Command
             return self::SUCCESS;
         }
 
-        if (blank(config('services.hbx.api_key')) || blank(config('services.hbx.api_secret'))) {
-            $this->error('HBX sandbox credentials are not configured.');
-
-            return self::FAILURE;
-        }
-
         $supplier = Supplier::query()->where('code', 'hbx_hotels')->first();
 
         if (! $supplier) {
             $this->error('HBX sandbox supplier is not seeded. Run php artisan db:seed --class=SupplierFoundationSeeder.');
+
+            return self::FAILURE;
+        }
+
+        if (! $config->hasCredentials($supplier)) {
+            $this->error('HBX sandbox credentials are not configured.');
 
             return self::FAILURE;
         }

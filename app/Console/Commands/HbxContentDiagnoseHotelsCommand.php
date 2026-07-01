@@ -45,7 +45,7 @@ class HbxContentDiagnoseHotelsCommand extends Command
             return self::FAILURE;
         }
 
-        $credentials = $config->credentials();
+        $credentials = $config->credentials(supplier: $supplier);
         $baseUrl = rtrim((string) ($supplier->base_url ?: $config->baseUrl()), '/');
         $path = $this->path();
         $query = $this->query();

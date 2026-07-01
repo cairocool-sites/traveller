@@ -4,10 +4,13 @@ namespace App\Services\Booking;
 
 use App\Enums\SupplierStatus;
 use App\Models\Supplier;
+use App\Services\Supplier\Hbx\HbxConfiguration;
 
 class HbxSandboxBookingGuard
 {
     private const TEST_BASE_URL = 'https://api.test.hotelbeds.com';
+
+    public function __construct(private readonly HbxConfiguration $config) {}
 
     public function assertAllowed(Supplier $supplier): void
     {
@@ -27,7 +30,7 @@ class HbxSandboxBookingGuard
             throw new BookingFlowException('HBX booking is blocked because the configured endpoint is not the sandbox endpoint.');
         }
 
-        if (blank(config('services.hbx.api_key')) || blank(config('services.hbx.api_secret'))) {
+        if (! $this->config->hasCredentials($supplier)) {
             throw new BookingFlowException('HBX sandbox booking credentials are not configured.');
         }
     }
