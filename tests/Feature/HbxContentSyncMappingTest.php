@@ -12,6 +12,7 @@ use App\Models\HbxHotelImage;
 use App\Models\HbxHotelRoom;
 use App\Models\HbxHotelTranslation;
 use App\Models\Supplier;
+use App\Models\SupplierCredential;
 use App\Models\SupplierDestinationMapping;
 use App\Models\SupplierOperationLog;
 use App\Services\Supplier\Hbx\HbxContentApiClient;
@@ -57,6 +58,41 @@ it('uses official hbx content api endpoints with signed sanitized requests', fun
 
     expect($encoded)->not->toContain('content-api-key')
         ->and($encoded)->not->toContain('content-api-secret')
+        ->and($encoded)->toContain('[REDACTED]');
+});
+
+it('uses supplier credential records before hbx env credentials for content api signatures', function () {
+    config([
+        'services.hbx.api_key' => null,
+        'services.hbx.api_secret' => null,
+    ]);
+
+    Http::fake(['api.test.hotelbeds.com/*' => Http::response(['countries' => ['countries' => []]], 200)]);
+
+    $supplier = Supplier::query()->where('code', 'hbx_hotels')->firstOrFail();
+    SupplierCredential::query()->create([
+        'supplier_id' => $supplier->id,
+        'credential_key' => 'api_key',
+        'encrypted_value' => 'supplier-api-key',
+        'is_secret' => true,
+    ]);
+    SupplierCredential::query()->create([
+        'supplier_id' => $supplier->id,
+        'credential_key' => 'api_secret',
+        'encrypted_value' => 'supplier-api-secret',
+        'is_secret' => true,
+    ]);
+
+    app(HbxContentApiClient::class)->countries($supplier, ['from' => 1, 'to' => 1]);
+
+    Http::assertSent(fn ($request): bool => $request->hasHeader('Api-key', 'supplier-api-key')
+        && $request->hasHeader('X-Signature'));
+
+    $log = SupplierOperationLog::query()->where('request_url', HbxContentApiClient::COUNTRIES_PATH)->firstOrFail();
+    $encoded = json_encode([$log->request_headers, $log->request_payload], JSON_THROW_ON_ERROR);
+
+    expect($encoded)->not->toContain('supplier-api-key')
+        ->and($encoded)->not->toContain('supplier-api-secret')
         ->and($encoded)->toContain('[REDACTED]');
 });
 

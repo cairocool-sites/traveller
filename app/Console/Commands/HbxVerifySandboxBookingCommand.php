@@ -15,6 +15,7 @@ use App\Services\PublicSearch\DestinationLookupService;
 use App\Services\PublicSearch\HotelSearchService;
 use App\Services\PublicSearch\MoneyFormatter;
 use App\Services\PublicSearch\SupplierDestinationResolver;
+use App\Services\Supplier\Hbx\HbxConfiguration;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -125,7 +126,7 @@ class HbxVerifySandboxBookingCommand extends Command
             throw new RuntimeException('HBX sandbox booking verification is blocked because the configured endpoint is not https://api.test.hotelbeds.com.');
         }
 
-        if (blank(config('services.hbx.api_key')) || blank(config('services.hbx.api_secret'))) {
+        if (! app(HbxConfiguration::class)->hasCredentials($supplier)) {
             throw new RuntimeException('HBX sandbox credentials are not configured.');
         }
 

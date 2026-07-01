@@ -49,7 +49,7 @@ class HbxHttpClient
     public function request(Supplier $supplier, SupplierOperation $operation, string $method, string $path, array $payload = [], ?string $correlationId = null, bool $allowRetry = true): array
     {
         $correlationId = $this->correlationIds->make($correlationId);
-        $credentials = $this->config->credentials($correlationId);
+        $credentials = $this->config->credentials($correlationId, $supplier);
         $started = microtime(true);
         $headers = [
             'Api-key' => $credentials->apiKey,

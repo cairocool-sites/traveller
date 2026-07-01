@@ -107,7 +107,7 @@ class HbxContentApiClient
     private function get(Supplier $supplier, string $path, array $query, ?string $correlationId): array
     {
         $correlationId = $this->correlationIds->make($correlationId);
-        $credentials = $this->config->credentials($correlationId);
+        $credentials = $this->config->credentials($correlationId, $supplier);
         $headers = [
             'Api-key' => $credentials->apiKey,
             'X-Signature' => $this->signatures->signature($credentials->apiKey, $credentials->apiSecret),

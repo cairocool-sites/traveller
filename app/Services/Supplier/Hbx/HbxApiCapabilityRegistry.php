@@ -3,6 +3,7 @@
 namespace App\Services\Supplier\Hbx;
 
 use App\Models\HbxApiCapability;
+use App\Models\Supplier;
 use App\Models\SupplierOperationLog;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -11,9 +12,12 @@ class HbxApiCapabilityRegistry
 {
     public const SUPPLIER_CODE = 'hbx_hotels';
 
+    public function __construct(private readonly HbxConfiguration $config) {}
+
     public function sync(): Collection
     {
-        $configured = (bool) config('services.hbx.enabled') && filled(config('services.hbx.api_key')) && filled(config('services.hbx.api_secret'));
+        $supplier = Supplier::query()->where('code', self::SUPPLIER_CODE)->first();
+        $configured = (bool) config('services.hbx.enabled') && $this->config->hasCredentials($supplier);
         $productionEnabled = rtrim((string) config('services.hbx.base_url'), '/') === 'https://api.hotelbeds.com';
 
         return collect($this->definitions())->map(function (array $definition) use ($configured, $productionEnabled): HbxApiCapability {
