@@ -194,7 +194,7 @@ it('syncs hotels for a bounded destination and prevents duplicates', function ()
         'accommodationTypeCode' => 'HOTEL',
         'chainCode' => 'CCT',
         'images' => [
-            ['path' => 'https://photos.hotelbeds.com/giata/original/00/001001/001001a_hb_a_002.jpg', 'imageTypeCode' => 'GEN', 'visualOrder' => 1, 'order' => 1],
+            ['path' => 'https://photos.hotelbeds.com/giata/original/00/001001/001001a_hb_a_002.jpg', 'type' => ['code' => 'DEP', 'description' => ['content' => 'Sports and Entertainment']], 'visualOrder' => 1, 'order' => 1],
             ['path' => '00/001001/001001a_hb_a_001.jpg', 'imageTypeCode' => 'GEN', 'visualOrder' => 0, 'order' => 1],
         ],
         'facilities' => [['facilityCode' => 10, 'facilityGroupCode' => 20, 'description' => ['content' => 'Wi-Fi']]],
@@ -212,6 +212,7 @@ it('syncs hotels for a bounded destination and prevents duplicates', function ()
         ->and(HbxHotelTranslation::query()->where('language', 'ENG')->exists())->toBeTrue()
         ->and(HbxHotelImage::query()->where('path', '00/001001/001001a_hb_a_001.jpg')->where('is_primary', true)->exists())->toBeTrue()
         ->and(HbxHotelImage::query()->where('path', '00/001001/001001a_hb_a_002.jpg')->exists())->toBeTrue()
+        ->and(HbxHotelImage::query()->where('path', '00/001001/001001a_hb_a_002.jpg')->value('image_type_code'))->toBe('DEP')
         ->and(HbxHotelImage::query()->where('path', '00/001001/001001a_hb_a_001.jpg')->firstOrFail()->url())->toBe('https://photos.hotelbeds.com/giata/bigger/00/001001/001001a_hb_a_001.jpg')
         ->and(HbxHotelFacility::query()->where('facility_code', '10')->exists())->toBeTrue()
         ->and(HbxHotelRoom::query()->where('room_code', 'STD')->exists())->toBeTrue();
