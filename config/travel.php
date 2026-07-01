@@ -94,6 +94,7 @@ return [
         'payment-submission' => ['per_minute' => (int) env('TRAVEL_RATE_LIMIT_PAYMENT_PER_MINUTE', 6)],
         'evidence-downloads' => ['per_minute' => (int) env('TRAVEL_RATE_LIMIT_EVIDENCE_PER_MINUTE', 20)],
         'document-verification' => ['per_minute' => (int) env('TRAVEL_RATE_LIMIT_DOCUMENT_VERIFY_PER_MINUTE', 30)],
+        'document-lookup' => ['per_minute' => (int) env('TRAVEL_RATE_LIMIT_DOCUMENT_LOOKUP_PER_MINUTE', 10)],
         'cancellation-requests' => ['per_minute' => (int) env('TRAVEL_RATE_LIMIT_CANCELLATION_PER_MINUTE', 6)],
         'status-pages' => ['per_minute' => (int) env('TRAVEL_RATE_LIMIT_STATUS_PER_MINUTE', 30)],
     ],
