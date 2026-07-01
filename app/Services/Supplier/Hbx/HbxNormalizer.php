@@ -91,6 +91,7 @@ class HbxNormalizer
         $tax = $this->taxAmount($rate, $total->currency);
         $nonRefundable = $this->isNonRefundable($rate);
         $rateType = strtoupper((string) ($rate['rateType'] ?? 'BOOKABLE'));
+        $rateComments = $this->rateComments($rate);
 
         return new RateData(
             supplierRoomId: (string) ($room['code'] ?? $room['roomCode'] ?? 'hbx-room'),
@@ -112,6 +113,8 @@ class HbxNormalizer
                 'requires_check_rate' => $rateType === 'RECHECK',
                 'rate_type' => $rateType,
                 'hbx_rate_class' => $rate['rateClass'] ?? null,
+                'rate_comments' => $rateComments,
+                'rate_comments_id' => $rate['rateCommentsId'] ?? $rate['rateCommentsID'] ?? null,
             ],
         );
     }
@@ -196,6 +199,23 @@ class HbxNormalizer
         $amount = collect($taxes)->sum(fn (array $tax): float => (float) ($tax['amount'] ?? 0));
 
         return $amount > 0 ? $this->money((string) $amount, $currency) : null;
+    }
+
+    private function rateComments(array $rate): ?string
+    {
+        $value = $rate['rateComments']
+            ?? $rate['rateComment']
+            ?? $rate['rateCommentsForBooking']
+            ?? $rate['rateCommentsForBookings']
+            ?? null;
+
+        if (is_array($value)) {
+            $value = Arr::get($value, 'content') ?? Arr::get($value, 'description.content');
+        }
+
+        $value = trim(strip_tags((string) $value));
+
+        return $value === '' ? null : mb_substr($value, 0, 2000);
     }
 
     private function stars(mixed $category): ?int

@@ -130,7 +130,7 @@
         <header class="brand">
             <div>
                 <div class="mark">Cairo Cool Travel</div>
-                <div>Internal booking voucher</div>
+                <div>Booking voucher</div>
             </div>
             <div>
                 <span class="label">Issue date</span>
@@ -209,7 +209,11 @@
             </div>
             <div class="item">
                 <span class="label">Booking remarks</span>
-                <span class="value">{{ $booking->special_requests ?: data_get($booking->room_snapshot, 'remarks', 'No supplier remarks supplied') }}</span>
+                <span class="value">{{ $booking->special_requests ?: data_get($booking->room_snapshot, 'rate_comments', data_get($booking->room_snapshot, 'remarks', 'No supplier remarks supplied')) }}</span>
+            </div>
+            <div class="item">
+                <span class="label">Payment information</span>
+                <span class="value">{{ config('travel.documents.payment_notice') }} {{ config('travel.documents.vat_notice') }} Reference: {{ $booking->booking_reference }}</span>
             </div>
             <div class="item">
                 <span class="label">Customer support</span>

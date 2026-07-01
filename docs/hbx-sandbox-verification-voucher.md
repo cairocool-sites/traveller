@@ -58,6 +58,12 @@ Admins with booking-view authorization can preview or download a printable inter
 /admin/bookings/{booking}/voucher
 ```
 
+Customers can access the booking voucher through the public booking UUID:
+
+```text
+/bookings/{booking_uuid}/voucher
+```
+
 Confirmed bookings show a final internal voucher. Manual-review bookings show a provisional notice only. Other unconfirmed bookings cannot generate vouchers.
 
 The printable HTML fallback includes:
@@ -70,6 +76,8 @@ The printable HTML fallback includes:
 - guest count summary
 - selling total and currency
 - cancellation summary
+- HBX rate comments when supplied
+- safe payment wording, VAT notice, and local booking reference
 - issue date
 - prominent Sandbox / Test Booking notice
 

@@ -65,6 +65,8 @@ return [
         'company_name' => env('TRAVEL_DOCUMENT_COMPANY_NAME', 'Cairo Cool Travel'),
         'company_contact' => env('TRAVEL_DOCUMENT_COMPANY_CONTACT', 'Contact details will be confirmed before launch.'),
         'show_supplier_confirmation_reference' => (bool) env('TRAVEL_DOCUMENT_SHOW_SUPPLIER_CONFIRMATION', false),
+        'payment_notice' => env('TRAVEL_DOCUMENT_PAYMENT_NOTICE', 'Payable through Cairo Cool Travel.'),
+        'vat_notice' => env('TRAVEL_DOCUMENT_VAT_NOTICE', 'VAT: N/A for sandbox verification.'),
     ],
 
     'cancellations' => [

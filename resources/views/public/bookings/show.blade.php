@@ -61,6 +61,9 @@
             @if ($booking->status === \App\Enums\BookingStatus::Confirmed && $booking->payment_status !== \App\Enums\PaymentStatus::Paid)
                 <a href="{{ route('payments.show', ['booking' => $booking->public_uuid, 'locale' => app()->getLocale()]) }}" class="mt-4 inline-flex rounded bg-teal-700 px-5 py-2 text-sm font-semibold text-white">{{ __('public.payments.title') }}</a>
             @endif
+            @if (in_array($booking->status, [\App\Enums\BookingStatus::Confirmed, \App\Enums\BookingStatus::ManualReview], true))
+                <a href="{{ route('bookings.voucher', ['booking' => $booking->public_uuid, 'locale' => app()->getLocale()]) }}" class="mt-4 inline-flex rounded border border-teal-700 px-5 py-2 text-sm font-semibold text-teal-800">{{ __('public.booking.view_voucher') }}</a>
+            @endif
             @if ($booking->status === \App\Enums\BookingStatus::Confirmed)
                 <a href="{{ route('cancellations.create', ['booking' => $booking->public_uuid, 'locale' => app()->getLocale()]) }}" class="mt-4 inline-flex rounded border border-slate-300 px-5 py-2 text-sm font-semibold text-slate-800">{{ __('public.cancellations.title') }}</a>
             @endif

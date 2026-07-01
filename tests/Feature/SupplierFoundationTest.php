@@ -27,6 +27,7 @@ use App\Services\Supplier\Exceptions\MissingSupplierException;
 use App\Services\Supplier\Exceptions\SupplierAuthenticationException;
 use App\Services\Supplier\Exceptions\UnsupportedSupplierOperationException;
 use App\Services\Supplier\PayloadSanitizer;
+use App\Services\Supplier\RateHawk\RateHawkHotelSupplier;
 use App\Services\Supplier\SupplierManager;
 use App\Services\Supplier\Tbo\TboHotelSupplier;
 use App\Services\Supplier\Transport\SecureSupplierXmlTransport;
@@ -188,6 +189,109 @@ it('normalizes a fake TBO search response without exposing credentials', functio
         ->and($result->hotels[0]->minimumTotalPrice->decimal())->toBe('120.50')
         ->and($log->request_payload['UserName'])->toBe('[REDACTED]')
         ->and($log->request_payload['Password'])->toBe('[REDACTED]');
+});
+
+it('seeds RateHawk as a safe inactive supplier shell', function () {
+    $supplier = Supplier::query()->where('code', 'ratehawk_hotels')->firstOrFail();
+
+    expect($supplier->status)->toBe(SupplierStatus::Inactive)
+        ->and($supplier->integration_type->value)->toBe('rest')
+        ->and($supplier->search_enabled)->toBeFalse()
+        ->and($supplier->booking_enabled)->toBeFalse()
+        ->and($supplier->cancellation_enabled)->toBeFalse()
+        ->and(fn () => app(SupplierManager::class)->resolve('ratehawk_hotels', SupplierOperation::Search))->toThrow(DisabledSupplierException::class);
+});
+
+it('resolves RateHawk only when explicitly activated and keeps booking operations closed', function () {
+    Supplier::query()->where('code', 'ratehawk_hotels')->update([
+        'status' => SupplierStatus::Active,
+        'search_enabled' => true,
+    ]);
+
+    $adapter = app(SupplierManager::class)->resolve('ratehawk_hotels', SupplierOperation::Search);
+
+    expect($adapter)->toBeInstanceOf(RateHawkHotelSupplier::class)
+        ->and(fn () => $adapter->search(supplierSearchRequest(['region_id' => 12345], currency: 'USD')))->toThrow(SupplierAuthenticationException::class)
+        ->and(fn () => app(SupplierManager::class)->resolve('ratehawk_hotels', SupplierOperation::Book))->toThrow(UnsupportedSupplierOperationException::class)
+        ->and($adapter->healthCheck()->healthy)->toBeFalse();
+});
+
+it('safely diagnoses RateHawk without live requests while inactive', function () {
+    $this->artisan('ratehawk:test-connection --diagnostic')
+        ->expectsOutputToContain('Supplier: ratehawk_hotels')
+        ->expectsOutputToContain('Status: inactive')
+        ->expectsOutputToContain('Endpoint keys:')
+        ->expectsOutputToContain('No external request was sent.')
+        ->assertSuccessful();
+});
+
+it('normalizes a fake RateHawk search response without exposing credentials', function () {
+    $supplier = Supplier::query()->where('code', 'ratehawk_hotels')->firstOrFail();
+    $supplier->update([
+        'status' => SupplierStatus::Active,
+        'search_enabled' => true,
+        'base_url' => 'https://ratehawk.test',
+    ]);
+    SupplierCredential::query()->create([
+        'supplier_id' => $supplier->id,
+        'credential_key' => 'key_id',
+        'encrypted_value' => 'ratehawk-key',
+        'is_secret' => true,
+    ]);
+    SupplierCredential::query()->create([
+        'supplier_id' => $supplier->id,
+        'credential_key' => 'api_key',
+        'encrypted_value' => 'ratehawk-secret',
+        'is_secret' => true,
+    ]);
+
+    Http::fake([
+        'https://ratehawk.test/api/b2b/v3/search/serp/region/' => Http::response([
+            'status' => 'ok',
+            'debug' => ['request_id' => 'rh-trace-1'],
+            'data' => [
+                'hotels' => [[
+                    'id' => 'rh-1001',
+                    'name' => 'RateHawk Cairo Test Hotel',
+                    'star_rating' => 5,
+                    'address' => 'Cairo',
+                    'rates' => [[
+                        'book_hash' => 'rh-rate-1',
+                        'room_name' => 'Deluxe room',
+                        'meal' => 'breakfast',
+                        'payment_options' => [
+                            'payment_types' => [[
+                                'amount' => '155.25',
+                                'currency_code' => 'USD',
+                                'type' => 'deposit',
+                                'cancellation_penalties' => ['free_cancellation_before' => '2026-07-01T00:00:00', 'policies' => []],
+                            ]],
+                        ],
+                    ]],
+                ]],
+            ],
+        ], 200),
+    ]);
+
+    $result = app(SupplierManager::class)
+        ->resolve('ratehawk_hotels', SupplierOperation::Search)
+        ->search(supplierSearchRequest(['region_id' => 12345, 'destination' => '12345'], currency: 'USD'));
+
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://ratehawk.test/api/b2b/v3/search/serp/region/'
+        && $request['region_id'] === 12345
+        && $request['currency'] === 'USD'
+        && $request['guests'][0]['adults'] === 2);
+
+    $log = SupplierOperationLog::query()->latest('id')->firstOrFail();
+    $loggedPayload = json_encode([$log->request_headers, $log->request_payload, $log->response_payload]);
+
+    expect($result->supplierCode)->toBe('ratehawk_hotels')
+        ->and($result->searchId)->toBe('rh-trace-1')
+        ->and($result->hotels)->toHaveCount(1)
+        ->and($result->hotels[0]->supplierHotelId)->toBe('rh-1001')
+        ->and($result->hotels[0]->minimumTotalPrice->decimal())->toBe('155.25')
+        ->and($loggedPayload)->not->toContain('ratehawk-key')
+        ->and($loggedPayload)->not->toContain('ratehawk-secret');
 });
 
 it('orders enabled suppliers by priority', function () {

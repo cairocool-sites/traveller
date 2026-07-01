@@ -63,7 +63,7 @@ class HbxHttpClient
 
         try {
             $response = Http::baseUrl($this->baseUrl($supplier))
-                ->timeout($this->timeoutSeconds($supplier))
+                ->timeout($this->timeoutSeconds($supplier, $operation))
                 ->connectTimeout($this->connectTimeoutSeconds($supplier))
                 ->withHeaders($headers)
                 ->retry($retries, (int) $supplier->retry_delay_milliseconds)
@@ -104,9 +104,11 @@ class HbxHttpClient
         return rtrim((string) ($supplier->base_url ?: $this->config->baseUrl()), '/');
     }
 
-    private function timeoutSeconds(Supplier $supplier): int
+    private function timeoutSeconds(Supplier $supplier, ?SupplierOperation $operation = null): int
     {
-        return max(45, (int) ($supplier->timeout_seconds ?: $this->config->timeoutSeconds()));
+        $minimum = $operation === SupplierOperation::Book ? 60 : 45;
+
+        return max($minimum, (int) ($supplier->timeout_seconds ?: $this->config->timeoutSeconds()));
     }
 
     private function connectTimeoutSeconds(Supplier $supplier): int

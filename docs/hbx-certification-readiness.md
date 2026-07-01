@@ -52,18 +52,22 @@ Workflow:
 
 - Public and manual flows call Availability first.
 - RECHECK rates require CheckRate.
+- Booking Confirmation uses a 60-second minimum timeout.
 - Booking uses trusted RateCheck snapshots and does not repeat Availability during booking submission.
 - Booking transmission remains guarded by `HBX_SANDBOX_BOOKING_ENABLED`.
+- HBX `rateComments` are stored in the RateCheck snapshot and shown before guest details when supplied.
 
 Voucher:
 
 - A protected internal voucher route exists for confirmed bookings.
+- A public customer voucher route exists at `/bookings/{booking_uuid}/voucher`, using the opaque booking UUID and the same unresolved-identity block.
+- Voucher wording includes safe payment information, VAT notice, and local booking reference.
 - The final certification voucher evidence must still be manually reviewed against HBX requirements.
 
 Content:
 
 - Countries, destinations, hotels, hotel details, diagnostics, and code-based fallback are implemented.
-- The current HBX Sandbox account returns HTTP 500 for official hotels and hotel-details content requests, so real hotel content is not yet stored locally.
+- Real HBX Egypt hotel content, descriptions, and image paths can be stored locally when the Content API credentials are valid and quota is available.
 - Content API failures are sanitized and tracked.
 
 Live:

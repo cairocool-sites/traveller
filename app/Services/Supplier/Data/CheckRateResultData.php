@@ -23,5 +23,6 @@ final readonly class CheckRateResultData implements JsonSerializable
         public array $warnings = [],
         public ?string $failureReason = null,
         public ?string $correlationId = null,
+        public array $metadata = [],
     ) {}
 }
