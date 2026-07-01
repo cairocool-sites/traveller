@@ -26,6 +26,7 @@ use App\Services\Supplier\Exceptions\InvalidSupplierResponseException;
 use App\Services\Supplier\Exceptions\MissingSupplierException;
 use App\Services\Supplier\Exceptions\SupplierAuthenticationException;
 use App\Services\Supplier\Exceptions\UnsupportedSupplierOperationException;
+use App\Services\Supplier\Hbx\HbxNormalizer;
 use App\Services\Supplier\PayloadSanitizer;
 use App\Services\Supplier\RateHawk\RateHawkHotelSupplier;
 use App\Services\Supplier\SupplierManager;
@@ -83,6 +84,28 @@ it('validates supplier request dto inputs and money safely', function () {
 it('validates cancellation windows', function () {
     expect(new CancellationPolicyData(CarbonImmutable::now(), CarbonImmutable::now()->addDay(), CancellationPenaltyType::Amount, Money::fromDecimalString('100.00', 'EGP')))->toBeInstanceOf(CancellationPolicyData::class)
         ->and(fn () => new CancellationPolicyData(CarbonImmutable::now()->addDay(), CarbonImmutable::now(), CancellationPenaltyType::Amount))->toThrow(InvalidArgumentException::class);
+});
+
+it('sums HBX tax amounts using minor units instead of floats', function () {
+    $rate = app(HbxNormalizer::class)->rate(
+        ['code' => 'DBL', 'name' => 'Double room'],
+        [
+            'rateKey' => 'hbx-rate',
+            'sellingRate' => '10.00',
+            'currency' => 'USD',
+            'taxes' => [
+                'taxes' => [
+                    ['amount' => '0.10', 'currency' => 'USD'],
+                    ['amount' => '0.20', 'currency' => 'USD'],
+                ],
+            ],
+        ],
+        'USD',
+        [new RoomOccupancyData(2)],
+    );
+
+    expect($rate->taxAmount?->minorAmount)->toBe(30)
+        ->and($rate->taxAmount?->decimal())->toBe('0.30');
 });
 
 it('resolves and filters suppliers through the manager', function () {
