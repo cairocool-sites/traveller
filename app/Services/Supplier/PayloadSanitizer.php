@@ -8,6 +8,7 @@ class PayloadSanitizer
         'authorization',
         'api-key',
         'api_key',
+        'key_id',
         'apikey',
         'x-signature',
         'signature',
