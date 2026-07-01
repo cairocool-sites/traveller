@@ -24,11 +24,14 @@ it('seeds the hbx api suite capability matrix without secrets', function () {
 
     $this->seed(SupplierFoundationSeeder::class);
 
-    expect(HbxApiCapability::query()->count())->toBeGreaterThanOrEqual(20)
+    expect(HbxApiCapability::query()->count())->toBeGreaterThanOrEqual(40)
         ->and(HbxApiCapability::query()->where('capability_code', 'booking_availability')->value('implemented'))->toBeTrue()
         ->and(HbxApiCapability::query()->where('capability_code', 'payment_data_support')->value('public_enabled'))->toBeFalse()
         ->and(HbxApiCapability::query()->where('capability_code', 'cache_full')->value('implemented'))->toBeFalse()
         ->and(HbxApiCapability::query()->where('capability_code', 'content_master_data')->value('implemented'))->toBeTrue()
+        ->and(HbxApiCapability::query()->where('capability_code', 'content_hotel_images')->value('implemented'))->toBeTrue()
+        ->and(HbxApiCapability::query()->where('capability_code', 'content_image_types')->value('implemented'))->toBeTrue()
+        ->and(HbxApiCapability::query()->where('capability_code', 'content_facilities')->value('implemented'))->toBeTrue()
         ->and(HbxApiCapability::query()->where('capability_code', 'certification_readiness')->value('implemented'))->toBeTrue();
 
     $encoded = HbxApiCapability::query()->get()->toJson();
@@ -77,6 +80,8 @@ it('prints hbx capability status without making supplier requests', function () 
         ->expectsOutputToContain('HBX Hotels API Suite capability matrix')
         ->expectsOutputToContain('No supplier request was sent by this command.')
         ->expectsOutputToContain('booking_availability')
+        ->expectsOutputToContain('content_hotel_images')
+        ->expectsOutputToContain('content_image_types')
         ->expectsOutputToContain('payment_data_support')
         ->assertSuccessful();
 });
