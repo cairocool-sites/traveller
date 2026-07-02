@@ -1,0 +1,1927 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Console/Commands/HbxCertificationReadinessCommand.php
+
+		-
+			message: '#^Constant App\\Console\\Commands\\HbxContentDiagnoseHotelsCommand\:\:SANDBOX_BASE_URL is unused\.$#'
+			identifier: classConstant.unused
+			count: 1
+			path: app/Console/Commands/HbxContentDiagnoseHotelsCommand.php
+
+		-
+			message: '#^Method App\\Console\\Commands\\HbxContentDiagnoseHotelsCommand\:\:supplier\(\) never returns App\\Models\\Supplier so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: app/Console/Commands/HbxContentDiagnoseHotelsCommand.php
+
+		-
+			message: '#^Result of \|\| is always true\.$#'
+			identifier: booleanOr.alwaysTrue
+			count: 1
+			path: app/Console/Commands/HbxContentDiagnoseHotelsCommand.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between ''false''\|string and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Console/Commands/HbxContentDiagnoseHotelsCommand.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\SupplierStatus\:\:Active will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Console/Commands/HbxContentDiagnoseHotelsCommand.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Console/Commands/HbxContentDiagnoseHotelsCommand.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\SupplierStatus\:\:Active will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Console/Commands/HbxContentSyncCommand.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Console/Commands/HbxContentSyncCommand.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/HbxReconcileBookingCommand.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 2
+			path: app/Console/Commands/HbxReconcileBookingCommand.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\SupplierStatus\:\:Active will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Console/Commands/HbxSyncContentCommand.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Console/Commands/HbxSyncContentCommand.php
+
+		-
+			message: '#^Instanceof between App\\Services\\Supplier\\Hbx\\HbxHotelSupplier and App\\Services\\Supplier\\Hbx\\HbxHotelSupplier will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 1
+			path: app/Console/Commands/HbxTestConnectionCommand.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/HbxVerifySandboxBookingCommand.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Console/Commands/HbxVerifySandboxBookingCommand.php
+
+		-
+			message: '#^Cannot call method allowsBooking\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Console/Commands/HbxVerifySandboxBookingCommand.php
+
+		-
+			message: '#^Cannot call method toDateString\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Console/Commands/HbxVerifySandboxBookingCommand.php
+
+		-
+			message: '#^Constant App\\Console\\Commands\\HbxVerifySandboxBookingCommand\:\:SANDBOX_BASE_URL is unused\.$#'
+			identifier: classConstant.unused
+			count: 1
+			path: app/Console/Commands/HbxVerifySandboxBookingCommand.php
+
+		-
+			message: '#^Offset ''supplier_code'' on non\-falsy\-string on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Console/Commands/HbxVerifySandboxBookingCommand.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,string\>\:\:first\(\) expects \(callable\(string, 0\)\: bool\)\|null, Closure\(array\)\: bool given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Console/Commands/HbxVerifySandboxBookingCommand.php
+
+		-
+			message: '#^Parameter \#1 \$value of function collect expects Illuminate\\Contracts\\Support\\Arrayable\<\(int\|string\), mixed\>\|iterable\<\(int\|string\), mixed\>\|null, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Console/Commands/HbxVerifySandboxBookingCommand.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between null and ''hbx_hotels'' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Console/Commands/HbxVerifySandboxBookingCommand.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\SupplierStatus\:\:Active will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Console/Commands/HbxVerifySandboxBookingCommand.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\BookingStatus\:\:ManualReview will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Console/Commands/HbxVerifySandboxBookingCommand.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 2
+			path: app/Console/Commands/HbxVerifySandboxBookingCommand.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 2
+			path: app/Console/Commands/RateHawkTestConnectionCommand.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\SupplierStatus\:\:Active will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Console/Commands/RateHawkTestConnectionCommand.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Console/Commands/RateHawkTestConnectionCommand.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 2
+			path: app/Console/Commands/TboTestConnectionCommand.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\SupplierStatus\:\:Active will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Console/Commands/TboTestConnectionCommand.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Console/Commands/TboTestConnectionCommand.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name_en\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/AreaResource.php
+
+		-
+			message: '#^Call to function in_array\(\) with arguments string, array\{App\\Enums\\CancellationStatus\:\:Requested, App\\Enums\\CancellationStatus\:\:UnderReview, App\\Enums\\CancellationStatus\:\:ManualReview\} and true will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Filament/Resources/BookingCancellationResource.php
+
+		-
+			message: '#^Call to function in_array\(\) with arguments string, array\{App\\Enums\\BookingStatus\:\:Confirmed, App\\Enums\\BookingStatus\:\:ManualReview\} and true will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 2
+			path: app/Filament/Resources/BookingResource.php
+
+		-
+			message: '#^Class App\\Filament\\Resources\\BookingCancellation not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Filament/Resources/CancellationStatusHistoryResource.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Filament/Resources/FacilityResource/Pages/EditFacility.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name_en\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Filament/Resources/HotelResource.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\HotelStatus\:\:Published will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Filament/Resources/HotelResource.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\HotelStatus\:\:Published will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Filament/Resources/HotelResource.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$address_text\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/HotelResource/Pages/EditHotel.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/HotelResource/Pages/EditHotel.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$meta_description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/HotelResource/Pages/EditHotel.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$meta_title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/HotelResource/Pages/EditHotel.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$short_description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/HotelResource/Pages/EditHotel.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$translated_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Filament/Resources/HotelResource/Pages/EditHotel.php
+
+		-
+			message: '#^Parameter \#1 \$hotel of method App\\Services\\Hotel\\HotelCatalogService\:\:update\(\) expects App\\Models\\Hotel, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/HotelResource/Pages/EditHotel.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:policy\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Filament/Resources/HotelResource/RelationManagers/PolicyRelationManager.php
+
+		-
+			message: '#^Call to function in_array\(\) with arguments string, array\{App\\Enums\\ManualPaymentStatus\:\:Submitted, App\\Enums\\ManualPaymentStatus\:\:UnderReview\} and true will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 2
+			path: app/Filament/Resources/PaymentResource.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\ManualPaymentStatus\:\:Submitted will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Filament/Resources/PaymentResource.php
+
+		-
+			message: '#^Call to function in_array\(\) with arguments string, array\{App\\Enums\\RefundStatus\:\:Approved, App\\Enums\\RefundStatus\:\:Processing\} and true will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Filament/Resources/RefundResource.php
+
+		-
+			message: '#^Call to function in_array\(\) with arguments string, array\{App\\Enums\\RefundStatus\:\:Pending, App\\Enums\\RefundStatus\:\:UnderReview\} and true will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 2
+			path: app/Filament/Resources/RefundResource.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\SupplierStatus\:\:Disabled will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Filament/Resources/SupplierResource.php
+
+		-
+			message: '#^Call to function abort_unless\(\) with false and 404 will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Http/Controllers/Admin/BookingVoucherController.php
+
+		-
+			message: '#^Call to function in_array\(\) with arguments string, array\{App\\Enums\\BookingStatus\:\:Confirmed, App\\Enums\\BookingStatus\:\:ManualReview\} and true will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Http/Controllers/Admin/BookingVoucherController.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\BookingStatus\:\:ManualReview will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Admin/BookingVoucherController.php
+
+		-
+			message: '#^Call to function abort_unless\(\) with false and 404 will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Http/Controllers/Public/BookingVoucherController.php
+
+		-
+			message: '#^Call to function in_array\(\) with arguments string, array\{App\\Enums\\BookingStatus\:\:Confirmed, App\\Enums\\BookingStatus\:\:ManualReview\} and true will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Http/Controllers/Public/BookingVoucherController.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between \*NEVER\* and App\\Enums\\BookingStatus\:\:ManualReview will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Public/BookingVoucherController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\HbxHotel\:\:\$destination_slug\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Public/HbxCatalogueController.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: app/Http/Controllers/Public/HotelSearchController.php
+
+		-
+			message: '#^Parameter \#1 \$boolean of function abort_unless expects bool, array\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Public/HotelSearchController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>translated_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Public/HotelSearchController.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\SearchSession\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Http/Controllers/Public/HotelSearchController.php
+
+		-
+			message: '#^Cannot call method allowsBooking\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Http/Controllers/Public/RateCheckController.php
+
+		-
+			message: '#^Argument of an invalid type string supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: app/Livewire/GuestDetailsForm.php
+
+		-
+			message: '#^Method App\\Models\\Facility\:\:translation\(\) should return App\\Models\\FacilityTranslation\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Facility.php
+
+		-
+			message: '#^Method App\\Models\\Hotel\:\:translation\(\) should return App\\Models\\HotelTranslation\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Hotel.php
+
+		-
+			message: '#^Cannot call method isPast\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Models/RateCheck.php
+
+		-
+			message: '#^Cannot call method isPast\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Models/SearchSession.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Notifications/BookingStatusNotification.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$booking_reference\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Notifications/CancellationStatusNotification.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Notifications/CancellationStatusNotification.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$booking_reference\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Notifications/PaymentStatusNotification.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Notifications/PaymentStatusNotification.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$booking_reference\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Notifications/RefundStatusNotification.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Notifications/RefundStatusNotification.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$code\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/Booking/BookingReconciliationService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$supplier_hotel_reference\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Booking/BookingReconciliationService.php
+
+		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Services/Booking/BookingReconciliationService.php
+
+		-
+			message: '#^Cannot call method toDateString\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Services/Booking/BookingReconciliationService.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type string\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Services/Booking/BookingReconciliationService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>currency" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/Booking/BookingReconciliationService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$check_in\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Booking/BookingService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$check_out\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Booking/BookingService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$code\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/Booking/BookingService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Booking/BookingService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$locale\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Booking/BookingService.php
+
+		-
+			message: '#^Cannot call method allowsBooking\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Services/Booking/BookingService.php
+
+		-
+			message: '#^Offset ''board_basis'' on string on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Booking/BookingService.php
+
+		-
+			message: '#^Offset ''room_name'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: app/Services/Booking/BookingService.php
+
+		-
+			message: '#^Parameter \#1 \$array of static method Illuminate\\Support\\Arr\:\:get\(\) expects array\|ArrayAccess, string given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Services/Booking/BookingService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,string\>\:\:flatMap\(\) expects callable\(string, 0\)\: \(array\|Illuminate\\Support\\Collection\<int\|string, mixed\>\), Closure\(array\)\: array given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Services/Booking/BookingService.php
+
+		-
+			message: '#^Parameter \#1 \$supplier of method App\\Services\\Booking\\HbxSandboxBookingGuard\:\:assertAllowed\(\) expects App\\Models\\Supplier, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Booking/BookingService.php
+
+		-
+			message: '#^Parameter \#1 \$value of function collect expects Illuminate\\Contracts\\Support\\Arrayable\<\(int\|string\), mixed\>\|iterable\<\(int\|string\), mixed\>\|null, string given\.$#'
+			identifier: argument.type
+			count: 6
+			path: app/Services/Booking/BookingService.php
+
+		-
+			message: '#^Parameter \#1 \$value of function count expects array\|Countable, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Booking/BookingService.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Services/Booking/BookingStateMachine.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type string\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/Booking/BookingStateMachine.php
+
+		-
+			message: '#^Constant App\\Services\\Booking\\HbxSandboxBookingGuard\:\:TEST_BASE_URL is unused\.$#'
+			identifier: classConstant.unused
+			count: 1
+			path: app/Services/Booking/HbxSandboxBookingGuard.php
+
+		-
+			message: '#^Method App\\Services\\Booking\\HbxSandboxBookingGuard\:\:baseUrl\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Services/Booking/HbxSandboxBookingGuard.php
+
+		-
+			message: '#^Property App\\Services\\Booking\\HbxSandboxBookingGuard\:\:\$config is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Services/Booking/HbxSandboxBookingGuard.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\SupplierStatus\:\:Active will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Services/Booking/HbxSandboxBookingGuard.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Services/Booking/HbxSandboxBookingGuard.php
+
+		-
+			message: '#^Offset ''canonical_hotel_id'' on non\-falsy\-string on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Booking/RateCheckService.php
+
+		-
+			message: '#^Offset ''rates'' on string\|null on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Booking/RateCheckService.php
+
+		-
+			message: '#^Offset ''supplier_code'' on non\-falsy\-string on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Booking/RateCheckService.php
+
+		-
+			message: '#^Offset ''supplier_hotel_id'' does not exist on non\-falsy\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 2
+			path: app/Services/Booking/RateCheckService.php
+
+		-
+			message: '#^Parameter \#1 \$value of function collect expects Illuminate\\Contracts\\Support\\Arrayable\<\(int\|string\), mixed\>\|iterable\<\(int\|string\), mixed\>\|null, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Booking/RateCheckService.php
+
+		-
+			message: '#^Parameter \#2 \$array of function array_map expects array, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Booking/RateCheckService.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\BookingStatus\:\:Confirmed will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Services/Cancellation/CancellationEligibilityService.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Services/Cancellation/CancellationEligibilityService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$contact_email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Cancellation/CancellationService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$supplier\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Cancellation/CancellationService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$supplier_booking_reference\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Cancellation/CancellationService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:vouchers\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/Cancellation/CancellationService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>minorAmount" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 4
+			path: app/Services/Cancellation/CancellationService.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 3
+			path: app/Services/Cancellation/CancellationStatusMachine.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Documents/DocumentService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$first_name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/Documents/DocumentService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$is_lead_guest\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Documents/DocumentService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$last_name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/Documents/DocumentService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Documents/DocumentService.php
+
+		-
+			message: '#^Call to function in_array\(\) with arguments string, array\{App\\Enums\\ManualPaymentStatus\:\:Approved, App\\Enums\\ManualPaymentStatus\:\:Paid\} and true will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Services/Documents/DocumentService.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Services/Documents/DocumentService.php
+
+		-
+			message: '#^Cannot call method toDateString\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Services/Documents/DocumentService.php
+
+		-
+			message: '#^Offset ''name'' on string on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Documents/DocumentService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Services/Documents/DocumentService.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\BookingStatus\:\:Confirmed will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Services/Documents/DocumentService.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 2
+			path: app/Services/Documents/DocumentService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/Facility/FacilityNameResolver.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$code\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$destination_label\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$supplier_hotel_reference\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$supplier_room_reference\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 2
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Cannot call method copy\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Cannot call method toDateString\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Offset ''booking'' on string\|null on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Offset ''cancellationReferen…'' on array\{\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Offset ''checkIn'' on array\{\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Offset ''checkOut'' on array\{\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Offset ''clientReference'' on array\{\}\|string on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Offset ''code'' on array\{\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Offset ''creationDate'' on array\{\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Offset ''currency'' on array\{\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Offset ''hotel'' on array\{\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Offset ''hotel_code'' on non\-empty\-array on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Offset ''modificationDate'' on array\{\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Offset ''name'' on array\{\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Offset ''occupancy_count'' on non\-empty\-array on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Offset ''reference'' on array\{\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Offset ''room_count'' on non\-empty\-array on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Offset ''rooms'' on array\{\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Offset ''status'' on array\{\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\SupplierOperationLog\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type string\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/Hbx/HbxBookingIdentityService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Hbx/HbxCertificationEvidenceService.php
+
+		-
+			message: '#^Call to an undefined method App\\Services\\Supplier\\Contracts\\HotelSupplierInterface\:\:simulateCancellation\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/Hbx/HbxCertificationEvidenceService.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Services/Hbx/HbxCertificationEvidenceService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$locale\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Hotel/HotelCatalogService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$translated_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Hotel/HotelCatalogService.php
+
+		-
+			message: '#^Anonymous function should return App\\Models\\HotelImage but returns Illuminate\\Database\\Eloquent\\Model\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/Hotel/HotelCatalogService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 5
+			path: app/Services/Hotel/HotelCatalogService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$contact_email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Payment/PaymentService.php
+
+		-
+			message: '#^Parameter \#1 \$booking of method App\\Services\\Documents\\DocumentService\:\:issueForPaidBooking\(\) expects App\\Models\\Booking, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Payment/PaymentService.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\BookingStatus\:\:Confirmed will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Services/Payment/PaymentService.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\ManualPaymentStatus\:\:Submitted will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 2
+			path: app/Services/Payment/PaymentService.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Services/Payment/PaymentService.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 3
+			path: app/Services/Payment/PaymentStatusMachine.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name_ar\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/PublicSearch/DestinationLookupService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name_en\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Services/PublicSearch/DestinationLookupService.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<int, array\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Services/PublicSearch/DestinationLookupService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name_en" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/PublicSearch/DestinationLookupService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:url\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Services/PublicSearch/HotelSearchService.php
+
+		-
+			message: '#^Method App\\Services\\PublicSearch\\HotelSearchService\:\:resultFor\(\) should return array\|null but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/PublicSearch/HotelSearchService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<\(int\|string\),mixed\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Services/PublicSearch/HotelSearchService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,string\>\:\:filter\(\) expects \(callable\(string, 0\)\: bool\)\|null, Closure\(array\)\: bool given\.$#'
+			identifier: argument.type
+			count: 4
+			path: app/Services/PublicSearch/HotelSearchService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>minorAmount" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/PublicSearch/HotelSearchService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$amount_minor\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/Refund/RefundService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$booking\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Refund/RefundService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$contact_email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Refund/RefundService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:refunds\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/Refund/RefundService.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\RefundStatus\:\:Approved will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Services/Refund/RefundService.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\RefundStatus\:\:Pending will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 2
+			path: app/Services/Refund/RefundService.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 3
+			path: app/Services/Refund/RefundStatusMachine.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 3
+			path: app/Services/Supplier/Hbx/HbxHttpClient.php
+
+		-
+			message: '#^Method App\\Services\\Supplier\\IdempotencyService\:\:findOrReserve\(\) should return array\|null but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/Supplier/IdempotencyService.php
+
+		-
+			message: '#^Negated boolean expression is always true\.$#'
+			identifier: booleanNot.alwaysTrue
+			count: 1
+			path: app/Services/Supplier/Mock/MockHotelSupplier.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$encrypted_value\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/Supplier/RateHawk/RateHawkConfiguration.php
+
+		-
+			message: '#^Call to function in_array\(\) with arguments string, array\{App\\Enums\\SupplierStatus\:\:Inactive, App\\Enums\\SupplierStatus\:\:Disabled\} and true will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Services/Supplier/SupplierManager.php
+
+		-
+			message: '#^Match arm comparison between string and App\\Enums\\SupplierIntegrationType\:\:Json is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Services/Supplier/SupplierManager.php
+
+		-
+			message: '#^Match arm comparison between string and App\\Enums\\SupplierIntegrationType\:\:Mock is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Services/Supplier/SupplierManager.php
+
+		-
+			message: '#^Match arm comparison between string and App\\Enums\\SupplierIntegrationType\:\:Rest is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Services/Supplier/SupplierManager.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$encrypted_value\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/Supplier/Tbo/TboConfiguration.php
+
+		-
+			message: '#^Parameter \#1 \$array \(array\{0\?\: non\-falsy\-string\}\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: app/Services/Supplier/Tbo/TboNormalizer.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 2
+			path: app/Support/Operations/EnvironmentChecker.php
+
+		-
+			message: '#^Cannot call method diffForHumans\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Support/Operations/SystemHealthService.php
+
+		-
+			message: '#^Cannot call method greaterThan\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Support/Operations/SystemHealthService.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between PDO and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Support/Operations/SystemHealthService.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 3
+			path: database/seeders/AdminFoundationSeeder.php
+
+		-
+			message: '#^Offset ''accountant''\|''api_manager''\|''auditor''\|''content_manager''\|''customer_support''\|''general_manager''\|''operations_admin''\|''reservation_agent''\|''reservation_manager''\|''super_admin'' on array\{super_admin\: array\{''access_admin'', ''view_users'', ''create_users'', ''update_users'', ''deactivate_users'', ''assign_roles'', ''view_roles'', ''manage_roles'', \.\.\.\}, general_manager\: array\{''access_admin'', ''view_users'', ''create_users'', ''update_users'', ''deactivate_users'', ''assign_roles'', ''view_roles'', ''manage_roles'', \.\.\.\}, operations_admin\: array\{''access_admin'', ''view_users'', ''view_countries'', ''manage_countries'', ''view_cities'', ''manage_cities'', ''view_areas'', ''manage_areas'', \.\.\.\}, reservation_manager\: array\{''access_admin'', ''view_rate_checks'', ''view_bookings'', ''manage_booking…'', ''reconcile_bookings'', ''view_payments'', ''submit_manual…'', ''review_payments'', \.\.\.\}, reservation_agent\: array\{''access_admin'', ''view_bookings'', ''view_payments'', ''submit_manual…'', ''view_documents'', ''view_cancellations'', ''request…''\}, accountant\: array\{''access_admin'', ''view_currencies'', ''view_exchange_rates'', ''manage_exchange…'', ''view_bookings'', ''view_payments'', ''review_payments'', ''approve_payments'', \.\.\.\}, customer_support\: array\{''access_admin'', ''view_bookings'', ''view_payments'', ''view_cancellations'', ''view_refunds''\}, content_manager\: array\{''access_admin'', ''view_countries'', ''manage_countries'', ''view_cities'', ''manage_cities'', ''view_areas'', ''manage_areas'', ''view_facilities'', \.\.\.\}, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: database/seeders/AdminFoundationSeeder.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Console\\Command\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 3
+			path: database/seeders/AdminFoundationSeeder.php
+
+		-
+			message: '#^Match arm comparison between ''TR'' and ''TR'' is always true\.$#'
+			identifier: match.alwaysTrue
+			count: 1
+			path: database/seeders/CoreReferenceDataSeeder.php
+
+		-
+			message: '#^Using self outside of class scope\.$#'
+			identifier: outOfClass.self
+			count: 1
+			path: routes/console.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:actingAs\(\)\.$#'
+			identifier: method.notFound
+			count: 6
+			path: tests/Feature/AdminFoundationTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:get\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/AdminFoundationTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:seed\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Feature/AdminFoundationTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:get\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: tests/Feature/BookingFlowTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:post\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/BookingFlowTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:seed\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/BookingFlowTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\|Pest\\Support\\HigherOrderTapProxy\:\:get\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/BookingFlowTest.php
+
+		-
+			message: '#^Offset ''public_token'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 4
+			path: tests/Feature/BookingFlowTest.php
+
+		-
+			message: '#^Offset ''rates'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 3
+			path: tests/Feature/BookingFlowTest.php
+
+		-
+			message: '#^Offset ''supplier_hotel_id'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/BookingFlowTest.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: tests/Feature/CancellationsAndRefundsTest.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$payment_status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: tests/Feature/CancellationsAndRefundsTest.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: tests/Feature/CancellationsAndRefundsTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:actingAs\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Feature/CancellationsAndRefundsTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:get\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Feature/CancellationsAndRefundsTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:seed\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/CancellationsAndRefundsTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\|Pest\\Support\\HigherOrderTapProxy\:\:actingAs\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/CancellationsAndRefundsTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\|Pest\\Support\\HigherOrderTapProxy\:\:get\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/CancellationsAndRefundsTest.php
+
+		-
+			message: '#^Offset ''public_token'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/CancellationsAndRefundsTest.php
+
+		-
+			message: '#^Offset ''rates'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/CancellationsAndRefundsTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:actingAs\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: tests/Feature/CoreReferenceDataTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:seed\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Feature/CoreReferenceDataTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:get\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/FoundationTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:artisan\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Feature/HbxApiSuiteCapabilityTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:seed\(\)\.$#'
+			identifier: method.notFound
+			count: 6
+			path: tests/Feature/HbxApiSuiteCapabilityTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:artisan\(\)\.$#'
+			identifier: method.notFound
+			count: 14
+			path: tests/Feature/HbxContentSyncMappingTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:seed\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/HbxContentSyncMappingTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:get\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/HbxPublicSearchCheckRateTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:seed\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/HbxPublicSearchCheckRateTest.php
+
+		-
+			message: '#^Offset ''confirmed_rate_key'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/HbxPublicSearchCheckRateTest.php
+
+		-
+			message: '#^Offset ''failure_reason'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/HbxPublicSearchCheckRateTest.php
+
+		-
+			message: '#^Offset ''minimum_price_minor'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 2
+			path: tests/Feature/HbxPublicSearchCheckRateTest.php
+
+		-
+			message: '#^Offset ''name'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 2
+			path: tests/Feature/HbxPublicSearchCheckRateTest.php
+
+		-
+			message: '#^Offset ''penalty_amount'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 2
+			path: tests/Feature/HbxPublicSearchCheckRateTest.php
+
+		-
+			message: '#^Offset ''public_token'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 7
+			path: tests/Feature/HbxPublicSearchCheckRateTest.php
+
+		-
+			message: '#^Offset ''rates'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 7
+			path: tests/Feature/HbxPublicSearchCheckRateTest.php
+
+		-
+			message: '#^Offset ''supplier_code'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/HbxPublicSearchCheckRateTest.php
+
+		-
+			message: '#^Offset ''supplier_hotel_id'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/HbxPublicSearchCheckRateTest.php
+
+		-
+			message: '#^Parameter \#2 \$array of function implode expects array, string\|null given\.$#'
+			identifier: argument.type
+			count: 4
+			path: tests/Feature/HbxPublicSearchCheckRateTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:get\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxBookingCompletionTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:seed\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxBookingCompletionTest.php
+
+		-
+			message: '#^Offset ''public_token'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxBookingCompletionTest.php
+
+		-
+			message: '#^Offset ''rates'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxBookingCompletionTest.php
+
+		-
+			message: '#^Offset ''requiresManualReview'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxBookingCompletionTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of function expect expects Illuminate\\Support\\Collection\<int, array\{Illuminate\\Http\\Client\\Request, Illuminate\\Http\\Client\\Response\|null\}\>\|null, Illuminate\\Support\\Collection\<int, array\{Illuminate\\Http\\Client\\Request, Illuminate\\Http\\Client\\Response\|null\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/HbxSandboxBookingCompletionTest.php
+
+		-
+			message: '#^Call to an undefined method App\\Services\\Supplier\\Contracts\\HotelSupplierInterface\:\:bookingList\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxSupplierTest.php
+
+		-
+			message: '#^Call to an undefined method App\\Services\\Supplier\\Contracts\\HotelSupplierInterface\:\:bookingReconfirmations\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxSupplierTest.php
+
+		-
+			message: '#^Call to an undefined method App\\Services\\Supplier\\Contracts\\HotelSupplierInterface\:\:changeBooking\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxSupplierTest.php
+
+		-
+			message: '#^Call to an undefined method App\\Services\\Supplier\\Contracts\\HotelSupplierInterface\:\:healthDiagnostics\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxSupplierTest.php
+
+		-
+			message: '#^Call to an undefined method App\\Services\\Supplier\\Contracts\\HotelSupplierInterface\:\:simulateCancellation\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxSupplierTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:seed\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: tests/Feature/HbxSandboxSupplierTest.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Feature/HbxSandboxSupplierTest.php
+
+		-
+			message: '#^Offset ''Api\-key'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxSupplierTest.php
+
+		-
+			message: '#^Offset ''X\-Signature'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxSupplierTest.php
+
+		-
+			message: '#^Offset ''public_token'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxSupplierTest.php
+
+		-
+			message: '#^Offset ''rates'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 2
+			path: tests/Feature/HbxSandboxSupplierTest.php
+
+		-
+			message: '#^Offset ''supplier_code'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxSupplierTest.php
+
+		-
+			message: '#^Offset ''supplier_hotel_id'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxSupplierTest.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Booking\:\:\$supplier_rate_reference\.$#'
+			identifier: property.notFound
+			count: 2
+			path: tests/Feature/HbxSandboxVerificationVoucherTest.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: tests/Feature/HbxSandboxVerificationVoucherTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:actingAs\(\)\.$#'
+			identifier: method.notFound
+			count: 6
+			path: tests/Feature/HbxSandboxVerificationVoucherTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:artisan\(\)\.$#'
+			identifier: method.notFound
+			count: 10
+			path: tests/Feature/HbxSandboxVerificationVoucherTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:get\(\)\.$#'
+			identifier: method.notFound
+			count: 8
+			path: tests/Feature/HbxSandboxVerificationVoucherTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:post\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxVerificationVoucherTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:seed\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxVerificationVoucherTest.php
+
+		-
+			message: '#^Cannot call method toDateString\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 6
+			path: tests/Feature/HbxSandboxVerificationVoucherTest.php
+
+		-
+			message: '#^Offset ''check_in'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 2
+			path: tests/Feature/HbxSandboxVerificationVoucherTest.php
+
+		-
+			message: '#^Offset ''check_out'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxVerificationVoucherTest.php
+
+		-
+			message: '#^Offset ''customer_currency'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxVerificationVoucherTest.php
+
+		-
+			message: '#^Offset ''name'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 2
+			path: tests/Feature/HbxSandboxVerificationVoucherTest.php
+
+		-
+			message: '#^Offset ''old_reference'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxVerificationVoucherTest.php
+
+		-
+			message: '#^Offset ''public_token'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxVerificationVoucherTest.php
+
+		-
+			message: '#^Offset ''rates'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxVerificationVoucherTest.php
+
+		-
+			message: '#^Offset ''supplier_currency'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxVerificationVoucherTest.php
+
+		-
+			message: '#^Offset ''supplier_reference'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxVerificationVoucherTest.php
+
+		-
+			message: '#^Offset ''supplier_total_amount'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/HbxSandboxVerificationVoucherTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of function expect expects Illuminate\\Support\\Collection\<int, array\{Illuminate\\Http\\Client\\Request, Illuminate\\Http\\Client\\Response\|null\}\>\|null, Illuminate\\Support\\Collection\<int, array\{Illuminate\\Http\\Client\\Request, Illuminate\\Http\\Client\\Response\|null\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/HbxSandboxVerificationVoucherTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of method Pest\\Expectation\<Illuminate\\Support\\Collection\<int, array\<int, Illuminate\\Http\\Client\\Request\|Illuminate\\Http\\Client\\Response\|null\>\>\|null\>\:\:and\(\) expects Illuminate\\Support\\Collection\<int, array\{Illuminate\\Http\\Client\\Request, Illuminate\\Http\\Client\\Response\|null\}\>, Illuminate\\Support\\Collection\<int, array\{Illuminate\\Http\\Client\\Request, Illuminate\\Http\\Client\\Response\|null\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Feature/HbxSandboxVerificationVoucherTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:actingAs\(\)\.$#'
+			identifier: method.notFound
+			count: 4
+			path: tests/Feature/HotelCatalogTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:seed\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/HotelCatalogTest.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$file_path\.$#'
+			identifier: property.notFound
+			count: 2
+			path: tests/Feature/ManualPaymentsAndDocumentsTest.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$invoice_number\.$#'
+			identifier: property.notFound
+			count: 1
+			path: tests/Feature/ManualPaymentsAndDocumentsTest.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$invoices\.$#'
+			identifier: property.notFound
+			count: 1
+			path: tests/Feature/ManualPaymentsAndDocumentsTest.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$payment_status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: tests/Feature/ManualPaymentsAndDocumentsTest.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$receipt_number\.$#'
+			identifier: property.notFound
+			count: 1
+			path: tests/Feature/ManualPaymentsAndDocumentsTest.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$snapshot\.$#'
+			identifier: property.notFound
+			count: 2
+			path: tests/Feature/ManualPaymentsAndDocumentsTest.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: tests/Feature/ManualPaymentsAndDocumentsTest.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$verification_token\.$#'
+			identifier: property.notFound
+			count: 2
+			path: tests/Feature/ManualPaymentsAndDocumentsTest.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$vouchers\.$#'
+			identifier: property.notFound
+			count: 1
+			path: tests/Feature/ManualPaymentsAndDocumentsTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:actingAs\(\)\.$#'
+			identifier: method.notFound
+			count: 6
+			path: tests/Feature/ManualPaymentsAndDocumentsTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:get\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: tests/Feature/ManualPaymentsAndDocumentsTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:post\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Feature/ManualPaymentsAndDocumentsTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:seed\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Feature/ManualPaymentsAndDocumentsTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:withServerVariables\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Feature/ManualPaymentsAndDocumentsTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\|Pest\\Support\\HigherOrderTapProxy\:\:get\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/ManualPaymentsAndDocumentsTest.php
+
+		-
+			message: '#^Offset ''public_token'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/ManualPaymentsAndDocumentsTest.php
+
+		-
+			message: '#^Offset ''rates'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/ManualPaymentsAndDocumentsTest.php
+
+		-
+			message: '#^Parameter \#1 \$array \(array\{''documents\.vouchers…'', ''documents\.invoices…'', ''documents\.receipts…''\}\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: tests/Feature/ManualPaymentsAndDocumentsTest.php
+
+		-
+			message: '#^Access to an undefined property Pest\\PendingCalls\\TestCall\:\:\$app\.$#'
+			identifier: property.notFound
+			count: 2
+			path: tests/Feature/ProductionHardeningTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:actingAs\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Feature/ProductionHardeningTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:artisan\(\)\.$#'
+			identifier: method.notFound
+			count: 5
+			path: tests/Feature/ProductionHardeningTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:getJson\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Feature/ProductionHardeningTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:seed\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Feature/ProductionHardeningTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:withHeader\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/ProductionHardeningTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\|Pest\\Support\\HigherOrderTapProxy\:\:seed\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Feature/ProductionHardeningTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:from\(\)\.$#'
+			identifier: method.notFound
+			count: 6
+			path: tests/Feature/PublicHotelSearchTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:get\(\)\.$#'
+			identifier: method.notFound
+			count: 15
+			path: tests/Feature/PublicHotelSearchTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:seed\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/PublicHotelSearchTest.php
+
+		-
+			message: '#^Cannot call method isFuture\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Feature/PublicHotelSearchTest.php
+
+		-
+			message: '#^Offset ''public_token'' does not exist on non\-empty\-string\.$#'
+			identifier: offsetAccess.notFound
+			count: 2
+			path: tests/Feature/PublicHotelSearchTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:actingAs\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: tests/Feature/SupplierFoundationTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:artisan\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Feature/SupplierFoundationTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:seed\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/SupplierFoundationTest.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 2
+			path: tests/Feature/SupplierFoundationTest.php
+
+		-
+			message: '#^Offset ''Password'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/SupplierFoundationTest.php
+
+		-
+			message: '#^Offset ''UserName'' does not exist on string\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Feature/SupplierFoundationTest.php

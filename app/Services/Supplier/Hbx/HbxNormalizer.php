@@ -196,9 +196,34 @@ class HbxNormalizer
             return null;
         }
 
-        $amount = collect($taxes)->sum(fn (array $tax): float => (float) ($tax['amount'] ?? 0));
+        $minorAmount = collect($taxes)->sum(function (array $tax) use ($currency): int {
+            $taxCurrency = strtoupper((string) ($tax['currency'] ?? $currency));
 
-        return $amount > 0 ? $this->money((string) $amount, $currency) : null;
+            if ($taxCurrency !== strtoupper($currency)) {
+                return 0;
+            }
+
+            return $this->money($tax['amount'] ?? '0', $currency)->minorAmount;
+        });
+
+        return $minorAmount > 0 ? new Money($minorAmount, strtoupper($currency)) : null;
+    }
+
+    private function rateComments(array $rate): ?string
+    {
+        $value = $rate['rateComments']
+            ?? $rate['rateComment']
+            ?? $rate['rateCommentsForBooking']
+            ?? $rate['rateCommentsForBookings']
+            ?? null;
+
+        if (is_array($value)) {
+            $value = Arr::get($value, 'content') ?? Arr::get($value, 'description.content');
+        }
+
+        $value = trim(strip_tags((string) $value));
+
+        return $value === '' ? null : mb_substr($value, 0, 2000);
     }
 
     private function rateComments(array $rate): ?string

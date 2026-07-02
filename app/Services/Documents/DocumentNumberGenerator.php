@@ -10,7 +10,7 @@ class DocumentNumberGenerator
     public function make(string $prefix, string $modelClass, string $column): string
     {
         do {
-            $number = $prefix.'-'.now()->format('Y').'-'.Str::upper(Str::random(6));
+            $number = $prefix.'-'.now()->format('Y').'-'.Str::upper(Str::random(12));
         } while (is_subclass_of($modelClass, Model::class) && $modelClass::query()->where($column, $number)->exists());
 
         return $number;

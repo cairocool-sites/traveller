@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Models\HbxHotel;
 use App\Models\Hotel;
 use App\Models\SearchSession;
 use App\Services\PublicSearch\HotelSearchService;
@@ -64,6 +65,7 @@ class HotelSearchController extends Controller
         $searchSession = null;
         $result = null;
         $supplierDetails = null;
+        $hbxContentHotel = null;
         $warnings = [];
 
         if (! $canonical && $request->filled('search')) {
@@ -78,6 +80,16 @@ class HotelSearchController extends Controller
                     ->whereKey($result['canonical_hotel_id'])
                     ->where('is_active', true)
                     ->where('status', 'published')
+                    ->first();
+            }
+
+            if (($result['supplier_code'] ?? null) === 'hbx_hotels') {
+                $hbxContentHotel = HbxHotel::query()
+                    ->with(['translations', 'images', 'facilities', 'rooms'])
+                    ->where('supplier_code', 'hbx_hotels')
+                    ->where('hotel_code', (string) $result['supplier_hotel_id'])
+                    ->where('supplier_active', true)
+                    ->where('public_enabled', true)
                     ->first();
             }
 
@@ -100,12 +112,13 @@ class HotelSearchController extends Controller
 
         return view('public.hotels.show', [
             'canonicalHotel' => $canonical,
+            'hbxContentHotel' => $hbxContentHotel,
             'result' => $result,
             'supplierDetails' => $supplierDetails,
             'searchSession' => $searchSession,
             'warnings' => $warnings,
             'money' => $money,
-            'metaTitle' => ($canonical?->translation()?->translated_name ?? $result['name'] ?? __('public.details.meta_title')),
+            'metaTitle' => ($canonical?->translation()?->translated_name ?? $hbxContentHotel?->hotel_name ?? $result['name'] ?? __('public.details.meta_title')),
             'metaDescription' => __('public.details.meta_description'),
         ]);
     }

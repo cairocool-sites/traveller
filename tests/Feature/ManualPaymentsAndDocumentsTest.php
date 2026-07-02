@@ -208,6 +208,29 @@ it('issues immutable voucher invoice and receipt snapshots with minimal verifica
         ->assertDontSee('MHB-');
 });
 
+it('rate limits public document number lookup routes', function () {
+    $routes = [
+        'documents.vouchers.show' => 'VCH-2026-MISSING',
+        'documents.invoices.show' => 'INV-2026-MISSING',
+        'documents.receipts.show' => 'RCT-2026-MISSING',
+    ];
+
+    foreach (array_values(array_keys($routes)) as $index => $route) {
+        $number = $routes[$route];
+        $ip = '198.51.100.'.($index + 10);
+
+        for ($attempt = 1; $attempt <= 10; $attempt++) {
+            $this->withServerVariables(['REMOTE_ADDR' => $ip])
+                ->get(route($route, $number))
+                ->assertNotFound();
+        }
+
+        $this->withServerVariables(['REMOTE_ADDR' => $ip])
+            ->get(route($route, $number))
+            ->assertTooManyRequests();
+    }
+});
+
 it('keeps auditors read only and seeds methods idempotently', function () {
     $count = ManualPaymentMethod::query()->count();
     $this->seed(ManualPaymentMethodSeeder::class);

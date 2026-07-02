@@ -43,9 +43,9 @@ Route::get('/bookings/{booking}/cancel', [CancellationController::class, 'show']
 Route::post('/bookings/{booking}/cancel', [CancellationController::class, 'store'])->middleware('throttle:cancellation-requests')->name('cancellations.store');
 Route::get('/cancellations/{cancellation}', [CancellationController::class, 'status'])->middleware('throttle:status-pages')->name('cancellations.status');
 Route::get('/refunds/{refund}', [RefundController::class, 'show'])->middleware('throttle:status-pages')->name('refunds.show');
-Route::get('/documents/vouchers/{number}', [DocumentController::class, 'voucher'])->name('documents.vouchers.show');
-Route::get('/documents/invoices/{number}', [DocumentController::class, 'invoice'])->name('documents.invoices.show');
-Route::get('/documents/receipts/{number}', [DocumentController::class, 'receipt'])->name('documents.receipts.show');
+Route::get('/documents/vouchers/{number}', [DocumentController::class, 'voucher'])->middleware('throttle:document-lookup')->name('documents.vouchers.show');
+Route::get('/documents/invoices/{number}', [DocumentController::class, 'invoice'])->middleware('throttle:document-lookup')->name('documents.invoices.show');
+Route::get('/documents/receipts/{number}', [DocumentController::class, 'receipt'])->middleware('throttle:document-lookup')->name('documents.receipts.show');
 Route::get('/verify/voucher/{token}', [VerificationController::class, 'voucher'])->middleware('throttle:document-verification')->name('verify.voucher');
 Route::get('/verify/invoice/{token}', [VerificationController::class, 'invoice'])->middleware('throttle:document-verification')->name('verify.invoice');
 Route::get('/verify/receipt/{token}', [VerificationController::class, 'receipt'])->middleware('throttle:document-verification')->name('verify.receipt');
