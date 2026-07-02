@@ -5,12 +5,17 @@ use App\Models\City;
 use App\Models\Country;
 use App\Models\Currency;
 use App\Models\ExchangeRate;
+use App\Models\HbxHotel;
+use App\Models\HbxHotelFacility;
+use App\Models\HbxHotelImage;
+use App\Models\HbxHotelTranslation;
 use App\Models\Hotel;
 use App\Models\SearchSession;
 use App\Services\Currency\CurrencyConversionService;
 use App\Services\Currency\MissingExchangeRateException;
 use App\Services\Hotel\HotelCatalogService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Spatie\Permission\PermissionRegistrar;
 
 uses(RefreshDatabase::class);
@@ -175,6 +180,93 @@ it('handles unmapped supplier hotels and expired search sessions safely', functi
 
     $this->get(route('hotels.show', ['hotel' => $token, 'search' => $session->public_uuid, 'locale' => 'en']))
         ->assertNotFound();
+});
+
+it('enriches HBX search hotel detail pages with locally synced content', function () {
+    $hotel = HbxHotel::query()->create([
+        'supplier_code' => 'hbx_hotels',
+        'hotel_code' => '777001',
+        'destination_code' => 'HRG',
+        'country_code' => 'EG',
+        'hotel_name' => 'Stored HBX Hotel',
+        'star_rating' => 5,
+        'address' => 'Stored HBX Address',
+        'supplier_active' => true,
+        'public_enabled' => true,
+        'is_active' => true,
+        'synced_at' => now(),
+    ]);
+
+    HbxHotelTranslation::query()->create([
+        'hbx_hotel_id' => $hotel->id,
+        'language' => 'ENG',
+        'name' => 'Stored HBX Hotel',
+        'description' => 'Stored HBX description from Content API.',
+        'address' => 'Stored HBX translated address',
+    ]);
+
+    HbxHotelImage::query()->create([
+        'hbx_hotel_id' => $hotel->id,
+        'image_type_code' => 'GEN',
+        'path' => '00/777/777_hb_a_001.jpg',
+        'sort_order' => 1,
+        'is_primary' => true,
+        'is_active' => true,
+    ]);
+
+    HbxHotelFacility::query()->create([
+        'hbx_hotel_id' => $hotel->id,
+        'facility_code' => 'wifi',
+        'description' => 'Stored HBX Wi-Fi',
+        'is_active' => true,
+    ]);
+
+    $session = SearchSession::query()->create([
+        'public_uuid' => (string) Str::uuid(),
+        'destination_type' => 'hbx_destination',
+        'destination_id' => 1,
+        'destination_label' => 'Hurghada',
+        'check_in' => now()->addDays(8)->toDateString(),
+        'check_out' => now()->addDays(11)->toDateString(),
+        'occupancy' => [['adults' => 2, 'children' => 0, 'child_ages' => []]],
+        'currency' => 'USD',
+        'locale' => 'en',
+        'correlation_id' => (string) Str::uuid(),
+        'criteria_snapshot' => [],
+        'results_snapshot' => [[
+            'public_token' => 'opaque-hotel-token',
+            'supplier_hotel_id' => '777001',
+            'supplier_code' => 'hbx_hotels',
+            'canonical_hotel_id' => null,
+            'name' => 'Availability Name',
+            'star_rating' => 4,
+            'location' => 'Availability Location',
+            'facilities' => [],
+            'rates' => [[
+                'public_rate_token' => 'opaque-rate-token',
+                'room_name' => 'Double room',
+                'board_basis' => 'bed_and_breakfast',
+                'total' => ['minor_amount' => 12000, 'amount' => '120.00', 'currency' => 'USD'],
+                'refundability' => 'refundable',
+                'cancellation_summary' => 'Free cancellation window may apply.',
+                'occupancy' => ['adults' => 2, 'children' => 0],
+                'requires_check_rate' => true,
+            ]],
+            'minimum_price_minor' => 12000,
+            'currency' => 'USD',
+        ]],
+        'warnings' => [],
+        'expires_at' => now()->addMinutes(15),
+    ]);
+
+    $this->get(route('hotels.show', ['hotel' => 'opaque-hotel-token', 'search' => $session->public_uuid, 'locale' => 'en']))
+        ->assertOk()
+        ->assertSee('Stored HBX Hotel')
+        ->assertSee('Stored HBX description from Content API.')
+        ->assertSee('Stored HBX Wi-Fi')
+        ->assertSee('https://photos.hotelbeds.com/giata/bigger/00/777/777_hb_a_001.jpg')
+        ->assertDontSee('safe availability data')
+        ->assertDontSee('777001');
 });
 
 it('uses USD as the payable search currency and shows optional EGP estimates', function () {
